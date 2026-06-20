@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAROHH — Your Fitness. Personalized. Everyday.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo-container">
+                <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 15L15 85H85L50 15Z" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/>
+                    <path d="M35 55H65" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+                </svg>
+                <span class="logo-text">AAROHH</span>
+            </a>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="#privacy">Privacy</a>
+                <a href="#blog">Blog</a>
+                <a href="#contact">Contact</a>
+            </nav>
+            <button class="nav-cta" onclick="scrollToSection('download')">Download App</button>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav" id="mobileNav">
+        <a href="#features" class="mobile-link">Features</a>
+        <a href="#about" class="mobile-link">About</a>
+        <a href="#privacy" class="mobile-link">Privacy</a>
+        <a href="#blog" class="mobile-link">Blog</a>
+        <a href="#contact" class="mobile-link">Contact</a>
+        <button class="mobile-cta" onclick="scrollToSection('download')">Download App</button>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-left">
+                <div class="pill-tag">AI POWERED FITNESS COMPANION</div>
+                <h1 class="hero-title">Your Fitness.<br>Personalized.<br><span class="highlight-grey">Everyday.</span></h1>
+                <p class="hero-desc">
+                    Aarohh is your AI-powered fitness companion that helps you with workouts, nutrition, habits and progress — all in one place.
+                </p>
+                <div class="download-stores">
+                    <a href="#" class="store-btn store-apple">
+                        <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,22C14.32,22.05 13.89,21.24 12.37,21.24C10.84,21.24 10.37,21.97 9.1,22.03C7.79,22.08 6.8,20.72 5.96,19.5C4.26,17 2.96,12.4 4.72,9.35C5.6,7.82 7.16,6.85 8.85,6.82C10.14,6.8 11.35,7.69 12.14,7.69C12.93,7.69 14.38,6.62 15.94,6.78C16.6,6.81 18.45,7.05 19.65,8.8C19.55,8.87 17.2,10.23 17.22,12.95C17.24,16.2 19.93,17.27 19.96,17.28C19.93,17.37 19.52,18.78 18.71,19.5M15.97,4.17C16.63,3.37 17.07,2.28 16.95,1C16,1.04 14.9,1.6 14.24,2.38C13.68,3.04 13.19,4.14 13.34,5.39C14.39,5.47 15.4,4.88 15.97,4.17Z"/>
+                        </svg>
+                        <div class="store-text">
+                            <span>Download on the</span>
+                            <strong>App Store</strong>
+                        </div>
+                    </a>
+                    <a href="#" class="store-btn store-google">
+                        <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3,5.27V18.73L16.55,12L3,5.27M17.87,11.33L19.5,12.15C20.17,12.5 20.17,13.5 19.5,13.85L17.87,14.67L15.3,13.38L17.87,11.33M3,3.41C3,3 3.5,2.77 3.86,3L17.1,10.73L14.3,12.95L3,3.41M3,20.59L14.3,13.05L17.1,15.27L3.86,23C3.5,23.23 3,23 3,20.59Z"/>
+                        </svg>
+                        <div class="store-text">
+                            <span>Get it on</span>
+                            <strong>Google Play</strong>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="hero-right">
+                <img src="assets/two_phones.png" alt="AAROHH Mobile App Screenshots showing Wellness Tracker and Workout Summary" class="hero-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="features-header">
+            <div class="pill-tag center">FEATURES</div>
+            <h2 class="section-title center">Everything you need.<br>Nothing you don't.</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="icon-wrapper">
+                    <!-- Dumbbell -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6.5 6.5L17.5 17.5M18.5 14L22 17.5L18.5 21L15 17.5L18.5 14ZM5.5 3L9 6.5L5.5 10L2 6.5L5.5 3Z" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 6L18 10M6 14L10 18" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h3>AI Workouts</h3>
+                <p>Personalized workout plans that adapt to your progress.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-wrapper">
+                    <!-- Fork & Knife -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5v14c0 1.66-1.34 3-3 3s-3-1.34-3-3M17 9h-6M7 2v10c0 1.66 1.34 3 3 3s3-1.34 3-3V2M6 6h8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3>AI Nutrition</h3>
+                <p>Custom diet plans based on your goals, preferences and body.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-wrapper">
+                    <!-- Progress Chart -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18"/>
+                        <path d="M18.5 9l-5 5-3-3-4.5 4.5"/>
+                    </svg>
+                </div>
+                <h3>Progress Tracking</h3>
+                <p>Track workouts, weight, body metrics and achievements.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-wrapper">
+                    <!-- Flame -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 3.5z"/>
+                    </svg>
+                </div>
+                <h3>Habit Streaks</h3>
+                <p>Build healthy habits and keep your streaks alive.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-wrapper">
+                    <!-- Community -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 010 7.75"/>
+                    </svg>
+                </div>
+                <h3>Community</h3>
+                <p>Stay motivated with a community that supports you.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-wrapper">
+                    <!-- Target -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <circle cx="12" cy="12" r="6"/>
+                        <circle cx="12" cy="12" r="2"/>
+                    </svg>
+                </div>
+                <h3>Smart Goals</h3>
+                <p>Set goals, get AI insights and smash your limits.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="about-card">
+            <div class="about-left">
+                <div class="pill-tag">ABOUT AAROHH</div>
+                <h2 class="about-title">Built to elevate every version of <span class="highlight-grey">you.</span></h2>
+                <p class="about-desc">
+                    Aarohh is more than just a fitness app. It's a complete ecosystem to help you move better, eat smarter and live healthier.
+                </p>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-value">AI</div>
+                        <div class="stat-label">Powered</div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-box">
+                        <div class="stat-value">100+</div>
+                        <div class="stat-label">Exercises</div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-box">
+                        <div class="stat-value">10K+</div>
+                        <div class="stat-label">Users</div>
+                    </div>
+                </div>
+            </div>
+            <div class="about-right">
+                <div class="image-wrapper">
+                    <img src="assets/mountain.png" alt="Athlete looking out at snowy mountains from summit" class="about-image">
+                    <div class="mission-badge">
+                        <div class="badge-text">
+                            <h4>Our Mission</h4>
+                            <p>To make personalized fitness simple, accessible and powerful for everyone.</p>
+                        </div>
+                        <svg class="badge-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M50 20L20 80H80L50 20Z" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/>
+                            <path d="M38 56H62" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="download" class="cta">
+        <div class="cta-card">
+            <div class="cta-left">
+                <span class="cta-tag">BE THE FIRST TO EXPERIENCE AAROHH</span>
+                <h2 class="cta-title">Your journey to a better you starts now.</h2>
+                <p class="cta-desc">Download Aarohh and take the first step towards your best self.</p>
+            </div>
+            <div class="cta-right">
+                <div class="cta-stores">
+                    <a href="#" class="store-btn store-apple dark">
+                        <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,22C14.32,22.05 13.89,21.24 12.37,21.24C10.84,21.24 10.37,21.97 9.1,22.03C7.79,22.08 6.8,20.72 5.96,19.5C4.26,17 2.96,12.4 4.72,9.35C5.6,7.82 7.16,6.85 8.85,6.82C10.14,6.8 11.35,7.69 12.14,7.69C12.93,7.69 14.38,6.62 15.94,6.78C16.6,6.81 18.45,7.05 19.65,8.8C19.55,8.87 17.2,10.23 17.22,12.95C17.24,16.2 19.93,17.27 19.96,17.28C19.93,17.37 19.52,18.78 18.71,19.5M15.97,4.17C16.63,3.37 17.07,2.28 16.95,1C16,1.04 14.9,1.6 14.24,2.38C13.68,3.04 13.19,4.14 13.34,5.39C14.39,5.47 15.4,4.88 15.97,4.17Z"/>
+                        </svg>
+                        <div class="store-text">
+                            <span>Download on the</span>
+                            <strong>App Store</strong>
+                        </div>
+                    </a>
+                    <a href="#" class="store-btn store-google dark">
+                        <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3,5.27V18.73L16.55,12L3,5.27M17.87,11.33L19.5,12.15C20.17,12.5 20.17,13.5 19.5,13.85L17.87,14.67L15.3,13.38L17.87,11.33M3,3.41C3,3 3.5,2.77 3.86,3L17.1,10.73L14.3,12.95L3,3.41M3,20.59L14.3,13.05L17.1,15.27L3.86,23C3.5,23.23 3,23 3,20.59Z"/>
+                        </svg>
+                        <div class="store-text">
+                            <span>Get it on</span>
+                            <strong>Google Play</strong>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-left">
+                <a href="#" class="logo-container">
+                    <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50 15L15 85H85L50 15Z" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/>
+                        <path d="M35 55H65" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+                    </svg>
+                    <span class="logo-text">AAROHH</span>
+                </a>
+                <p class="footer-tagline">
+                    Your AI-powered fitness companion for workouts, nutrition, habits and progress tracking.
+                </p>
+            </div>
+            <div class="footer-right">
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <a href="#">About Us</a>
+                    <a href="#">Contact</a>
+                    <a href="#">Careers</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms & Conditions</a>
+                    <a href="#">Account Deletion</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Connect</h4>
+                    <a href="#">Instagram</a>
+                    <a href="#">YouTube</a>
+                    <a href="mailto:support1@aarohh.in">Email</a>
+                    <span class="footer-email">support1@aarohh.in</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 AAROHH. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Mobile Nav Hamburger Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileNav = document.getElementById('mobileNav');
+
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+        });
+
+        // Close mobile nav when clicking a link
+        document.querySelectorAll('.mobile-link, .mobile-cta').forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                mobileNav.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
