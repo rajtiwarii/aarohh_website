@@ -758,6 +758,9 @@ footer {
         flex-direction: column;
         padding: 40px;
     }
+    .about-left, .about-right {
+        width: 100%;
+    }
     .cta-card {
         flex-direction: column;
         padding: 40px;
@@ -793,20 +796,67 @@ footer {
     }
     
     .hero-title {
-        font-size: 2.75rem;
+        font-size: 2.5rem;
     }
     .features-grid {
         grid-template-columns: 1fr;
         grid-gap: 20px;
     }
     .about-title {
-        font-size: 2.25rem;
+        font-size: 2rem;
     }
     .stats-row {
-        justify-content: space-between;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .mission-badge {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        right: auto;
+        margin-top: 16px;
+        background-color: var(--text-primary);
+        color: var(--bg-white);
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .badge-icon-img {
+        margin-top: 12px;
     }
     .footer-right {
         flex-direction: column;
         gap: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 2.1rem;
+    }
+    .about-title {
+        font-size: 1.75rem;
+    }
+    .input-group {
+        flex-direction: column;
+        gap: 8px;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+    .waitlist-input {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        width: 100%;
+        background-color: var(--bg-white);
+    }
+    .waitlist-btn {
+        width: 100%;
+        padding: 14px 20px;
+        border-radius: 8px;
+    }
+    .cta-card {
+        padding: 30px 20px;
     }
 }
