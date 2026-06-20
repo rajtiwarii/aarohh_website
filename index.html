@@ -14,19 +14,14 @@
     <header class="navbar">
         <div class="nav-container">
             <a href="#" class="logo-container">
-                <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M28 80L55 18" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                    <path d="M72 80L45 18" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                    <path d="M35 58H65" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                </svg>
-                <span class="logo-text">AAROHH</span>
+                <img src="assets/logo_icon.png" alt="AAROHH Logo Icon" class="logo-icon-img">
+                <img src="assets/logo_wordmark.png" alt="AAROHH" class="logo-wordmark-img">
             </a>
             <nav class="nav-links">
                 <a href="#features">Features</a>
                 <a href="#about">About</a>
-                <a href="#privacy">Privacy</a>
-                <a href="#blog">Blog</a>
-                <a href="#contact">Contact</a>
+                <a href="javascript:void(0)" onclick="openPrivacyModal()">Privacy</a>
+                <a href="mailto:support1@aarohh.in" onclick="scrollToSection('contact-footer')">Contact</a>
             </nav>
             <button class="nav-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
@@ -40,9 +35,8 @@
     <div class="mobile-nav" id="mobileNav">
         <a href="#features" class="mobile-link">Features</a>
         <a href="#about" class="mobile-link">About</a>
-        <a href="#privacy" class="mobile-link">Privacy</a>
-        <a href="#blog" class="mobile-link">Blog</a>
-        <a href="#contact" class="mobile-link">Contact</a>
+        <a href="javascript:void(0)" onclick="openPrivacyModal()" class="mobile-link">Privacy</a>
+        <a href="mailto:support1@aarohh.in" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
         <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
     </div>
 
@@ -182,11 +176,7 @@
                             <h4>Our Mission</h4>
                             <p>To make personalized fitness simple, accessible and powerful for everyone.</p>
                         </div>
-                        <svg class="badge-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M28 80L55 18" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                            <path d="M72 80L45 18" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                            <path d="M35 58H65" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                        </svg>
+                        <img src="assets/logo_icon.png" alt="AAROHH Logo Icon White" class="badge-icon-img">
                     </div>
                 </div>
             </div>
@@ -214,16 +204,12 @@
     </section>
 
     <!-- Footer -->
-    <footer>
+    <footer id="contact-footer">
         <div class="footer-container">
             <div class="footer-left">
                 <a href="#" class="logo-container">
-                    <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M28 80L55 18" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                        <path d="M72 80L45 18" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                        <path d="M35 58H65" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-                    </svg>
-                    <span class="logo-text">AAROHH</span>
+                    <img src="assets/logo_icon.png" alt="AAROHH Logo Icon" class="logo-icon-img">
+                    <img src="assets/logo_wordmark.png" alt="AAROHH" class="logo-wordmark-img">
                 </a>
                 <p class="footer-tagline">
                     Your AI-powered fitness companion for workouts, nutrition, habits and progress tracking.
@@ -232,14 +218,14 @@
             <div class="footer-right">
                 <div class="footer-column">
                     <h4>Company</h4>
-                    <a href="#">About Us</a>
-                    <a href="#">Contact</a>
+                    <a href="#about">About Us</a>
+                    <a href="mailto:support1@aarohh.in">Contact</a>
                     <a href="#">Careers</a>
                 </div>
                 <div class="footer-column">
                     <h4>Support</h4>
                     <a href="#">Help Center</a>
-                    <a href="#">Privacy Policy</a>
+                    <a href="javascript:void(0)" onclick="openPrivacyModal()">Privacy Policy</a>
                     <a href="#">Terms & Conditions</a>
                     <a href="#">Account Deletion</a>
                 </div>
@@ -248,7 +234,7 @@
                     <a href="#">Instagram</a>
                     <a href="#">YouTube</a>
                     <a href="mailto:support1@aarohh.in">Email</a>
-                    <span class="footer-email">support1@aarohh.in</span>
+                    <span class="footer-email-text">support1@aarohh.in</span>
                 </div>
             </div>
         </div>
@@ -256,6 +242,32 @@
             <p>&copy; 2026 AAROHH. All rights reserved.</p>
         </div>
     </footer>
+
+    <!-- Privacy Policy Modal -->
+    <div class="modal-overlay" id="privacyModal" onclick="closePrivacyModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closePrivacyModal()">&times;</button>
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <p>Last updated: June 20, 2026</p>
+            </div>
+            <div class="modal-body">
+                <p>At AAROHH, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your personal information when you use our fitness app and website.</p>
+                
+                <h3>1. Information We Collect</h3>
+                <p>We may collect information you provide directly to us, such as your email address when you join our waitlist. When the app is launched, we may collect wellness and exercise logs, sleep metrics, and nutrition preferences, processed strictly on your device.</p>
+                
+                <h3>2. How We Use Your Data</h3>
+                <p>We use your email address exclusively to send you updates regarding our app launch, beta testing invitations, and direct support. We do not sell or share your personal data with third-party advertisers.</p>
+                
+                <h3>3. Local Device Processing</h3>
+                <p>To ensure maximum privacy, AAROHH processes your biometric metrics, health metrics, and habits locally on your device whenever possible.</p>
+                
+                <h3>4. Your Rights</h3>
+                <p>You have the right to request access to the information we hold about you or request its complete deletion. Contact us at <strong>support1@aarohh.in</strong> for any data deletion requests.</p>
+            </div>
+        </div>
+    </div>
 
     <script>
         function scrollToSection(id) {
@@ -295,6 +307,19 @@
             
             // Log for mock submission
             console.log(`Waitlist submission from ${source}:`, form.querySelector('input').value);
+        }
+
+        // Privacy Modal Handlers
+        function openPrivacyModal() {
+            const modal = document.getElementById('privacyModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Disable scroll under modal
+        }
+
+        function closePrivacyModal() {
+            const modal = document.getElementById('privacyModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Re-enable scroll
         }
     </script>
 </body>

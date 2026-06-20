@@ -53,20 +53,24 @@ body {
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     text-decoration: none;
     color: var(--text-primary);
 }
 
-.logo-icon {
-    width: 24px;
-    height: 24px;
+.logo-icon-img {
+    height: 28px;
+    width: auto;
+    display: block;
+    object-fit: contain;
 }
 
-.logo-text {
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
+.logo-wordmark-img {
+    height: 14px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+    margin-top: 2px;
 }
 
 .nav-links {
@@ -488,11 +492,12 @@ body {
     opacity: 0.9;
 }
 
-.badge-icon {
+.badge-icon-img {
     width: 32px;
     height: 32px;
     flex-shrink: 0;
-    color: #ffffff;
+    object-fit: contain;
+    filter: brightness(0) invert(1); /* make the black logo icon white for the dark badge */
 }
 
 /* CTA Section */
@@ -602,8 +607,11 @@ footer {
     color: var(--text-primary);
 }
 
-.footer-email {
-    display: none;
+.footer-email-text {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 8px;
 }
 
 .footer-bottom {
@@ -617,6 +625,109 @@ footer {
 .footer-bottom p {
     font-size: 0.8rem;
     color: var(--text-grey);
+}
+
+/* Modal Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background-color: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    transform: translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--text-grey);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+.modal-header {
+    padding: 30px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+}
+
+.modal-header p {
+    font-size: 0.85rem;
+    color: var(--text-grey);
+    margin-top: 4px;
+}
+
+.modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.modal-body h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 24px 0 8px 0;
+}
+
+.modal-body h3:first-child {
+    margin-top: 0;
+}
+
+.modal-body p {
+    margin-bottom: 16px;
+}
+
+.modal-body strong {
+    color: var(--text-primary);
 }
 
 @keyframes fadeIn {
