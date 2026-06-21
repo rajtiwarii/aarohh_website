@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="assets/logo_square.png?v=6.0">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/logo_square.png?v=6.0">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=6.0">
-    <link rel="stylesheet" href="style.css?v=2.4">
+    <link rel="stylesheet" href="style.css?v=2.5">
 </head>
 <body>
     <!-- Navbar -->
@@ -22,8 +22,10 @@
                 <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
             <nav class="nav-links">
+                <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                 <a href="#features">Features</a>
                 <a href="#about">About</a>
+                <a href="#faq">FAQ</a>
                 <a href="#contact-footer" onclick="scrollToSection('contact-footer'); return false;">Contact</a>
             </nav>
             <button class="nav-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
@@ -36,8 +38,10 @@
 
     <!-- Mobile Nav Overlay -->
     <div class="mobile-nav" id="mobileNav">
+        <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="mobile-link">Home</a>
         <a href="#features" class="mobile-link">Features</a>
         <a href="#about" class="mobile-link">About</a>
+        <a href="#faq" class="mobile-link">FAQ</a>
         <a href="#contact-footer" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
         <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
     </div>
@@ -176,6 +180,55 @@
                         </div>
                         <img src="assets/logo_icon.png" alt="AAROHH Logo Icon White" style="height: 32px; width: auto; display: block; object-fit: contain; filter: brightness(0) invert(1);">
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+        <div class="faq-header">
+            <div class="pill-tag center">FAQ</div>
+            <h2 class="section-title center">Frequently Asked Questions</h2>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>What is AAROHH?</span>
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p>AAROHH is a professional social network built specifically for lifestyle, active living, and fitness. Unlike traditional single-user tracking apps, AAROHH lets you build your wellness identity, connect with friends, share habit streaks, and work collaboratively with certified gym coaches.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>How does the trainer connection work?</span>
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p>Whether you work out at a local gym or remotely, you can search for and link with certified coaches on AAROHH. Once connected, your coach can customize your workouts and meal targets directly into your daily feed and monitor your progress trends in real-time.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>Is my health and biometric data secure?</span>
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes. Privacy is a core pillar of AAROHH. Your biometric details are processed securely and you retain absolute control over what is kept private, what is shared with your coach, and what is posted to your friends' feed. We have zero ad tracking.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>When will AAROHH launch?</span>
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p>We are currently onboarding coaches and launch-testing our private beta. By submitting your email to our waitlist, you secure priority access to download the app and create your unique username as soon as public registrations open.</p>
                 </div>
             </div>
         </div>
@@ -320,10 +373,17 @@
             document.body.style.overflow = ''; // Re-enable scroll
         }
 
+        // FAQ Toggle
+        function toggleFaq(btn) {
+            const item = btn.parentElement;
+            item.classList.toggle('active');
+        }
+
         // Scroll Spy - Active Link Underline
         const spySections = [
             document.getElementById('features'),
             document.getElementById('about'),
+            document.getElementById('faq'),
             document.getElementById('contact-footer')
         ];
         const navLinks = document.querySelectorAll('.nav-links a');
@@ -342,15 +402,18 @@
                 }
             });
 
-            // Fallback for top of page / hero section (clear active lines)
+            // Fallback for top of page / hero section (activate Home link)
             if (scrollPosition < 200) {
-                current = '';
+                current = 'top';
             }
 
             navLinks.forEach(link => {
                 link.classList.remove('active');
                 const href = link.getAttribute('href');
-                if (href && href.includes(current) && current !== '') {
+                // Support exact home matches or section includes
+                if (href === '#top' && current === 'top') {
+                    link.classList.add('active');
+                } else if (href && href.includes(current) && current !== 'top' && current !== '') {
                     link.classList.add('active');
                 }
             });
