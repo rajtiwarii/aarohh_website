@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="assets/logo_square.png?v=6.0">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/logo_square.png?v=6.0">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=6.0">
-    <link rel="stylesheet" href="style.css?v=2.3">
+    <link rel="stylesheet" href="style.css?v=2.4">
 </head>
 <body>
     <!-- Navbar -->
@@ -25,7 +25,7 @@
                 <a href="#features">Features</a>
                 <a href="#about">About</a>
                 <a href="javascript:void(0)" onclick="openPrivacyModal()">Privacy</a>
-                <a href="mailto:support@aarohh.com" onclick="scrollToSection('contact-footer')">Contact</a>
+                <a href="#contact-footer" onclick="scrollToSection('contact-footer'); return false;">Contact</a>
             </nav>
             <button class="nav-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
@@ -40,7 +40,7 @@
         <a href="#features" class="mobile-link">Features</a>
         <a href="#about" class="mobile-link">About</a>
         <a href="javascript:void(0)" onclick="openPrivacyModal()" class="mobile-link">Privacy</a>
-        <a href="mailto:support@aarohh.com" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
+        <a href="#contact-footer" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
         <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
     </div>
 
@@ -321,6 +321,42 @@
             modal.classList.remove('active');
             document.body.style.overflow = ''; // Re-enable scroll
         }
+
+        // Scroll Spy - Active Link Underline
+        const spySections = [
+            document.getElementById('features'),
+            document.getElementById('about'),
+            document.getElementById('contact-footer')
+        ];
+        const navLinks = document.querySelectorAll('.nav-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
+            spySections.forEach(section => {
+                if (section) {
+                    const sectionTop = section.offsetTop - 160; // offset navbar height + padding
+                    const sectionHeight = section.offsetHeight;
+                    if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                        current = section.getAttribute('id');
+                    }
+                }
+            });
+
+            // Fallback for top of page / hero section (clear active lines)
+            if (scrollPosition < 200) {
+                current = '';
+            }
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (href && href.includes(current) && current !== '') {
+                    link.classList.add('active');
+                }
+            });
+        });
     </script>
 </body>
 </html>
