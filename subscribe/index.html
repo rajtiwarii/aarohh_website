@@ -93,7 +93,7 @@
                     <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background-color: #ff7b00; color: #ffffff; padding: 4px 16px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">RECOMMENDED</div>
                     <h3>Premium Plan</h3>
                     <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.9rem;">Unlock the professional social loop.</p>
-                    <div style="font-size: 2.25rem; font-weight: 800; margin-bottom: 30px;">$9.99 <span style="font-size: 1rem; color: var(--text-grey); font-weight: 500;">/ month</span></div>
+                    <div style="font-size: 2.25rem; font-weight: 800; margin-bottom: 30px;">₹49 <span style="font-size: 1rem; color: var(--text-grey); font-weight: 500;">/ month</span></div>
                     
                     <ul style="margin-bottom: 30px;">
                         <li>Connect with certified coaches</li>
@@ -142,6 +142,23 @@
                             </div>
                             <div class="auth-error-msg" id="checkout-error" style="color: #198754; font-weight: bold; margin-top: 10px;"></div>
                             <button type="submit" id="checkoutBtn" class="auth-submit-btn" style="margin-top: 16px; background-color: #ff7b00; color: #ffffff;">Pay & Upgrade to Premium</button>
+                        </form>
+                        
+                        <div style="display: flex; align-items: center; justify-content: center; margin: 24px 0;">
+                            <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                            <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
+                            <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                        </div>
+                        
+                        <form onsubmit="handleCodeActivation(event)">
+                            <div class="form-group" style="margin-bottom: 8px;">
+                                <label>Activate Premium with Code</label>
+                                <div style="display: flex; gap: 10px; margin-top: 6px;">
+                                    <input type="text" id="activationCode" required placeholder="Enter code (e.g. AAROHH49)" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-family); outline: none;">
+                                    <button type="submit" class="auth-submit-btn" style="width: auto; padding: 12px 24px; margin-top: 0; background-color: #000000; color: #ffffff;">Activate</button>
+                                </div>
+                            </div>
+                            <div class="auth-error-msg" id="code-error" style="font-weight: bold; margin-top: 8px; min-height: 18px; font-size: 0.85rem;"></div>
                         </form>
                     </div>
                 </div>
@@ -244,6 +261,17 @@
                     <div class="auth-error-msg" id="signin-error"></div>
                     
                     <button type="submit" class="auth-submit-btn">Log In</button>
+                    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
+                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                        <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
+                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                    </div>
+                    <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)">
+                        <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
+                        </svg>
+                        Continue with Google
+                    </button>
                 </div>
             </form>
             
@@ -271,6 +299,17 @@
                     <div class="auth-error-msg" id="signup-error"></div>
                     
                     <button type="submit" class="auth-submit-btn">Create Account</button>
+                    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
+                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                        <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
+                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                    </div>
+                    <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)">
+                        <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
+                        </svg>
+                        Continue with Google
+                    </button>
                 </div>
             </form>
         </div>
@@ -311,7 +350,10 @@
                 // Logged In navbar
                 loggedOutNav.style.display = 'none';
                 loggedInNav.style.display = 'flex';
-                userEmailDisplay.textContent = user.email;
+                
+                // Fallback first name before Firestore loads
+                const initialName = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
+                userEmailDisplay.textContent = initialName;
                 
                 // Page checkout box updates
                 checkoutLoggedOut.style.display = 'none';
@@ -320,7 +362,11 @@
                 
                 // Listen to Firestore premium status
                 db.collection('users').doc(user.uid).onSnapshot(doc => {
-                    const isPremium = doc.exists && doc.data().isPremium === true;
+                    const data = doc.exists ? doc.data() : null;
+                    const firstName = (data && data.name) ? data.name.split(' ')[0] : initialName;
+                    userEmailDisplay.textContent = firstName;
+                    
+                    const isPremium = data && data.isPremium === true;
                     
                     if (isPremium) {
                         premiumBadge.style.display = 'inline-block';
@@ -329,7 +375,7 @@
                         // Page checkout box state
                         checkoutAlreadyPremium.style.display = 'block';
                         checkoutNeedsUpgrade.style.display = 'none';
-                        updateMobileNav(user, true);
+                        updateMobileNav(user, true, firstName);
                     } else {
                         premiumBadge.style.display = 'none';
                         upgradeBtn.style.display = 'inline-block';
@@ -337,7 +383,7 @@
                         // Page checkout box state
                         checkoutAlreadyPremium.style.display = 'none';
                         checkoutNeedsUpgrade.style.display = 'block';
-                        updateMobileNav(user, false);
+                        updateMobileNav(user, false, firstName);
                     }
                 }, error => {
                     // Fallback
@@ -345,7 +391,7 @@
                     upgradeBtn.style.display = 'inline-block';
                     checkoutAlreadyPremium.style.display = 'none';
                     checkoutNeedsUpgrade.style.display = 'block';
-                    updateMobileNav(user, false);
+                    updateMobileNav(user, false, initialName);
                 });
             } else {
                 // Logged Out
@@ -363,11 +409,12 @@
             }
         });
 
-        function updateMobileNav(user, isPremium) {
+        function updateMobileNav(user, isPremium, firstName) {
             const mobileAuthNav = document.getElementById('mobileAuthNav');
+            const displayName = firstName || (user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0]);
             mobileAuthNav.innerHTML = `
                 <div style="text-align: center; margin-bottom: 8px;">
-                    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: block;">${user.email}</span>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: block;">Hi, ${displayName}</span>
                     ${isPremium ? '<span class="premium-badge-tag" style="display: inline-block; margin-top: 4px;">Premium</span>' : '<button class="mobile-cta" style="background-color: var(--text-primary); color: var(--bg-white); margin-top: 8px; width: 100%;" onclick="window.location.href=\'./\'">Upgrade to Premium</button>'}
                 </div>
                 <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="handleLogout()">Log Out</button>
@@ -375,6 +422,37 @@
         }
 
         // Firebase Auth operations
+        function handleGoogleSignIn(e) {
+            if (e) e.preventDefault();
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then(result => {
+                    const user = result.user;
+                    // Check if doc exists in Firestore, otherwise write profile doc matching app standard
+                    return db.collection('users').doc(user.uid).get().then(doc => {
+                        if (!doc.exists) {
+                            return db.collection('users').doc(user.uid).set({
+                                'name': user.displayName || 'User',
+                                'email': user.email,
+                                'isPremium': false,
+                                'photoUrl': user.photoURL || '',
+                                'uid': user.uid,
+                                'createdAt': firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+                    });
+                })
+                .then(() => {
+                    closeAuthModal();
+                })
+                .catch(err => {
+                    const signinError = document.getElementById('signin-error');
+                    const signupError = document.getElementById('signup-error');
+                    if (signinError) signinError.textContent = err.message;
+                    if (signupError) signupError.textContent = err.message;
+                });
+        }
+
         function handleSignUp(e) {
             e.preventDefault();
             const name = document.getElementById('signup-name').value;
@@ -425,6 +503,56 @@
                 mobileNav.classList.remove('active');
                 menuToggle.classList.remove('active');
             });
+        }
+
+        function handleCodeActivation(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const codeInput = document.getElementById('activationCode');
+            const errorDiv = document.getElementById('code-error');
+            const user = auth.currentUser;
+
+            if (!user) {
+                errorDiv.style.color = '#dc3545';
+                errorDiv.textContent = "Please sign in first.";
+                return;
+            }
+
+            const code = codeInput.value.trim().toUpperCase();
+            const validCodes = ['AAROHH49', 'AAROHHPREMIUM', 'FREEPREMIUM', 'FIT2026'];
+
+            if (validCodes.includes(code)) {
+                btn.disabled = true;
+                const origText = btn.textContent;
+                btn.textContent = "Verifying...";
+                errorDiv.style.color = '#198754';
+                errorDiv.textContent = "Validating activation code...";
+                
+                setTimeout(() => {
+                    db.collection('users').doc(user.uid).set({
+                        'isPremium': true
+                    }, { merge: true })
+                    .then(() => {
+                        btn.disabled = false;
+                        btn.textContent = origText;
+                        errorDiv.style.color = '#198754';
+                        errorDiv.textContent = "Code accepted! Premium activated.";
+                        codeInput.value = "";
+                        setTimeout(() => {
+                            errorDiv.textContent = "";
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.textContent = origText;
+                        errorDiv.style.color = '#dc3545';
+                        errorDiv.textContent = err.message;
+                    });
+                }, 1200);
+            } else {
+                errorDiv.style.color = '#dc3545';
+                errorDiv.textContent = "Invalid code. Please try again.";
+            }
         }
 
         // Simulate payment and upgrade user status
