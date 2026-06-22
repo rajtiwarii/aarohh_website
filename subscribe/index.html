@@ -193,7 +193,7 @@
                     <a href="#">Help Center</a>
                     <a href="javascript:void(0)" onclick="openPrivacyModal()">Privacy Policy</a>
                     <a href="#">Terms & Conditions</a>
-                    <a href="#">Account Deletion</a>
+                    <a href="javascript:void(0)" onclick="openDeletionModal()">Account Deletion</a>
                 </div>
                 <div class="footer-column">
                     <h4>Connect</h4>
@@ -253,12 +253,15 @@
                     
                     <div class="form-group">
                         <label for="signin-email">Email Address</label>
-                        <input type="email" id="signin-email" required placeholder="name@example.com">
+                        <input type="email" id="signin-email" required placeholder="alex.mercer@gmail.com">
                     </div>
                     
                     <div class="form-group">
                         <label for="signin-password">Password</label>
                         <input type="password" id="signin-password" required placeholder="Enter password">
+                        <div style="text-align: right; margin-top: 4px;">
+                            <a href="javascript:void(0)" onclick="showForgotPassword()" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+                        </div>
                     </div>
                     
                     <div class="auth-error-msg" id="signin-error"></div>
@@ -277,6 +280,27 @@
                     </button>
                 </div>
             </form>
+
+            <!-- Forgot Password Form -->
+            <form id="forgotPasswordForm" class="auth-form" style="display: none;" onsubmit="handleForgotPassword(event)">
+                <div class="auth-form-body">
+                    <h2>Reset Password</h2>
+                    <p>Enter your email address and we'll send you a link to reset your password.</p>
+                    
+                    <div class="form-group">
+                        <label for="reset-email">Email Address</label>
+                        <input type="email" id="reset-email" required placeholder="alex.mercer@gmail.com">
+                    </div>
+                    
+                    <div class="auth-error-msg" id="reset-error" style="color: #198754; font-weight: bold; margin-top: 10px;"></div>
+                    
+                    <button type="submit" class="auth-submit-btn">Send Reset Link</button>
+                    
+                    <div style="text-align: center; margin-top: 16px;">
+                        <a href="javascript:void(0)" onclick="switchAuthTab('signin')" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
+                    </div>
+                </div>
+            </form>
             
             <!-- Sign Up Form -->
             <form id="signUpForm" class="auth-form" style="display: none;" onsubmit="handleSignUp(event)">
@@ -291,7 +315,7 @@
                     
                     <div class="form-group">
                         <label for="signup-email">Email Address</label>
-                        <input type="email" id="signup-email" required placeholder="name@example.com">
+                        <input type="email" id="signup-email" required placeholder="alex.mercer@gmail.com">
                     </div>
                     
                     <div class="form-group">
@@ -315,6 +339,33 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Account Deletion Modal -->
+    <div class="modal-overlay" id="deletionModal" onclick="closeDeletionModal()">
+        <div class="modal-content auth-modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeDeletionModal()">&times;</button>
+            <div class="auth-form-body">
+                <h2>Delete Account</h2>
+                <p>We are sorry to see you go. For security, please confirm your email and password to permanently delete your AAROHH account and associated logs.</p>
+                
+                <form id="deletionForm" onsubmit="handleAccountDeletion(event)">
+                    <div class="form-group">
+                        <label for="delete-email">Confirm Email Address</label>
+                        <input type="email" id="delete-email" required placeholder="alex.mercer@gmail.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delete-password">Confirm Password</label>
+                        <input type="password" id="delete-password" required placeholder="Enter password">
+                    </div>
+                    
+                    <div class="auth-error-msg" id="delete-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 10px; min-height: 18px;"></div>
+                    
+                    <button type="submit" class="auth-submit-btn" style="background-color: #dc3545; color: #ffffff;">Permanently Delete Account</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -627,6 +678,69 @@
             document.body.style.overflow = ''; 
         }
 
+        // Account Deletion Modals & Operation
+        function openDeletionModal() {
+            const modal = document.getElementById('deletionModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            const errorDiv = document.getElementById('delete-error');
+            if (errorDiv) errorDiv.textContent = "";
+        }
+
+        function closeDeletionModal() {
+            const modal = document.getElementById('deletionModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function handleAccountDeletion(e) {
+            e.preventDefault();
+            const email = document.getElementById('delete-email').value;
+            const password = document.getElementById('delete-password').value;
+            const errorDiv = document.getElementById('delete-error');
+            errorDiv.style.color = '#dc3545';
+            errorDiv.textContent = "";
+
+            const user = auth.currentUser;
+            if (!user) {
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(cred => {
+                        const currentUser = cred.user;
+                        return db.collection('users').doc(currentUser.uid).delete().then(() => {
+                            return currentUser.delete();
+                        });
+                    })
+                    .then(() => {
+                        closeDeletionModal();
+                        alert("Your account has been deleted successfully.");
+                        window.location.reload();
+                    })
+                    .catch(err => {
+                        errorDiv.textContent = err.message;
+                    });
+            } else {
+                if (user.email !== email) {
+                    errorDiv.textContent = "Confirmed email does not match the active session email.";
+                    return;
+                }
+                const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+                user.reauthenticateWithCredential(credential)
+                    .then(() => {
+                        return db.collection('users').doc(user.uid).delete().then(() => {
+                            return user.delete();
+                        });
+                    })
+                    .then(() => {
+                        closeDeletionModal();
+                        alert("Your account has been deleted successfully.");
+                        window.location.reload();
+                    })
+                    .catch(err => {
+                        errorDiv.textContent = err.message;
+                    });
+            }
+        }
+
         // Auth Modal
         function openAuthModal(tab) {
             const modal = document.getElementById('authModal');
@@ -641,6 +755,35 @@
             document.body.style.overflow = '';
             document.getElementById('signin-error').textContent = "";
             document.getElementById('signup-error').textContent = "";
+            const resetError = document.getElementById('reset-error');
+            if (resetError) resetError.textContent = "";
+        }
+
+        function showForgotPassword() {
+            document.getElementById('signInForm').style.display = 'none';
+            document.getElementById('signUpForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+            document.getElementById('tab-signin').classList.remove('active');
+            document.getElementById('tab-signup').classList.remove('active');
+            const resetError = document.getElementById('reset-error');
+            if (resetError) resetError.textContent = "";
+        }
+
+        function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            const errorDiv = document.getElementById('reset-error');
+            errorDiv.textContent = "";
+
+            auth.sendPasswordResetEmail(email)
+                .then(() => {
+                    errorDiv.style.color = '#198754';
+                    errorDiv.textContent = "Reset link sent! Please check your email inbox.";
+                })
+                .catch(err => {
+                    errorDiv.style.color = '#dc3545';
+                    errorDiv.textContent = err.message;
+                });
         }
 
         function switchAuthTab(tab) {
@@ -648,6 +791,9 @@
             const tabSignup = document.getElementById('tab-signup');
             const signInForm = document.getElementById('signInForm');
             const signUpForm = document.getElementById('signUpForm');
+            const forgotForm = document.getElementById('forgotPasswordForm');
+
+            if (forgotForm) forgotForm.style.display = 'none';
 
             if (tab === 'signin') {
                 tabSignin.classList.add('active');

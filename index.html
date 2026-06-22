@@ -94,6 +94,84 @@
         </div>
     </section>
 
+    <!-- Dynamic Gym Section (Only visible for logged-in users) -->
+    <section id="gymSection" class="features" style="display: none; background-color: var(--bg-light); border-bottom: 1px solid var(--border-color); padding-top: 80px; padding-bottom: 80px;">
+        <div class="features-header" style="margin-bottom: 40px;">
+            <div class="pill-tag center">AAROHH GYM CLUB</div>
+            <h2 class="section-title center" id="gymSectionTitle">Your Gym Space</h2>
+        </div>
+        
+        <div class="features-container" style="max-width: 900px; margin: 0 auto; padding: 0 24px;">
+            
+            <!-- State 1: Search and Join Gym -->
+            <div id="gymSearchState" style="display: none;">
+                <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                    <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 12px;">You haven't joined a gym yet</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                        Search for a partner gym near you to access attendance logs, check-ins, and gym leaderboards.
+                    </p>
+                    
+                    <div style="display: flex; gap: 12px; max-width: 500px; margin: 0 auto 30px auto;">
+                        <input type="text" id="gymSearchInput" placeholder="Search by gym name (e.g. Gold's Gym, Cult.fit)..." style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-family); outline: none;">
+                        <button class="nav-cta" onclick="handleGymSearch()" style="margin-top: 0;">Search</button>
+                    </div>
+                    
+                    <!-- Search Results -->
+                    <div id="gymSearchResults" style="max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Dynamically populated -->
+                    </div>
+                    
+                    <div style="margin-top: 24px;">
+                        <p style="font-size: 0.85rem; color: var(--text-grey);">Or register a new gym with AAROHH:</p>
+                        <div style="display: flex; gap: 10px; max-width: 500px; margin: 10px auto 0 auto;">
+                            <input type="text" id="newGymInput" placeholder="New Gym Name" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 0.9rem; outline: none;">
+                            <button class="nav-cta" onclick="handleAddNewGym()" style="margin-top: 0; background-color: var(--text-primary); color: var(--bg-white);">Add Gym</button>
+                        </div>
+                        <div id="new-gym-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 6px; font-weight: bold;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- State 2: Gym Dashboard -->
+            <div id="gymDashboardState" style="display: none;">
+                <div class="gym-grid">
+                    
+                    <!-- Left: Attendance & Info -->
+                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                            <div>
+                                <span class="pill-tag" id="dashGymLabel" style="margin-bottom: 8px; display: inline-block;">GYM MEMBER</span>
+                                <h3 id="dashGymName" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">Gym Name</h3>
+                            </div>
+                            <button onclick="handleLeaveGym()" style="background: none; border: none; color: #dc3545; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">Leave</button>
+                        </div>
+                        
+                        <hr style="border-color: var(--border-color); margin: 20px 0;">
+                        
+                        <div style="text-align: center; padding: 20px 0;">
+                            <div style="font-size: 3rem; font-weight: 800; color: #ff7b00; line-height: 1;" id="attendanceCount">0</div>
+                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Days Attended This Month</div>
+                            
+                            <button id="checkInBtn" class="nav-cta" onclick="handleGymCheckIn()" style="width: 100%; margin-top: 24px; background-color: #ff7b00; color: #ffffff;">Check In Today</button>
+                            <div id="checkin-success-msg" style="color: #198754; font-size: 0.85rem; font-weight: bold; margin-top: 8px; min-height: 18px;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Leaderboard -->
+                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                        <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 20px;">Gym Leaderboard</h3>
+                        
+                        <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="features-header">
@@ -301,7 +379,7 @@
                     <a href="#">Help Center</a>
                     <a href="javascript:void(0)" onclick="openPrivacyModal()">Privacy Policy</a>
                     <a href="#">Terms & Conditions</a>
-                    <a href="#">Account Deletion</a>
+                    <a href="javascript:void(0)" onclick="openDeletionModal()">Account Deletion</a>
                 </div>
                 <div class="footer-column">
                     <h4>Connect</h4>
@@ -361,12 +439,15 @@
                     
                     <div class="form-group">
                         <label for="signin-email">Email Address</label>
-                        <input type="email" id="signin-email" required placeholder="name@example.com">
+                        <input type="email" id="signin-email" required placeholder="alex.mercer@gmail.com">
                     </div>
                     
                     <div class="form-group">
                         <label for="signin-password">Password</label>
                         <input type="password" id="signin-password" required placeholder="Enter password">
+                        <div style="text-align: right; margin-top: 4px;">
+                            <a href="javascript:void(0)" onclick="showForgotPassword()" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+                        </div>
                     </div>
                     
                     <div class="auth-error-msg" id="signin-error"></div>
@@ -385,6 +466,27 @@
                     </button>
                 </div>
             </form>
+
+            <!-- Forgot Password Form -->
+            <form id="forgotPasswordForm" class="auth-form" style="display: none;" onsubmit="handleForgotPassword(event)">
+                <div class="auth-form-body">
+                    <h2>Reset Password</h2>
+                    <p>Enter your email address and we'll send you a link to reset your password.</p>
+                    
+                    <div class="form-group">
+                        <label for="reset-email">Email Address</label>
+                        <input type="email" id="reset-email" required placeholder="alex.mercer@gmail.com">
+                    </div>
+                    
+                    <div class="auth-error-msg" id="reset-error" style="color: #198754; font-weight: bold; margin-top: 10px;"></div>
+                    
+                    <button type="submit" class="auth-submit-btn">Send Reset Link</button>
+                    
+                    <div style="text-align: center; margin-top: 16px;">
+                        <a href="javascript:void(0)" onclick="switchAuthTab('signin')" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
+                    </div>
+                </div>
+            </form>
             
             <!-- Sign Up Form -->
             <form id="signUpForm" class="auth-form" style="display: none;" onsubmit="handleSignUp(event)">
@@ -399,7 +501,7 @@
                     
                     <div class="form-group">
                         <label for="signup-email">Email Address</label>
-                        <input type="email" id="signup-email" required placeholder="name@example.com">
+                        <input type="email" id="signup-email" required placeholder="alex.mercer@gmail.com">
                     </div>
                     
                     <div class="form-group">
@@ -423,6 +525,33 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Account Deletion Modal -->
+    <div class="modal-overlay" id="deletionModal" onclick="closeDeletionModal()">
+        <div class="modal-content auth-modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeDeletionModal()">&times;</button>
+            <div class="auth-form-body">
+                <h2>Delete Account</h2>
+                <p>We are sorry to see you go. For security, please confirm your email and password to permanently delete your AAROHH account and associated logs.</p>
+                
+                <form id="deletionForm" onsubmit="handleAccountDeletion(event)">
+                    <div class="form-group">
+                        <label for="delete-email">Confirm Email Address</label>
+                        <input type="email" id="delete-email" required placeholder="alex.mercer@gmail.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delete-password">Confirm Password</label>
+                        <input type="password" id="delete-password" required placeholder="Enter password">
+                    </div>
+                    
+                    <div class="auth-error-msg" id="delete-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 10px; min-height: 18px;"></div>
+                    
+                    <button type="submit" class="auth-submit-btn" style="background-color: #dc3545; color: #ffffff;">Permanently Delete Account</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -506,6 +635,7 @@
             const premiumBadge = document.getElementById('premiumBadge');
             const upgradeBtn = document.getElementById('upgradeBtn');
             const mobileAuthNav = document.getElementById('mobileAuthNav');
+            const gymSection = document.getElementById('gymSection');
 
             if (user) {
                 // Logged In
@@ -517,7 +647,10 @@
                 userEmailDisplay.textContent = initialName;
                 updateMobileNav(user, false, initialName);
                 
-                // Get Firestore premium details
+                // Show Gym Section
+                if (gymSection) gymSection.style.display = 'block';
+                
+                // Get Firestore details
                 db.collection('users').doc(user.uid).onSnapshot(doc => {
                     const data = doc.exists ? doc.data() : null;
                     const firstName = (data && data.name) ? data.name.split(' ')[0] : initialName;
@@ -532,6 +665,34 @@
                         upgradeBtn.style.display = 'inline-block';
                         updateMobileNav(user, false, firstName);
                     }
+                    
+                    // Render Gym States
+                    const gymSearchState = document.getElementById('gymSearchState');
+                    const gymDashboardState = document.getElementById('gymDashboardState');
+                    if (gymSearchState && gymDashboardState) {
+                        if (data && data.gymId) {
+                            gymSearchState.style.display = 'none';
+                            gymDashboardState.style.display = 'block';
+                            
+                            document.getElementById('dashGymName').textContent = data.gymName;
+                            document.getElementById('attendanceCount').textContent = data.attendanceCount || 0;
+                            
+                            const checkInBtn = document.getElementById('checkInBtn');
+                            const todayStr = new Date().toDateString();
+                            if (data.lastCheckIn === todayStr) {
+                                checkInBtn.disabled = true;
+                                checkInBtn.textContent = 'Checked In Today';
+                            } else {
+                                checkInBtn.disabled = false;
+                                checkInBtn.textContent = 'Check In Today';
+                            }
+                            
+                            renderLeaderboard(data.gymName, data.attendanceCount || 0, firstName);
+                        } else {
+                            gymSearchState.style.display = 'block';
+                            gymDashboardState.style.display = 'none';
+                        }
+                    }
                 }, error => {
                     // Fallback
                     premiumBadge.style.display = 'none';
@@ -542,6 +703,7 @@
                 // Logged Out
                 loggedOutNav.style.display = 'flex';
                 loggedInNav.style.display = 'none';
+                if (gymSection) gymSection.style.display = 'none';
                 mobileAuthNav.innerHTML = `
                     <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="openAuthModal('signin')">Log In</button>
                     <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
@@ -644,6 +806,162 @@
                 mobileNav.classList.remove('active');
                 menuToggle.classList.remove('active');
             });
+        }
+
+        // Gym Partner Constants & Functions
+        const DEFAULT_GYMS = [
+            { id: 'golds_gym', name: "Gold's Gym" },
+            { id: 'anytime_fitness', name: "Anytime Fitness" },
+            { id: 'cult_fit', name: "Cult.fit" },
+            { id: 'aarohh_hq', name: "AAROHH Headquarters Gym" }
+        ];
+
+        function handleGymSearch() {
+            const query = document.getElementById('gymSearchInput').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('gymSearchResults');
+            resultsDiv.innerHTML = "<p style='color: var(--text-grey); font-size: 0.9rem;'>Searching gyms...</p>";
+            
+            db.collection('gyms').get().then(snapshot => {
+                let gyms = [];
+                snapshot.forEach(doc => {
+                    gyms.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Populate default gyms if collection is completely empty
+                if (gyms.length === 0) {
+                    const promises = DEFAULT_GYMS.map(g => db.collection('gyms').doc(g.id).set({ name: g.name }));
+                    return Promise.all(promises).then(() => handleGymSearch());
+                }
+                
+                const filtered = gyms.filter(g => g.name.toLowerCase().includes(query));
+                if (filtered.length === 0) {
+                    resultsDiv.innerHTML = "<p style='color: var(--text-grey); font-size: 0.9rem;'>No partner gyms found matching that name.</p>";
+                } else {
+                    resultsDiv.innerHTML = filtered.map(g => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 5px;">
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">${g.name}</span>
+                            <button class="nav-cta" onclick="joinGym('${g.id}', '${g.name.replace(/'/g, "\\'")}')" style="margin-top:0; padding: 8px 16px; font-size: 0.85rem; background-color: #000000; color: #ffffff; border: none; border-radius: 6px;">Join Gym</button>
+                        </div>
+                    `).join('');
+                }
+            }).catch(err => {
+                resultsDiv.innerHTML = `<p style='color: #dc3545; font-size: 0.9rem;'>Error: ${err.message}</p>`;
+            });
+        }
+
+        function joinGym(gymId, gymName) {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            db.collection('users').doc(user.uid).set({
+                gymId: gymId,
+                gymName: gymName,
+                attendanceCount: 0,
+                lastCheckIn: null
+            }, { merge: true }).then(() => {
+                const resultsDiv = document.getElementById('gymSearchResults');
+                if (resultsDiv) resultsDiv.innerHTML = "";
+                const searchInput = document.getElementById('gymSearchInput');
+                if (searchInput) searchInput.value = "";
+            });
+        }
+
+        function handleLeaveGym() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            if (confirm("Are you sure you want to leave this gym? Your attendance history will be cleared.")) {
+                db.collection('users').doc(user.uid).update({
+                    gymId: firebase.firestore.FieldValue.delete(),
+                    gymName: firebase.firestore.FieldValue.delete(),
+                    attendanceCount: firebase.firestore.FieldValue.delete(),
+                    lastCheckIn: firebase.firestore.FieldValue.delete()
+                });
+            }
+        }
+
+        function handleGymCheckIn() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            const userRef = db.collection('users').doc(user.uid);
+            userRef.get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const todayStr = new Date().toDateString();
+                    
+                    if (data.lastCheckIn === todayStr) {
+                        const msg = document.getElementById('checkin-success-msg');
+                        msg.style.color = '#dc3545';
+                        msg.textContent = "You've already checked in today!";
+                        return;
+                    }
+                    
+                    const newCount = (data.attendanceCount || 0) + 1;
+                    return userRef.set({
+                        attendanceCount: newCount,
+                        lastCheckIn: todayStr
+                    }, { merge: true }).then(() => {
+                        const msg = document.getElementById('checkin-success-msg');
+                        msg.style.color = '#198754';
+                        msg.textContent = "Check-in successful! Streak increased.";
+                        
+                        const btn = document.getElementById('checkInBtn');
+                        btn.disabled = true;
+                        btn.textContent = "Checked In Today";
+                        
+                        setTimeout(() => {
+                            msg.textContent = "";
+                        }, 2500);
+                    });
+                }
+            });
+        }
+
+        function handleAddNewGym() {
+            const input = document.getElementById('newGymInput');
+            const err = document.getElementById('new-gym-error');
+            const name = input.value.trim();
+            err.textContent = "";
+            
+            if (!name) return;
+            
+            db.collection('gyms').add({
+                name: name
+            }).then(() => {
+                input.value = "";
+                err.style.color = '#198754';
+                err.textContent = "Gym registered successfully! Search for it above.";
+                setTimeout(() => { err.textContent = ""; }, 2500);
+            }).catch(e => {
+                err.style.color = '#dc3545';
+                err.textContent = e.message;
+            });
+        }
+
+        function renderLeaderboard(userGymName, userAttendanceCount, userFirstName) {
+            const list = document.getElementById('leaderboardList');
+            if (!list) return;
+            
+            const mockUsers = [
+                { name: "Vikram Malhotra", attendance: 24, isMe: false },
+                { name: "Sneha Patel", attendance: 19, isMe: false },
+                { name: "Rajesh Kumar", attendance: 15, isMe: false },
+                { name: userFirstName + " (You)", attendance: userAttendanceCount || 0, isMe: true },
+                { name: "Ananya Rao", attendance: 8, isMe: false }
+            ];
+            
+            mockUsers.sort((a, b) => b.attendance - a.attendance);
+            
+            list.innerHTML = mockUsers.map((u, i) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: ${u.isMe ? 'rgba(255, 123, 0, 0.08)' : 'var(--bg-light)'}; border: 1px solid ${u.isMe ? '#ff7b00' : 'var(--border-color)'}; border-radius: 10px; box-sizing: border-box; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-weight: 800; font-size: 0.95rem; color: ${i === 0 ? '#ff7b00' : 'var(--text-secondary)'};">#${i + 1}</span>
+                        <span style="font-weight: ${u.isMe ? '700' : '500'}; font-size: 0.95rem; color: var(--text-primary);">${u.name}</span>
+                    </div>
+                    <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">${u.attendance} days</span>
+                </div>
+            `).join('');
         }
 
         // Simulate payment and upgrade user status
@@ -754,6 +1072,35 @@
             document.body.style.overflow = '';
             document.getElementById('signin-error').textContent = "";
             document.getElementById('signup-error').textContent = "";
+            const resetError = document.getElementById('reset-error');
+            if (resetError) resetError.textContent = "";
+        }
+
+        function showForgotPassword() {
+            document.getElementById('signInForm').style.display = 'none';
+            document.getElementById('signUpForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+            document.getElementById('tab-signin').classList.remove('active');
+            document.getElementById('tab-signup').classList.remove('active');
+            const resetError = document.getElementById('reset-error');
+            if (resetError) resetError.textContent = "";
+        }
+
+        function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            const errorDiv = document.getElementById('reset-error');
+            errorDiv.textContent = "";
+
+            auth.sendPasswordResetEmail(email)
+                .then(() => {
+                    errorDiv.style.color = '#198754';
+                    errorDiv.textContent = "Reset link sent! Please check your email inbox.";
+                })
+                .catch(err => {
+                    errorDiv.style.color = '#dc3545';
+                    errorDiv.textContent = err.message;
+                });
         }
 
         function switchAuthTab(tab) {
@@ -761,6 +1108,9 @@
             const tabSignup = document.getElementById('tab-signup');
             const signInForm = document.getElementById('signInForm');
             const signUpForm = document.getElementById('signUpForm');
+            const forgotForm = document.getElementById('forgotPasswordForm');
+
+            if (forgotForm) forgotForm.style.display = 'none';
 
             if (tab === 'signin') {
                 tabSignin.classList.add('active');
@@ -786,6 +1136,69 @@
             const modal = document.getElementById('subscriptionModal');
             modal.classList.remove('active');
             document.body.style.overflow = '';
+        }
+
+        // Account Deletion Modals & Operation
+        function openDeletionModal() {
+            const modal = document.getElementById('deletionModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            const errorDiv = document.getElementById('delete-error');
+            if (errorDiv) errorDiv.textContent = "";
+        }
+
+        function closeDeletionModal() {
+            const modal = document.getElementById('deletionModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function handleAccountDeletion(e) {
+            e.preventDefault();
+            const email = document.getElementById('delete-email').value;
+            const password = document.getElementById('delete-password').value;
+            const errorDiv = document.getElementById('delete-error');
+            errorDiv.style.color = '#dc3545';
+            errorDiv.textContent = "";
+
+            const user = auth.currentUser;
+            if (!user) {
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(cred => {
+                        const currentUser = cred.user;
+                        return db.collection('users').doc(currentUser.uid).delete().then(() => {
+                            return currentUser.delete();
+                        });
+                    })
+                    .then(() => {
+                        closeDeletionModal();
+                        alert("Your account has been deleted successfully.");
+                        window.location.reload();
+                    })
+                    .catch(err => {
+                        errorDiv.textContent = err.message;
+                    });
+            } else {
+                if (user.email !== email) {
+                    errorDiv.textContent = "Confirmed email does not match the active session email.";
+                    return;
+                }
+                const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+                user.reauthenticateWithCredential(credential)
+                    .then(() => {
+                        return db.collection('users').doc(user.uid).delete().then(() => {
+                            return user.delete();
+                        });
+                    })
+                    .then(() => {
+                        closeDeletionModal();
+                        alert("Your account has been deleted successfully.");
+                        window.location.reload();
+                    })
+                    .catch(err => {
+                        errorDiv.textContent = err.message;
+                    });
+            }
         }
 
         // FAQ Toggle
