@@ -969,3 +969,274 @@ footer {
         padding: 30px 20px;
     }
 }
+
+/* Auth & Subscription Billing Styling */
+.auth-nav-container {
+    display: flex;
+    align-items: center;
+}
+
+.nav-auth-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-email-tag {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.premium-badge-tag {
+    background-color: #000000;
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.nav-upgrade-btn {
+    background-color: #ff7b00;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: var(--font-family);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.nav-upgrade-btn:hover {
+    background-color: #e06c00;
+    transform: translateY(-1px);
+}
+
+.nav-login-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.nav-login-btn:hover {
+    color: var(--text-secondary);
+}
+
+/* Auth Modal Content Specifics */
+.auth-modal-content {
+    max-width: 440px;
+}
+
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.auth-tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 16px;
+    font-family: var(--font-family);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-grey);
+    cursor: pointer;
+    transition: var(--transition-base);
+    position: relative;
+}
+
+.auth-tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #000000;
+    transform: scaleX(0);
+    transition: var(--transition-base);
+}
+
+.auth-tab-btn.active {
+    color: #000000;
+}
+
+.auth-tab-btn.active::after {
+    transform: scaleX(1);
+}
+
+.auth-form {
+    padding: 0;
+}
+
+.auth-form-body {
+    padding: 30px;
+}
+
+.auth-form-body h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.auth-form-body p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.form-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.form-group input {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: var(--font-family);
+    font-size: 0.95rem;
+    outline: none;
+    transition: var(--transition-base);
+}
+
+.form-group input:focus {
+    border-color: #a1a1a1;
+}
+
+.auth-error-msg {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    min-height: 18px;
+    text-align: left;
+}
+
+.auth-submit-btn {
+    width: 100%;
+    background-color: #000000;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: var(--font-family);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.auth-submit-btn:hover {
+    background-color: #222222;
+}
+
+/* Subscription modal */
+.sub-modal-content {
+    max-width: 680px;
+}
+
+.sub-modal-body {
+    padding: 30px;
+}
+
+.sub-benefits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    text-align: left;
+}
+
+.benefit-col h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.benefit-col ul {
+    list-style: none;
+}
+
+.benefit-col ul li {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.benefit-col ul li::before {
+    content: "✓";
+    color: var(--text-grey);
+    font-weight: bold;
+}
+
+.premium-benefit-col h3 {
+    color: #ff7b00;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.premium-benefit-col ul li::before {
+    color: #ff7b00;
+}
+
+.price-tag {
+    font-size: 1rem;
+    background-color: rgba(255, 123, 0, 0.1);
+    color: #ff7b00;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.card-input-mock {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    background-color: var(--bg-white);
+}
+
+.card-input-mock:focus-within {
+    border-color: #a1a1a1;
+}
+
+/* Responsive auth adjustments */
+@media (max-width: 768px) {
+    .auth-nav-container {
+        display: none;
+    }
+    .sub-benefits-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+

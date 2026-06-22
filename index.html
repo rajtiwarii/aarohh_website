@@ -11,7 +11,12 @@
     <link rel="icon" type="image/png" sizes="16x16" href="assets/logo_square.png?v=6.0">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/logo_square.png?v=6.0">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=6.0">
-    <link rel="stylesheet" href="style.css?v=2.5">
+    <link rel="stylesheet" href="style.css?v=2.6">
+    
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -22,13 +27,25 @@
                 <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
             <nav class="nav-links">
-                <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                 <a href="#features">Features</a>
                 <a href="#about">About</a>
                 <a href="#faq">FAQ</a>
                 <a href="#contact-footer" onclick="scrollToSection('contact-footer'); return false;">Contact</a>
             </nav>
-            <button class="nav-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
+            <div class="auth-nav-container">
+                <!-- Logged Out Buttons -->
+                <div id="loggedOutNav" class="nav-auth-group">
+                    <button class="nav-login-btn" onclick="openAuthModal('signin')">Log In</button>
+                    <button class="nav-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
+                </div>
+                <!-- Logged In Buttons -->
+                <div id="loggedInNav" class="nav-auth-group" style="display: none;">
+                    <span id="userEmailDisplay" class="user-email-tag"></span>
+                    <span id="premiumBadge" class="premium-badge-tag" style="display: none;">Premium</span>
+                    <button id="upgradeBtn" class="nav-upgrade-btn" onclick="openSubscriptionModal()" style="display: none;">Upgrade</button>
+                    <button class="nav-login-btn" onclick="handleLogout()">Log Out</button>
+                </div>
+            </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
                 <span></span>
                 <span></span>
@@ -43,7 +60,10 @@
         <a href="#about" class="mobile-link">About</a>
         <a href="#faq" class="mobile-link">FAQ</a>
         <a href="#contact-footer" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
-        <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
+        <hr style="width: 80%; border-color: var(--border-color); margin: 10px 0;">
+        <div id="mobileAuthNav" style="display: flex; flex-direction: column; gap: 15px; width: 80%;">
+            <!-- Dynamic elements added by JS -->
+        </div>
     </div>
 
     <!-- Hero Section -->
@@ -320,7 +340,289 @@
         </div>
     </div>
 
+    <!-- Auth Modal (Log In / Sign Up) -->
+    <div class="modal-overlay" id="authModal" onclick="closeAuthModal()">
+        <div class="modal-content auth-modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+            
+            <div class="auth-tabs">
+                <button id="tab-signin" class="auth-tab-btn active" onclick="switchAuthTab('signin')">Log In</button>
+                <button id="tab-signup" class="auth-tab-btn" onclick="switchAuthTab('signup')">Create Account</button>
+            </div>
+            
+            <!-- Sign In Form -->
+            <form id="signInForm" class="auth-form" onsubmit="handleSignIn(event)">
+                <div class="auth-form-body">
+                    <h2>Welcome back</h2>
+                    <p>Enter your details to manage your lifestyle profile and subscription.</p>
+                    
+                    <div class="form-group">
+                        <label for="signin-email">Email Address</label>
+                        <input type="email" id="signin-email" required placeholder="name@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signin-password">Password</label>
+                        <input type="password" id="signin-password" required placeholder="Enter password">
+                    </div>
+                    
+                    <div class="auth-error-msg" id="signin-error"></div>
+                    
+                    <button type="submit" class="auth-submit-btn">Log In</button>
+                </div>
+            </form>
+            
+            <!-- Sign Up Form -->
+            <form id="signUpForm" class="auth-form" style="display: none;" onsubmit="handleSignUp(event)">
+                <div class="auth-form-body">
+                    <h2>Join AAROHH</h2>
+                    <p>Create your social profile. Share streaks, connect with friends and coaches.</p>
+                    
+                    <div class="form-group">
+                        <label for="signup-name">Display Name</label>
+                        <input type="text" id="signup-name" required placeholder="Alex Mercer">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <input type="email" id="signup-email" required placeholder="name@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required placeholder="Create password (min 6 chars)">
+                    </div>
+                    
+                    <div class="auth-error-msg" id="signup-error"></div>
+                    
+                    <button type="submit" class="auth-submit-btn">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Subscription Checkout Modal -->
+    <div class="modal-overlay" id="subscriptionModal" onclick="closeSubscriptionModal()">
+        <div class="modal-content sub-modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeSubscriptionModal()">&times;</button>
+            <div class="modal-header">
+                <h2>Upgrade to AAROHH Premium</h2>
+                <p>Unlock elite coaching integration and unlimited social sharing.</p>
+            </div>
+            <div class="modal-body sub-modal-body">
+                <div class="sub-benefits-grid">
+                    <div class="benefit-col">
+                        <h3>Free Account</h3>
+                        <ul>
+                            <li>Build wellness profile</li>
+                            <li>Add up to 5 friends</li>
+                            <li>Post limit: 1 per day</li>
+                            <li>Local photo uploads only</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-col premium-benefit-col">
+                        <h3>Premium Tier <span class="price-tag">$9.99/mo</span></h3>
+                        <ul>
+                            <li>Connect with elite coaches</li>
+                            <li>Unlimited feed posts</li>
+                            <li>Cloud photo attachments</li>
+                            <li>Custom recovery streaks</li>
+                            <li>Prioritized feed algorithm</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <hr style="border-color: var(--border-color); margin: 24px 0;">
+                
+                <div class="checkout-form-container">
+                    <h3>Simulated Premium Billing</h3>
+                    <p class="hero-desc" style="font-size: 0.85rem; margin-bottom: 16px;">This simulates a Stripe checkout. Clicking Upgrade immediately unlocks premium on your mobile app.</p>
+                    
+                    <form onsubmit="handleCheckoutSubmit(event)">
+                        <div class="form-group">
+                            <label>Cardholder Name</label>
+                            <input type="text" required placeholder="Alex Mercer" id="cardName">
+                        </div>
+                        <div class="form-group">
+                            <label>Card Details</label>
+                            <div class="card-input-mock">
+                                <span style="font-size: 1.2rem; margin-right: 10px;">💳</span>
+                                <input type="text" required placeholder="4242 4242 4242 4242" style="border: none; outline: none; flex: 1; padding: 0; width: 100%;">
+                            </div>
+                        </div>
+                        <div class="auth-error-msg" id="checkout-error" style="color: #198754; font-weight: bold;"></div>
+                        <button type="submit" id="checkoutBtn" class="auth-submit-btn" style="margin-top: 16px;">Pay & Upgrade to Premium</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: 'AIzaSyALqQLRDTtdtZhC1ceyVTJfmwdgb3Qf6xk',
+            appId: '1:364430634705:web:949baf3be012dc6d449ff0',
+            messagingSenderId: '364430634705',
+            projectId: 'yogyah-5aa01',
+            authDomain: 'yogyah-5aa01.firebaseapp.com',
+            storageBucket: 'yogyah-5aa01.firebasestorage.app',
+            measurementId: 'G-2V82FHWP64',
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Listen for Auth changes
+        auth.onAuthStateChanged(user => {
+            const loggedOutNav = document.getElementById('loggedOutNav');
+            const loggedInNav = document.getElementById('loggedInNav');
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+            const premiumBadge = document.getElementById('premiumBadge');
+            const upgradeBtn = document.getElementById('upgradeBtn');
+            const mobileAuthNav = document.getElementById('mobileAuthNav');
+
+            if (user) {
+                // Logged In
+                loggedOutNav.style.display = 'none';
+                loggedInNav.style.display = 'flex';
+                userEmailDisplay.textContent = user.email;
+                
+                // Get Firestore premium details
+                db.collection('users').doc(user.uid).onSnapshot(doc => {
+                    if (doc.exists && doc.data().isPremium === true) {
+                        premiumBadge.style.display = 'inline-block';
+                        upgradeBtn.style.display = 'none';
+                        updateMobileNav(user, true);
+                    } else {
+                        premiumBadge.style.display = 'none';
+                        upgradeBtn.style.display = 'inline-block';
+                        updateMobileNav(user, false);
+                    }
+                }, error => {
+                    // Fallback if doc doesn't exist yet
+                    premiumBadge.style.display = 'none';
+                    upgradeBtn.style.display = 'inline-block';
+                    updateMobileNav(user, false);
+                });
+            } else {
+                // Logged Out
+                loggedOutNav.style.display = 'flex';
+                loggedInNav.style.display = 'none';
+                mobileAuthNav.innerHTML = `
+                    <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="openAuthModal('signin')">Log In</button>
+                    <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
+                `;
+            }
+        });
+
+        function updateMobileNav(user, isPremium) {
+            const mobileAuthNav = document.getElementById('mobileAuthNav');
+            mobileAuthNav.innerHTML = `
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: block;">${user.email}</span>
+                    ${isPremium ? '<span class="premium-badge-tag" style="display: inline-block; margin-top: 4px;">Premium</span>' : '<button class="mobile-cta" style="background-color: var(--text-primary); color: var(--bg-white); margin-top: 8px; width: 100%;" onclick="openSubscriptionModal()">Upgrade to Premium</button>'}
+                </div>
+                <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="handleLogout()">Log Out</button>
+            `;
+        }
+
+        // Firebase Auth operations
+        function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const errorDiv = document.getElementById('signup-error');
+            errorDiv.textContent = "";
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(cred => {
+                    // Create corresponding Firestore profile document matching mobile app standard
+                    return db.collection('users').doc(cred.user.uid).set({
+                        'name': name,
+                        'email': email,
+                        'isPremium': false,
+                        'photoUrl': '',
+                        'uid': cred.user.uid,
+                        'createdAt': firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                })
+                .then(() => {
+                    closeAuthModal();
+                })
+                .catch(err => {
+                    errorDiv.textContent = err.message;
+                });
+        }
+
+        function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+            const errorDiv = document.getElementById('signin-error');
+            errorDiv.textContent = "";
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    closeAuthModal();
+                })
+                .catch(err => {
+                    errorDiv.textContent = err.message;
+                });
+        }
+
+        function handleLogout() {
+            auth.signOut().then(() => {
+                const mobileNav = document.getElementById('mobileNav');
+                const menuToggle = document.getElementById('menuToggle');
+                mobileNav.classList.remove('active');
+                menuToggle.classList.remove('active');
+            });
+        }
+
+        // Simulate payment and upgrade user status
+        function handleCheckoutSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('checkoutBtn');
+            const errorDiv = document.getElementById('checkout-error');
+            const user = auth.currentUser;
+
+            if (!user) {
+                errorDiv.style.color = '#dc3545';
+                errorDiv.textContent = "Please sign in to upgrade.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Processing Payment...";
+            errorDiv.textContent = "";
+
+            // Simulate server payment completion delay
+            setTimeout(() => {
+                db.collection('users').doc(user.uid).set({
+                    'isPremium': true
+                }, { merge: true })
+                .then(() => {
+                    btn.disabled = false;
+                    btn.textContent = "Pay & Upgrade to Premium";
+                    errorDiv.style.color = '#198754';
+                    errorDiv.textContent = "Premium Activated! Enjoy your unlimited features.";
+                    setTimeout(() => {
+                        closeSubscriptionModal();
+                        errorDiv.textContent = "";
+                    }, 1500);
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.textContent = "Pay & Upgrade to Premium";
+                    errorDiv.style.color = '#dc3545';
+                    errorDiv.textContent = err.message;
+                });
+            }, 1800);
+        }
+
+        // Smooth scroll implementation
         function scrollToSection(id) {
             const el = document.getElementById(id);
             if (el) {
@@ -360,17 +662,65 @@
             console.log(`Waitlist submission from ${source}:`, form.querySelector('input').value);
         }
 
-        // Privacy Modal Handlers
+        // Modal Handlers
         function openPrivacyModal() {
             const modal = document.getElementById('privacyModal');
             modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Disable scroll under modal
+            document.body.style.overflow = 'hidden'; 
         }
 
         function closePrivacyModal() {
             const modal = document.getElementById('privacyModal');
             modal.classList.remove('active');
-            document.body.style.overflow = ''; // Re-enable scroll
+            document.body.style.overflow = ''; 
+        }
+
+        // Auth Modal
+        function openAuthModal(tab) {
+            const modal = document.getElementById('authModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            switchAuthTab(tab);
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('signin-error').textContent = "";
+            document.getElementById('signup-error').textContent = "";
+        }
+
+        function switchAuthTab(tab) {
+            const tabSignin = document.getElementById('tab-signin');
+            const tabSignup = document.getElementById('tab-signup');
+            const signInForm = document.getElementById('signInForm');
+            const signUpForm = document.getElementById('signUpForm');
+
+            if (tab === 'signin') {
+                tabSignin.classList.add('active');
+                tabSignup.classList.remove('active');
+                signInForm.style.display = 'block';
+                signUpForm.style.display = 'none';
+            } else {
+                tabSignup.classList.add('active');
+                tabSignin.classList.remove('active');
+                signUpForm.style.display = 'block';
+                signInForm.style.display = 'none';
+            }
+        }
+
+        // Subscription Modal
+        function openSubscriptionModal() {
+            const modal = document.getElementById('subscriptionModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSubscriptionModal() {
+            const modal = document.getElementById('subscriptionModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
         }
 
         // FAQ Toggle
@@ -394,7 +744,7 @@
 
             spySections.forEach(section => {
                 if (section) {
-                    const sectionTop = section.offsetTop - 160; // offset navbar height + padding
+                    const sectionTop = section.offsetTop - 160; 
                     const sectionHeight = section.offsetHeight;
                     if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
                         current = section.getAttribute('id');
@@ -402,7 +752,6 @@
                 }
             });
 
-            // Fallback for top of page / hero section (activate Home link)
             if (scrollPosition < 200) {
                 current = 'top';
             }
@@ -410,7 +759,6 @@
             navLinks.forEach(link => {
                 link.classList.remove('active');
                 const href = link.getAttribute('href');
-                // Support exact home matches or section includes
                 if (href === '#top' && current === 'top') {
                     link.classList.add('active');
                 } else if (href && href.includes(current) && current !== 'top' && current !== '') {
