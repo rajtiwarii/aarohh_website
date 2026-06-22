@@ -27,22 +27,24 @@
                 <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
             <nav class="nav-links">
+                <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                 <a href="#features">Features</a>
                 <a href="#about">About</a>
                 <a href="#faq">FAQ</a>
+                <a href="premium.html">Premium</a>
                 <a href="#contact-footer" onclick="scrollToSection('contact-footer'); return false;">Contact</a>
             </nav>
             <div class="auth-nav-container">
                 <!-- Logged Out Buttons -->
                 <div id="loggedOutNav" class="nav-auth-group">
                     <button class="nav-login-btn" onclick="openAuthModal('signin')">Log In</button>
-                    <button class="nav-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
+                    <button class="nav-cta" onclick="window.location.href='premium.html'">Get Premium</button>
                 </div>
                 <!-- Logged In Buttons -->
                 <div id="loggedInNav" class="nav-auth-group" style="display: none;">
                     <span id="userEmailDisplay" class="user-email-tag"></span>
                     <span id="premiumBadge" class="premium-badge-tag" style="display: none;">Premium</span>
-                    <button id="upgradeBtn" class="nav-upgrade-btn" onclick="openSubscriptionModal()" style="display: none;">Upgrade</button>
+                    <button id="upgradeBtn" class="nav-upgrade-btn" onclick="window.location.href='premium.html'" style="display: none;">Upgrade</button>
                     <button class="nav-login-btn" onclick="handleLogout()">Log Out</button>
                 </div>
             </div>
@@ -59,6 +61,7 @@
         <a href="#features" class="mobile-link">Features</a>
         <a href="#about" class="mobile-link">About</a>
         <a href="#faq" class="mobile-link">FAQ</a>
+        <a href="premium.html" class="mobile-link">Premium</a>
         <a href="#contact-footer" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
         <hr style="width: 80%; border-color: var(--border-color); margin: 10px 0;">
         <div id="mobileAuthNav" style="display: flex; flex-direction: column; gap: 15px; width: 80%;">
