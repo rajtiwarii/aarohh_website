@@ -7,11 +7,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/logo_square.png?v=6.0">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/logo_square.png?v=6.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/logo_square.png?v=6.0">
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=6.0">
-    <link rel="stylesheet" href="style.css?v=2.6">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo_square.png?v=6.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/logo_square.png?v=6.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/logo_square.png?v=6.0">
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico?v=6.0">
+    <link rel="stylesheet" href="../style.css?v=2.6">
     
     <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -22,27 +22,27 @@
     <!-- Navbar -->
     <header class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="logo-container">
-                <img src="assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
-                <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
+            <a href="../index.html" class="logo-container">
+                <img src="../assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
+                <img src="../assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
             <nav class="nav-links">
-                <a href="index.html#features">Features</a>
-                <a href="index.html#about">About</a>
-                <a href="index.html#faq">FAQ</a>
+                <a href="../index.html#features">Features</a>
+                <a href="../index.html#about">About</a>
+                <a href="../index.html#faq">FAQ</a>
                 <a href="mailto:support@aarohh.com">Contact</a>
             </nav>
             <div class="auth-nav-container">
                 <!-- Logged Out Buttons -->
                 <div id="loggedOutNav" class="nav-auth-group">
                     <button class="nav-login-btn" onclick="openAuthModal('signin')">Log In</button>
-                    <button class="nav-cta" onclick="window.location.href='premium.html'">Get Premium</button>
+                    <button class="nav-cta" onclick="window.location.href='./'">Get Premium</button>
                 </div>
                 <!-- Logged In Buttons -->
                 <div id="loggedInNav" class="nav-auth-group" style="display: none;">
                     <span id="userEmailDisplay" class="user-email-tag"></span>
                     <span id="premiumBadge" class="premium-badge-tag" style="display: none;">Premium</span>
-                    <button id="upgradeBtn" class="nav-upgrade-btn" onclick="window.location.href='premium.html'" style="display: none;">Upgrade</button>
+                    <button id="upgradeBtn" class="nav-upgrade-btn" onclick="window.location.href='./'" style="display: none;">Upgrade</button>
                     <button class="nav-login-btn" onclick="handleLogout()">Log Out</button>
                 </div>
             </div>
@@ -55,10 +55,10 @@
 
     <!-- Mobile Nav Overlay -->
     <div class="mobile-nav" id="mobileNav">
-        <a href="index.html" class="mobile-link">Home</a>
-        <a href="index.html#features" class="mobile-link">Features</a>
-        <a href="index.html#about" class="mobile-link">About</a>
-        <a href="index.html#faq" class="mobile-link">FAQ</a>
+        <a href="../index.html" class="mobile-link">Home</a>
+        <a href="../index.html#features" class="mobile-link">Features</a>
+        <a href="../index.html#about" class="mobile-link">About</a>
+        <a href="../index.html#faq" class="mobile-link">FAQ</a>
         <a href="mailto:support@aarohh.com" class="mobile-link">Contact</a>
         <hr style="width: 80%; border-color: var(--border-color); margin: 10px 0;">
         <div id="mobileAuthNav" style="display: flex; flex-direction: column; gap: 15px; width: 80%;">
@@ -153,9 +153,9 @@
     <footer id="contact-footer">
         <div class="footer-container">
             <div class="footer-left">
-                <a href="index.html" class="logo-container">
-                    <img src="assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
-                    <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
+                <a href="../index.html" class="logo-container">
+                    <img src="../assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
+                    <img src="../assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
                 </a>
                 <p class="footer-tagline">
                     The professional lifestyle & fitness network connecting friends, members, and coaches.
@@ -164,9 +164,9 @@
             <div class="footer-right">
                 <div class="footer-column">
                     <h4>Company</h4>
-                    <a href="index.html#about">About Us</a>
+                    <a href="../index.html#about">About Us</a>
                     <a href="mailto:support@aarohh.com">Contact</a>
-                    <a href="careers.html">Careers</a>
+                    <a href="../careers.html">Careers</a>
                 </div>
                 <div class="footer-column">
                     <h4>Support</h4>
@@ -358,7 +358,7 @@
                 
                 mobileAuthNav.innerHTML = `
                     <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="openAuthModal('signin')">Log In</button>
-                    <button class="mobile-cta" onclick="window.location.href='premium.html'">Get Premium</button>
+                    <button class="mobile-cta" onclick="window.location.href='./'">Get Premium</button>
                 `;
             }
         });
@@ -368,7 +368,7 @@
             mobileAuthNav.innerHTML = `
                 <div style="text-align: center; margin-bottom: 8px;">
                     <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: block;">${user.email}</span>
-                    ${isPremium ? '<span class="premium-badge-tag" style="display: inline-block; margin-top: 4px;">Premium</span>' : '<button class="mobile-cta" style="background-color: var(--text-primary); color: var(--bg-white); margin-top: 8px; width: 100%;" onclick="window.location.href=\'premium.html\'">Upgrade to Premium</button>'}
+                    ${isPremium ? '<span class="premium-badge-tag" style="display: inline-block; margin-top: 4px;">Premium</span>' : '<button class="mobile-cta" style="background-color: var(--text-primary); color: var(--bg-white); margin-top: 8px; width: 100%;" onclick="window.location.href=\'./\'">Upgrade to Premium</button>'}
                 </div>
                 <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="handleLogout()">Log Out</button>
             `;
