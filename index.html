@@ -13,10 +13,8 @@
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=6.0">
     <link rel="stylesheet" href="style.css?v=2.6">
     
-    <!-- Firebase Compat SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Supabase Client SDK CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -30,6 +28,7 @@
                 <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                 <a href="#features">Features</a>
                 <a href="#about">About</a>
+                <a href="#gymSection" onclick="handleGymNavLink(event)">Gym</a>
                 <a href="#faq">FAQ</a>
                 <a href="subscribe/">Premium</a>
                 <a href="#contact-footer" onclick="scrollToSection('contact-footer'); return false;">Contact</a>
@@ -60,6 +59,7 @@
         <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="mobile-link">Home</a>
         <a href="#features" class="mobile-link">Features</a>
         <a href="#about" class="mobile-link">About</a>
+        <a href="#gymSection" onclick="handleGymNavLink(event)" class="mobile-link">Gym</a>
         <a href="#faq" class="mobile-link">FAQ</a>
         <a href="subscribe/" class="mobile-link">Premium</a>
         <a href="#contact-footer" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
@@ -95,74 +95,168 @@
     </section>
 
     <!-- Dynamic Gym Section (Only visible for logged-in users) -->
-    <section id="gymSection" class="features" style="display: none; background-color: var(--bg-light); border-bottom: 1px solid var(--border-color); padding-top: 80px; padding-bottom: 80px;">
+    <section id="gymSection" class="features" style="background-color: var(--bg-light); border-bottom: 1px solid var(--border-color); padding-top: 80px; padding-bottom: 80px;">
         <div class="features-header" style="margin-bottom: 40px;">
             <div class="pill-tag center">AAROHH GYM CLUB</div>
             <h2 class="section-title center" id="gymSectionTitle">Your Gym Space</h2>
         </div>
         
+        <!-- Dashboard Tabs (Only visible when logged in) -->
+        <div id="dashboardTabs" style="display: none; justify-content: center; gap: 10px; margin-bottom: 40px; margin-top: -10px;">
+            <button id="tabBtnGym" class="nav-cta" onclick="switchDashboardTab('gym')" style="margin: 0; padding: 10px 24px; font-size: 0.9rem; font-weight: 700; border-radius: 30px; background-color: var(--text-primary); color: var(--bg-white); border: 1px solid var(--text-primary); cursor: pointer; transition: all 0.2s ease;">Gym Space</button>
+            <button id="tabBtnFeed" class="nav-cta" onclick="switchDashboardTab('feed')" style="margin: 0; padding: 10px 24px; font-size: 0.9rem; font-weight: 700; border-radius: 30px; background-color: transparent; color: var(--text-primary); border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s ease;">Wellness Feed</button>
+            <button id="tabBtnProfile" class="nav-cta" onclick="switchDashboardTab('profile')" style="margin: 0; padding: 10px 24px; font-size: 0.9rem; font-weight: 700; border-radius: 30px; background-color: transparent; color: var(--text-primary); border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s ease;">My Profile</button>
+        </div>
+
         <div class="features-container" style="max-width: 900px; margin: 0 auto; padding: 0 24px;">
             
-            <!-- State 1: Search and Join Gym -->
-            <div id="gymSearchState" style="display: none;">
+            <!-- State 0: Logged Out -->
+            <div id="gymLoggedOutState" style="display: block;">
                 <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                    <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 12px;">You haven't joined a gym yet</h3>
+                    <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 12px;">Track Your Gym Check-ins & Attendance</h3>
                     <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
-                        Search for a partner gym near you to access attendance logs, check-ins, and gym leaderboards.
+                        Join your local partner gym to log daily attendance, view real-time member leaderboards, and sync workouts directly with your personal trainer.
                     </p>
-                    
-                    <div style="display: flex; gap: 12px; max-width: 500px; margin: 0 auto 30px auto;">
-                        <input type="text" id="gymSearchInput" placeholder="Search by gym name (e.g. Gold's Gym, Cult.fit)..." style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-family); outline: none;">
-                        <button class="nav-cta" onclick="handleGymSearch()" style="margin-top: 0;">Search</button>
-                    </div>
-                    
-                    <!-- Search Results -->
-                    <div id="gymSearchResults" style="max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px;">
-                        <!-- Dynamically populated -->
-                    </div>
-                    
-                    <div style="margin-top: 24px;">
-                        <p style="font-size: 0.85rem; color: var(--text-grey);">Or register a new gym with AAROHH:</p>
-                        <div style="display: flex; gap: 10px; max-width: 500px; margin: 10px auto 0 auto;">
-                            <input type="text" id="newGymInput" placeholder="New Gym Name" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 0.9rem; outline: none;">
-                            <button class="nav-cta" onclick="handleAddNewGym()" style="margin-top: 0; background-color: var(--text-primary); color: var(--bg-white);">Add Gym</button>
+                    <button class="nav-cta" onclick="openAuthModal('signin')" style="margin-top: 0; min-height: 44px; min-width: 140px;">Log In to Join Gym</button>
+                </div>
+            </div>
+
+            <!-- Tab Panel 1: Gym -->
+            <div id="gymTabPanel" style="display: none;">
+                <!-- State 1: Search and Join Gym -->
+                <div id="gymSearchState" style="display: none;">
+                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                        <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 12px;">You haven't joined a gym yet</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                            Search for a partner gym near you to access attendance logs, check-ins, and gym leaderboards.
+                        </p>
+                        
+                        <div style="display: flex; gap: 12px; max-width: 500px; margin: 0 auto 30px auto;">
+                            <input type="text" id="gymSearchInput" placeholder="Search by gym name (e.g. Gold's Gym, Cult.fit)..." style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-family); outline: none;">
+                            <button class="nav-cta" onclick="handleGymSearch()" style="margin-top: 0;">Search</button>
                         </div>
-                        <div id="new-gym-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 6px; font-weight: bold;"></div>
+                        
+                        <!-- Search Results -->
+                        <div id="gymSearchResults" style="max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Dynamically populated -->
+                        </div>
+
+                    </div>
+                </div>
+                
+                <!-- State 2: Gym Dashboard -->
+                <div id="gymDashboardState" style="display: none;">
+                    <div class="gym-grid">
+                        
+                        <!-- Left: Attendance & Info -->
+                        <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                                <div>
+                                    <span class="pill-tag" id="dashGymLabel" style="margin-bottom: 8px; display: inline-block;">GYM MEMBER</span>
+                                    <h3 id="dashGymName" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">Gym Name</h3>
+                                </div>
+                                <button onclick="handleLeaveGym()" style="background: none; border: none; color: #dc3545; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">Leave</button>
+                            </div>
+                            
+                            <hr style="border-color: var(--border-color); margin: 20px 0;">
+                            
+                            <div style="text-align: center; padding: 20px 0;">
+                                <div style="font-size: 3rem; font-weight: 800; color: #ff7b00; line-height: 1;" id="attendanceCount">0</div>
+                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Days Attended This Month</div>
+                                
+                                <button id="checkInBtn" class="nav-cta" onclick="handleGymCheckIn()" style="width: 100%; margin-top: 24px; background-color: #ff7b00; color: #ffffff;">Check In Today</button>
+                                <div id="checkin-success-msg" style="color: #198754; font-size: 0.85rem; font-weight: bold; margin-top: 8px; min-height: 18px;"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Leaderboard -->
+                        <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 20px;">Gym Leaderboard</h3>
+                            
+                            <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
-            
-            <!-- State 2: Gym Dashboard -->
-            <div id="gymDashboardState" style="display: none;">
-                <div class="gym-grid">
+
+            <!-- Tab Panel 2: Social Feed -->
+            <div id="feedTabPanel" style="display: none;">
+                <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
                     
-                    <!-- Left: Attendance & Info -->
-                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-                            <div>
-                                <span class="pill-tag" id="dashGymLabel" style="margin-bottom: 8px; display: inline-block;">GYM MEMBER</span>
-                                <h3 id="dashGymName" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">Gym Name</h3>
+                    <!-- Create Post Card -->
+                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; color: var(--text-primary);">Share a Wellness Milestone</h3>
+                        
+                        <textarea id="feedPostText" placeholder="What is your fitness achievement or habit update today?" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; font-size: 0.95rem; outline: none; min-height: 100px; box-sizing: border-box; font-family: var(--font-family); resize: vertical; margin-bottom: 12px;"></textarea>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <!-- Image Attachment Button -->
+                            <div style="position: relative; overflow: hidden; display: inline-block;">
+                                <button type="button" style="background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    Add Photo
+                                </button>
+                                <input type="file" id="feedPostImageInput" accept="image/*" onchange="handlePostImageChange()" style="position: absolute; left: 0; top: 0; opacity: 0; font-size: 100px; cursor: pointer; width: 100%; height: 100%;">
                             </div>
-                            <button onclick="handleLeaveGym()" style="background: none; border: none; color: #dc3545; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">Leave</button>
+                            
+                            <!-- Attached Image Indicator -->
+                            <span id="attachedImageLabel" style="font-size: 0.8rem; color: #198754; font-weight: 600; display: none;">Photo Selected ✓</span>
+                            
+                            <button class="nav-cta" onclick="submitFeedPost()" style="margin: 0; background-color: var(--text-primary); color: var(--bg-white);">Share Post</button>
                         </div>
                         
-                        <hr style="border-color: var(--border-color); margin: 20px 0;">
+                        <!-- Post Error/Success Message -->
+                        <div id="post-feedback-msg" style="margin-top: 10px; font-size: 0.85rem; font-weight: bold; text-align: center; min-height: 18px;"></div>
+                    </div>
+                    
+                    <!-- Feed Posts List -->
+                    <div id="feedPostsStream" style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Dynamic list -->
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- Tab Panel 3: Profile -->
+            <div id="profileTabPanel" style="display: none;">
+                <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px;">
+                    
+                    <!-- Profile Header Card -->
+                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); text-align: center;">
                         
-                        <div style="text-align: center; padding: 20px 0;">
-                            <div style="font-size: 3rem; font-weight: 800; color: #ff7b00; line-height: 1;" id="attendanceCount">0</div>
-                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Days Attended This Month</div>
-                            
-                            <button id="checkInBtn" class="nav-cta" onclick="handleGymCheckIn()" style="width: 100%; margin-top: 24px; background-color: #ff7b00; color: #ffffff;">Check In Today</button>
-                            <div id="checkin-success-msg" style="color: #198754; font-size: 0.85rem; font-weight: bold; margin-top: 8px; min-height: 18px;"></div>
+                        <!-- Avatar -->
+                        <div id="profileAvatar" style="width: 80px; height: 80px; border-radius: 50%; background-color: #ff7b00; color: #ffffff; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; text-transform: uppercase;">
+                            U
+                        </div>
+                        
+                        <h3 id="profileNameDisplay" style="font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; color: var(--text-primary);">Your Name</h3>
+                        <p id="profileUsernameDisplay" style="font-size: 0.9rem; color: var(--text-grey); font-weight: 600; margin-bottom: 16px;">@username</p>
+                        
+                        <p id="profileBioDisplay" style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px; max-width: 440px; margin-left: auto; margin-right: auto;">
+                            No biography set yet. You can customize your bio in the mobile app.
+                        </p>
+                        
+                        <!-- Stats Counters Row -->
+                        <div style="display: flex; justify-content: center; gap: 40px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                            <div>
+                                <div id="profilePostCount" style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">0</div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-grey); text-transform: uppercase; margin-top: 4px;">Posts</div>
+                            </div>
+                            <div>
+                                <div id="profileStreakDisplay" style="font-size: 1.5rem; font-weight: 800; color: #ff7b00;">0</div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-grey); text-transform: uppercase; margin-top: 4px;">Days Attended</div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Right: Leaderboard -->
-                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                        <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 20px;">Gym Leaderboard</h3>
-                        
-                        <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 12px;">
-                            <!-- Dynamically populated -->
+                    <!-- Profile Posts Header -->
+                    <div>
+                        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; color: var(--text-primary);">Your Shared Milestones</h3>
+                        <div id="profilePostsStream" style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- User's own posts populated here -->
                         </div>
                     </div>
                     
@@ -613,107 +707,174 @@
     </div>
 
     <script>
-        // Initialize Firebase
-        const firebaseConfig = {
-            apiKey: 'AIzaSyALqQLRDTtdtZhC1ceyVTJfmwdgb3Qf6xk',
-            appId: '1:364430634705:web:949baf3be012dc6d449ff0',
-            messagingSenderId: '364430634705',
-            projectId: 'yogyah-5aa01',
-            authDomain: 'yogyah-5aa01.firebaseapp.com',
-            storageBucket: 'yogyah-5aa01.firebasestorage.app',
-            measurementId: 'G-2V82FHWP64',
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // Initialize Supabase Client
+        // REPLACE these placeholder values with your actual Supabase Project URL and Anon Key
+        const SUPABASE_URL = 'https://your-supabase-url.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-supabase-anon-key';
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+        // Active subscriptions / unsubscribes
+        let leaderboardUnsubscribe = null;
+        let feedUnsubscribe = null;
+        let profilePostsUnsubscribe = null;
+        let userUnsubscribe = null;
+
+        // Navigation scroll handler
+        function handleGymNavLink(event) {
+            if (event) event.preventDefault();
+            const gymSection = document.getElementById('gymSection');
+            if (gymSection) {
+                gymSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
 
         // Listen for Auth changes
-        auth.onAuthStateChanged(user => {
-            const loggedOutNav = document.getElementById('loggedOutNav');
-            const loggedInNav = document.getElementById('loggedInNav');
-            const userEmailDisplay = document.getElementById('userEmailDisplay');
-            const premiumBadge = document.getElementById('premiumBadge');
-            const upgradeBtn = document.getElementById('upgradeBtn');
-            const mobileAuthNav = document.getElementById('mobileAuthNav');
-            const gymSection = document.getElementById('gymSection');
+        if (supabase) {
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                const user = session ? session.user : null;
+                
+                const loggedOutNav = document.getElementById('loggedOutNav');
+                const loggedInNav = document.getElementById('loggedInNav');
+                const userEmailDisplay = document.getElementById('userEmailDisplay');
+                const premiumBadge = document.getElementById('premiumBadge');
+                const upgradeBtn = document.getElementById('upgradeBtn');
+                const mobileAuthNav = document.getElementById('mobileAuthNav');
+                const gymSection = document.getElementById('gymSection');
+                
+                const gymLoggedOutState = document.getElementById('gymLoggedOutState');
+                const gymSearchState = document.getElementById('gymSearchState');
+                const gymDashboardState = document.getElementById('gymDashboardState');
 
-            if (user) {
-                // Logged In
-                loggedOutNav.style.display = 'none';
-                loggedInNav.style.display = 'flex';
-                
-                // Fallback first name before Firestore loads
-                const initialName = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-                userEmailDisplay.textContent = initialName;
-                updateMobileNav(user, false, initialName);
-                
-                // Show Gym Section
-                if (gymSection) gymSection.style.display = 'block';
-                
-                // Get Firestore details
-                db.collection('users').doc(user.uid).onSnapshot(doc => {
-                    const data = doc.exists ? doc.data() : null;
-                    const firstName = (data && data.name) ? data.name.split(' ')[0] : initialName;
-                    userEmailDisplay.textContent = firstName;
+                const dashboardTabs = document.getElementById('dashboardTabs');
+                const gymTabPanel = document.getElementById('gymTabPanel');
+                const feedTabPanel = document.getElementById('feedTabPanel');
+                const profileTabPanel = document.getElementById('profileTabPanel');
+
+                // Clean up previous subscriptions
+                if (leaderboardUnsubscribe) { leaderboardUnsubscribe(); leaderboardUnsubscribe = null; }
+                if (feedUnsubscribe) { feedUnsubscribe(); feedUnsubscribe = null; }
+                if (profilePostsUnsubscribe) { profilePostsUnsubscribe(); profilePostsUnsubscribe = null; }
+                if (userUnsubscribe) { userUnsubscribe(); userUnsubscribe = null; }
+
+                if (user) {
+                    // Logged In
+                    loggedOutNav.style.display = 'none';
+                    loggedInNav.style.display = 'flex';
                     
-                    if (data && data.isPremium === true) {
-                        premiumBadge.style.display = 'inline-block';
-                        upgradeBtn.style.display = 'none';
-                        updateMobileNav(user, true, firstName);
-                    } else {
-                        premiumBadge.style.display = 'none';
-                        upgradeBtn.style.display = 'inline-block';
-                        updateMobileNav(user, false, firstName);
-                    }
-                    
-                    // Render Gym States
-                    const gymSearchState = document.getElementById('gymSearchState');
-                    const gymDashboardState = document.getElementById('gymDashboardState');
-                    if (gymSearchState && gymDashboardState) {
-                        if (data && data.gymId) {
-                            gymSearchState.style.display = 'none';
-                            gymDashboardState.style.display = 'block';
-                            
-                            document.getElementById('dashGymName').textContent = data.gymName;
-                            document.getElementById('attendanceCount').textContent = data.attendanceCount || 0;
-                            
-                            const checkInBtn = document.getElementById('checkInBtn');
-                            const todayStr = new Date().toDateString();
-                            if (data.lastCheckIn === todayStr) {
-                                checkInBtn.disabled = true;
-                                checkInBtn.textContent = 'Checked In Today';
-                            } else {
-                                checkInBtn.disabled = false;
-                                checkInBtn.textContent = 'Check In Today';
-                            }
-                            
-                            renderLeaderboard(data.gymName, data.attendanceCount || 0, firstName);
-                        } else {
-                            gymSearchState.style.display = 'block';
-                            gymDashboardState.style.display = 'none';
-                        }
-                    }
-                }, error => {
-                    // Fallback
-                    premiumBadge.style.display = 'none';
-                    upgradeBtn.style.display = 'inline-block';
+                    const initialName = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name))
+                        ? (user.user_metadata.full_name || user.user_metadata.name).split(' ')[0]
+                        : user.email.split('@')[0];
+                    userEmailDisplay.textContent = initialName;
                     updateMobileNav(user, false, initialName);
-                });
-            } else {
-                // Logged Out
-                loggedOutNav.style.display = 'flex';
-                loggedInNav.style.display = 'none';
-                if (gymSection) gymSection.style.display = 'none';
-                mobileAuthNav.innerHTML = `
-                    <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="openAuthModal('signin')">Log In</button>
-                    <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
-                `;
-            }
-        });
+                    
+                    if (gymSection) gymSection.style.display = 'block';
+                    if (gymLoggedOutState) gymLoggedOutState.style.display = 'none';
+                    if (dashboardTabs) dashboardTabs.style.display = 'flex';
+                    
+                    switchDashboardTab('gym');
+
+                    // Check if profile exists, otherwise create it
+                    const { data: existingProfile } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
+                    if (!existingProfile) {
+                        await supabase.from('users').insert({
+                            id: user.id,
+                            name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
+                            email: user.email,
+                            username: user.email.split('@')[0].toLowerCase(),
+                            is_premium: false,
+                            photo_url: user.user_metadata?.avatar_url || ''
+                        });
+                    }
+
+                    // Setup real-time user profile listener
+                    const handleProfileUpdate = (data) => {
+                        if (!data) return;
+                        const firstName = data.name ? data.name.split(' ')[0] : initialName;
+                        userEmailDisplay.textContent = firstName;
+                        
+                        if (data.is_premium === true) {
+                            premiumBadge.style.display = 'inline-block';
+                            upgradeBtn.style.display = 'none';
+                            updateMobileNav(user, true, firstName);
+                        } else {
+                            premiumBadge.style.display = 'none';
+                            upgradeBtn.style.display = 'inline-block';
+                            updateMobileNav(user, false, firstName);
+                        }
+                        
+                        if (gymSearchState && gymDashboardState) {
+                            if (data.gym_id) {
+                                gymSearchState.style.display = 'none';
+                                gymDashboardState.style.display = 'block';
+                                
+                                document.getElementById('dashGymName').textContent = data.gym_name;
+                                document.getElementById('attendanceCount').textContent = data.attendance_count || 0;
+                                
+                                const checkInBtn = document.getElementById('checkInBtn');
+                                const todayStr = new Date().toDateString();
+                                if (data.last_check_in === todayStr) {
+                                    checkInBtn.disabled = true;
+                                    checkInBtn.textContent = 'Checked In Today';
+                                } else {
+                                    checkInBtn.disabled = false;
+                                    checkInBtn.textContent = 'Check In Today';
+                                }
+                                
+                                renderLeaderboard(data.gym_id, user.id);
+                            } else {
+                                if (leaderboardUnsubscribe) {
+                                    leaderboardUnsubscribe();
+                                    leaderboardUnsubscribe = null;
+                                }
+                                gymSearchState.style.display = 'block';
+                                gymDashboardState.style.display = 'none';
+                            }
+                        }
+
+                        bindUserProfile(user, data);
+                    };
+
+                    // Initial call
+                    const { data: currentProfile } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
+                    handleProfileUpdate(currentProfile);
+
+                    // Subscribe to profile changes
+                    const userChannel = supabase.channel(`user-profile-${user.id}`)
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, payload => {
+                            handleProfileUpdate(payload.new);
+                        })
+                        .subscribe();
+
+                    userUnsubscribe = () => {
+                        supabase.removeChannel(userChannel);
+                    };
+
+                    bindSocialFeed(user);
+                } else {
+                    // Logged Out
+                    loggedOutNav.style.display = 'flex';
+                    loggedInNav.style.display = 'none';
+                    
+                    if (gymSection) gymSection.style.display = 'block';
+                    if (gymLoggedOutState) gymLoggedOutState.style.display = 'block';
+                    if (gymSearchState) gymSearchState.style.display = 'none';
+                    if (gymDashboardState) gymDashboardState.style.display = 'none';
+                    if (dashboardTabs) dashboardTabs.style.display = 'none';
+                    if (gymTabPanel) gymTabPanel.style.display = 'none';
+                    if (feedTabPanel) feedTabPanel.style.display = 'none';
+                    if (profileTabPanel) profileTabPanel.style.display = 'none';
+                    
+                    mobileAuthNav.innerHTML = `
+                        <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="openAuthModal('signin')">Log In</button>
+                        <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
+                    `;
+                }
+            });
+        }
 
         function updateMobileNav(user, isPremium, firstName) {
             const mobileAuthNav = document.getElementById('mobileAuthNav');
-            const displayName = firstName || (user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0]);
+            const displayName = firstName || (user.user_metadata?.full_name || user.email.split('@')[0]);
             mobileAuthNav.innerHTML = `
                 <div style="text-align: center; margin-bottom: 8px;">
                     <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: block;">Hi, ${displayName}</span>
@@ -723,39 +884,23 @@
             `;
         }
 
-        // Firebase Auth operations
-        function handleGoogleSignIn(e) {
+        // Supabase Auth operations
+        async function handleGoogleSignIn(e) {
             if (e) e.preventDefault();
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then(result => {
-                    const user = result.user;
-                    // Check if doc exists in Firestore, otherwise write profile doc matching app standard
-                    return db.collection('users').doc(user.uid).get().then(doc => {
-                        if (!doc.exists) {
-                            return db.collection('users').doc(user.uid).set({
-                                'name': user.displayName || 'User',
-                                'email': user.email,
-                                'isPremium': false,
-                                'photoUrl': user.photoURL || '',
-                                'uid': user.uid,
-                                'createdAt': firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                        }
-                    });
-                })
-                .then(() => {
-                    closeAuthModal();
-                })
-                .catch(err => {
-                    const signinError = document.getElementById('signin-error');
-                    const signupError = document.getElementById('signup-error');
-                    if (signinError) signinError.textContent = err.message;
-                    if (signupError) signupError.textContent = err.message;
+            try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google'
                 });
+                if (error) throw error;
+            } catch (err) {
+                const signinError = document.getElementById('signin-error');
+                const signupError = document.getElementById('signup-error');
+                if (signinError) signinError.textContent = err.message;
+                if (signupError) signupError.textContent = err.message;
+            }
         }
 
-        function handleSignUp(e) {
+        async function handleSignUp(e) {
             e.preventDefault();
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
@@ -763,49 +908,64 @@
             const errorDiv = document.getElementById('signup-error');
             errorDiv.textContent = "";
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(cred => {
-                    // Create corresponding Firestore profile document matching mobile app standard
-                    return db.collection('users').doc(cred.user.uid).set({
-                        'name': name,
-                        'email': email,
-                        'isPremium': false,
-                        'photoUrl': '',
-                        'uid': cred.user.uid,
-                        'createdAt': firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                })
-                .then(() => {
-                    closeAuthModal();
-                })
-                .catch(err => {
-                    errorDiv.textContent = err.message;
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: name
+                        }
+                    }
                 });
+                if (error) throw error;
+                const user = data.user;
+                if (user) {
+                    await supabase.from('users').upsert({
+                        id: user.id,
+                        name: name,
+                        email: email,
+                        username: email.split('@')[0].toLowerCase(),
+                        is_premium: false,
+                        photo_url: ''
+                    });
+                }
+                closeAuthModal();
+            } catch (err) {
+                errorDiv.textContent = err.message;
+            }
         }
 
-        function handleSignIn(e) {
+        async function handleSignIn(e) {
             e.preventDefault();
             const email = document.getElementById('signin-email').value;
             const password = document.getElementById('signin-password').value;
             const errorDiv = document.getElementById('signin-error');
             errorDiv.textContent = "";
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    closeAuthModal();
-                })
-                .catch(err => {
-                    errorDiv.textContent = err.message;
+            try {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
                 });
+                if (error) throw error;
+                closeAuthModal();
+            } catch (err) {
+                errorDiv.textContent = err.message;
+            }
         }
 
-        function handleLogout() {
-            auth.signOut().then(() => {
-                const mobileNav = document.getElementById('mobileNav');
-                const menuToggle = document.getElementById('menuToggle');
-                mobileNav.classList.remove('active');
-                menuToggle.classList.remove('active');
-            });
+        async function handleLogout() {
+            if (leaderboardUnsubscribe) { leaderboardUnsubscribe(); leaderboardUnsubscribe = null; }
+            if (feedUnsubscribe) { feedUnsubscribe(); feedUnsubscribe = null; }
+            if (profilePostsUnsubscribe) { profilePostsUnsubscribe(); profilePostsUnsubscribe = null; }
+            if (userUnsubscribe) { userUnsubscribe(); userUnsubscribe = null; }
+
+            await supabase.auth.signOut();
+            const mobileNav = document.getElementById('mobileNav');
+            const menuToggle = document.getElementById('menuToggle');
+            mobileNav.classList.remove('active');
+            menuToggle.classList.remove('active');
         }
 
         // Gym Partner Constants & Functions
@@ -816,21 +976,19 @@
             { id: 'aarohh_hq', name: "AAROHH Headquarters Gym" }
         ];
 
-        function handleGymSearch() {
+        async function handleGymSearch() {
             const query = document.getElementById('gymSearchInput').value.trim().toLowerCase();
             const resultsDiv = document.getElementById('gymSearchResults');
             resultsDiv.innerHTML = "<p style='color: var(--text-grey); font-size: 0.9rem;'>Searching gyms...</p>";
             
-            db.collection('gyms').get().then(snapshot => {
-                let gyms = [];
-                snapshot.forEach(doc => {
-                    gyms.push({ id: doc.id, ...doc.data() });
-                });
+            try {
+                let { data: gyms, error } = await supabase.from('gyms').select('*');
+                if (error) throw error;
                 
-                // Populate default gyms if collection is completely empty
-                if (gyms.length === 0) {
-                    const promises = DEFAULT_GYMS.map(g => db.collection('gyms').doc(g.id).set({ name: g.name }));
-                    return Promise.all(promises).then(() => handleGymSearch());
+                if (!gyms || gyms.length === 0) {
+                    const defaultRows = DEFAULT_GYMS.map(g => ({ id: g.id, name: g.name }));
+                    await supabase.from('gyms').insert(defaultRows);
+                    return handleGymSearch();
                 }
                 
                 const filtered = gyms.filter(g => g.name.toLowerCase().includes(query));
@@ -844,132 +1002,186 @@
                         </div>
                     `).join('');
                 }
-            }).catch(err => {
+            } catch (err) {
                 resultsDiv.innerHTML = `<p style='color: #dc3545; font-size: 0.9rem;'>Error: ${err.message}</p>`;
-            });
+            }
         }
 
-        function joinGym(gymId, gymName) {
-            const user = auth.currentUser;
+        async function joinGym(gymId, gymName) {
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
             if (!user) return;
             
-            db.collection('users').doc(user.uid).set({
-                gymId: gymId,
-                gymName: gymName,
-                attendanceCount: 0,
-                lastCheckIn: null
-            }, { merge: true }).then(() => {
+            try {
+                const { data: gym } = await supabase.from('gyms').select('members').eq('id', gymId).single();
+                let members = gym?.members || [];
+                if (!members.includes(user.id)) {
+                    members.push(user.id);
+                    await supabase.from('gyms').update({ members }).eq('id', gymId);
+                }
+
+                await supabase.from('users').update({
+                    gym_id: gymId,
+                    gym_name: gymName,
+                    attendance_count: 0,
+                    last_check_in: null
+                }).eq('id', user.id);
+
                 const resultsDiv = document.getElementById('gymSearchResults');
                 if (resultsDiv) resultsDiv.innerHTML = "";
                 const searchInput = document.getElementById('gymSearchInput');
                 if (searchInput) searchInput.value = "";
-            });
-        }
-
-        function handleLeaveGym() {
-            const user = auth.currentUser;
-            if (!user) return;
-            
-            if (confirm("Are you sure you want to leave this gym? Your attendance history will be cleared.")) {
-                db.collection('users').doc(user.uid).update({
-                    gymId: firebase.firestore.FieldValue.delete(),
-                    gymName: firebase.firestore.FieldValue.delete(),
-                    attendanceCount: firebase.firestore.FieldValue.delete(),
-                    lastCheckIn: firebase.firestore.FieldValue.delete()
-                });
+            } catch (e) {
+                console.error("Error joining gym:", e);
             }
         }
 
-        function handleGymCheckIn() {
-            const user = auth.currentUser;
+        async function handleLeaveGym() {
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
             if (!user) return;
             
-            const userRef = db.collection('users').doc(user.uid);
-            userRef.get().then(doc => {
-                if (doc.exists) {
-                    const data = doc.data();
+            if (confirm("Are you sure you want to leave this gym? Your attendance history will be cleared.")) {
+                try {
+                    const { data: profile } = await supabase.from('users').select('gym_id').eq('id', user.id).single();
+                    if (profile && profile.gym_id) {
+                        const { data: gym } = await supabase.from('gyms').select('members').eq('id', profile.gym_id).single();
+                        let members = gym?.members || [];
+                        members = members.filter(id => id !== user.id);
+                        await supabase.from('gyms').update({ members }).eq('id', profile.gym_id);
+                    }
+                    await supabase.from('users').update({
+                        gym_id: null,
+                        gym_name: null,
+                        attendance_count: null,
+                        last_check_in: null
+                    }).eq('id', user.id);
+                } catch (e) {
+                    console.error("Error leaving gym:", e);
+                }
+            }
+        }
+
+        async function handleGymCheckIn() {
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
+            if (!user) return;
+            
+            try {
+                const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).single();
+                if (profile) {
                     const todayStr = new Date().toDateString();
-                    
-                    if (data.lastCheckIn === todayStr) {
+                    if (profile.last_check_in === todayStr) {
                         const msg = document.getElementById('checkin-success-msg');
                         msg.style.color = '#dc3545';
                         msg.textContent = "You've already checked in today!";
                         return;
                     }
                     
-                    const newCount = (data.attendanceCount || 0) + 1;
-                    return userRef.set({
-                        attendanceCount: newCount,
-                        lastCheckIn: todayStr
-                    }, { merge: true }).then(() => {
-                        const msg = document.getElementById('checkin-success-msg');
-                        msg.style.color = '#198754';
-                        msg.textContent = "Check-in successful! Streak increased.";
-                        
-                        const btn = document.getElementById('checkInBtn');
-                        btn.disabled = true;
-                        btn.textContent = "Checked In Today";
-                        
-                        setTimeout(() => {
-                            msg.textContent = "";
-                        }, 2500);
-                    });
+                    const newCount = (profile.attendance_count || 0) + 1;
+                    await supabase.from('users').update({
+                        attendance_count: newCount,
+                        last_check_in: todayStr
+                    }).eq('id', user.id);
+
+                    const msg = document.getElementById('checkin-success-msg');
+                    msg.style.color = '#198754';
+                    msg.textContent = "Check-in successful! Streak increased.";
+                    
+                    const btn = document.getElementById('checkInBtn');
+                    btn.disabled = true;
+                    btn.textContent = "Checked In Today";
+                    
+                    setTimeout(() => {
+                        msg.textContent = "";
+                    }, 2500);
                 }
-            });
+            } catch (e) {
+                console.error("Error during check-in:", e);
+            }
         }
 
-        function handleAddNewGym() {
-            const input = document.getElementById('newGymInput');
-            const err = document.getElementById('new-gym-error');
-            const name = input.value.trim();
-            err.textContent = "";
-            
-            if (!name) return;
-            
-            db.collection('gyms').add({
-                name: name
-            }).then(() => {
-                input.value = "";
-                err.style.color = '#198754';
-                err.textContent = "Gym registered successfully! Search for it above.";
-                setTimeout(() => { err.textContent = ""; }, 2500);
-            }).catch(e => {
-                err.style.color = '#dc3545';
-                err.textContent = e.message;
-            });
+        function generateGymCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
         }
 
-        function renderLeaderboard(userGymName, userAttendanceCount, userFirstName) {
+
+
+        async function renderLeaderboard(gymId, currentUid) {
             const list = document.getElementById('leaderboardList');
             if (!list) return;
             
-            const mockUsers = [
-                { name: "Vikram Malhotra", attendance: 24, isMe: false },
-                { name: "Sneha Patel", attendance: 19, isMe: false },
-                { name: "Rajesh Kumar", attendance: 15, isMe: false },
-                { name: userFirstName + " (You)", attendance: userAttendanceCount || 0, isMe: true },
-                { name: "Ananya Rao", attendance: 8, isMe: false }
-            ];
+            if (leaderboardUnsubscribe) {
+                leaderboardUnsubscribe();
+                leaderboardUnsubscribe = null;
+            }
             
-            mockUsers.sort((a, b) => b.attendance - a.attendance);
+            list.innerHTML = "<p style='color: var(--text-grey); font-size: 0.9rem; text-align: center; padding: 20px;'>Loading leaderboard...</p>";
             
-            list.innerHTML = mockUsers.map((u, i) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: ${u.isMe ? 'rgba(255, 123, 0, 0.08)' : 'var(--bg-light)'}; border: 1px solid ${u.isMe ? '#ff7b00' : 'var(--border-color)'}; border-radius: 10px; box-sizing: border-box; width: 100%;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-weight: 800; font-size: 0.95rem; color: ${i === 0 ? '#ff7b00' : 'var(--text-secondary)'};">#${i + 1}</span>
-                        <span style="font-weight: ${u.isMe ? '700' : '500'}; font-size: 0.95rem; color: var(--text-primary);">${u.name}</span>
-                    </div>
-                    <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">${u.attendance} days</span>
-                </div>
-            `).join('');
+            const fetchLeaderboard = async () => {
+                try {
+                    const { data: users, error } = await supabase.from('users').select('*').eq('gym_id', gymId);
+                    if (error) throw error;
+                    
+                    const members = (users || []).map(userData => {
+                        let displayName = userData.name || userData.email || 'Gym Member';
+                        if (userData.id === currentUid) {
+                            displayName += ' (You)';
+                        }
+                        return {
+                            name: displayName,
+                            attendance: userData.attendance_count || 0,
+                            isMe: userData.id === currentUid
+                        };
+                    });
+                    
+                    members.sort((a, b) => b.attendance - a.attendance);
+                    
+                    if (members.length === 0) {
+                        list.innerHTML = `<div style="text-align: center; color: var(--text-grey); padding: 20px; font-size: 0.9rem;">No members in this gym yet.</div>`;
+                    } else {
+                        list.innerHTML = members.map((u, i) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: ${u.isMe ? 'rgba(255, 123, 0, 0.08)' : 'var(--bg-light)'}; border: 1px solid ${u.isMe ? '#ff7b00' : 'var(--border-color)'}; border-radius: 10px; box-sizing: border-box; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-weight: 800; font-size: 0.95rem; color: ${i === 0 ? '#ff7b00' : 'var(--text-secondary)'};">#${i + 1}</span>
+                                    <span style="font-weight: ${u.isMe ? '700' : '500'}; font-size: 0.95rem; color: var(--text-primary);">${u.name}</span>
+                                </div>
+                                <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">${u.attendance} days</span>
+                            </div>
+                        `).join('');
+                    }
+                } catch (err) {
+                    console.error("Leaderboard error:", err);
+                    list.innerHTML = `<p style="color: #dc3545; font-size: 0.9rem; text-align: center; padding: 20px;">Error loading leaderboard.</p>`;
+                }
+            };
+
+            await fetchLeaderboard();
+
+            // Setup real-time updates for leaderboard members
+            const gymChannel = supabase.channel(`leaderboard-${gymId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `gym_id=eq.${gymId}` }, () => {
+                    fetchLeaderboard();
+                })
+                .subscribe();
+
+            leaderboardUnsubscribe = () => {
+                supabase.removeChannel(gymChannel);
+            };
         }
 
         // Simulate payment and upgrade user status
-        function handleCheckoutSubmit(e) {
+        async function handleCheckoutSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('checkoutBtn');
             const errorDiv = document.getElementById('checkout-error');
-            const user = auth.currentUser;
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
 
             if (!user) {
                 errorDiv.style.color = '#dc3545';
@@ -981,12 +1193,12 @@
             btn.textContent = "Processing Payment...";
             errorDiv.textContent = "";
 
-            // Simulate server payment completion delay
-            setTimeout(() => {
-                db.collection('users').doc(user.uid).set({
-                    'isPremium': true
-                }, { merge: true })
-                .then(() => {
+            setTimeout(async () => {
+                try {
+                    await supabase.from('users').update({
+                        is_premium: true
+                    }).eq('id', user.id);
+
                     btn.disabled = false;
                     btn.textContent = "Pay & Upgrade to Premium";
                     errorDiv.style.color = '#198754';
@@ -995,14 +1207,341 @@
                         closeSubscriptionModal();
                         errorDiv.textContent = "";
                     }, 1500);
-                })
-                .catch(err => {
+                } catch (err) {
                     btn.disabled = false;
                     btn.textContent = "Pay & Upgrade to Premium";
                     errorDiv.style.color = '#dc3545';
                     errorDiv.textContent = err.message;
-                });
+                }
             }, 1800);
+        }
+
+        // Tab switching handler
+        function switchDashboardTab(tabName) {
+            const panels = {
+                gym: document.getElementById('gymTabPanel'),
+                feed: document.getElementById('feedTabPanel'),
+                profile: document.getElementById('profileTabPanel')
+            };
+            const buttons = {
+                gym: document.getElementById('tabBtnGym'),
+                feed: document.getElementById('tabBtnFeed'),
+                profile: document.getElementById('tabBtnProfile')
+            };
+
+            Object.keys(panels).forEach(key => {
+                if (panels[key]) {
+                    panels[key].style.display = (key === tabName) ? 'block' : 'none';
+                }
+                if (buttons[key]) {
+                    if (key === tabName) {
+                        buttons[key].style.backgroundColor = 'var(--text-primary)';
+                        buttons[key].style.color = 'var(--bg-white)';
+                        buttons[key].style.borderColor = 'var(--text-primary)';
+                    } else {
+                        buttons[key].style.backgroundColor = 'transparent';
+                        buttons[key].style.color = 'var(--text-primary)';
+                        buttons[key].style.borderColor = 'var(--border-color)';
+                    }
+                }
+            });
+        }
+
+        // Post image attachment state
+        let attachedImageBase64 = null;
+
+        function handlePostImageChange() {
+            const fileInput = document.getElementById('feedPostImageInput');
+            const indicator = document.getElementById('attachedImageLabel');
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    attachedImageBase64 = e.target.result.split(',')[1];
+                    if (indicator) {
+                        indicator.style.display = 'inline';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function submitFeedPost() {
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
+            if (!user) return;
+
+            const textInput = document.getElementById('feedPostText');
+            const text = textInput.value.trim();
+            const feedback = document.getElementById('post-feedback-msg');
+
+            if (!text && !attachedImageBase64) {
+                feedback.style.color = '#dc3545';
+                feedback.textContent = "Please enter some text or add a photo.";
+                return;
+            }
+
+            feedback.style.color = 'var(--text-secondary)';
+            feedback.textContent = "Publishing post...";
+
+            try {
+                const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).single();
+                const isPremium = userData?.is_premium === true;
+                const authorName = userData?.name || user.user_metadata?.full_name || user.email.split('@')[0];
+                const authorUsername = userData?.username || user.email.split('@')[0];
+
+                if (attachedImageBase64 && !isPremium) {
+                    throw new Error("Attaching photos requires AAROHH Premium. Upgrade to attach photos!");
+                }
+
+                if (!isPremium) {
+                    const startOfToday = new Date();
+                    startOfToday.setHours(0,0,0,0);
+                    
+                    const { count } = await supabase.from('posts')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('author_id', user.id)
+                        .gte('created_at', startOfToday.toISOString());
+
+                    if (count >= 1) {
+                        throw new Error("Free accounts are limited to exactly 1 post per day. Please upgrade to AAROHH Premium for unlimited posting!");
+                    }
+                }
+
+                await supabase.from('posts').insert({
+                    author_id: user.id,
+                    author_name: authorName,
+                    author_username: authorUsername,
+                    text: text,
+                    base64_image: attachedImageBase64 || "",
+                    likes: [],
+                    comments_count: 0
+                });
+
+                textInput.value = "";
+                attachedImageBase64 = null;
+                const fileInput = document.getElementById('feedPostImageInput');
+                if (fileInput) fileInput.value = "";
+                const indicator = document.getElementById('attachedImageLabel');
+                if (indicator) indicator.style.display = 'none';
+
+                feedback.style.color = '#198754';
+                feedback.textContent = "Posted successfully!";
+                setTimeout(() => { feedback.textContent = ""; }, 2500);
+            } catch (err) {
+                feedback.style.color = '#dc3545';
+                feedback.textContent = err.message;
+            }
+        }
+
+        // Live bind Social Feed
+        async function bindSocialFeed(user) {
+            const feedContainer = document.getElementById('feedPostsStream');
+            if (!feedContainer) return;
+
+            if (feedUnsubscribe) {
+                feedUnsubscribe();
+                feedUnsubscribe = null;
+            }
+
+            const fetchFeed = async () => {
+                try {
+                    const { data: posts, error } = await supabase.from('posts')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(40);
+                    
+                    if (error) throw error;
+                    
+                    let html = '';
+                    (posts || []).forEach(post => {
+                        const isLiked = post.likes && post.likes.includes(user.id);
+                        const likesCount = post.likes ? post.likes.length : 0;
+                        const initial = post.author_name ? post.author_name.charAt(0) : 'U';
+                        
+                        let dateStr = 'Just now';
+                        if (post.created_at) {
+                            dateStr = new Date(post.created_at).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+
+                        html += `
+                            <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; width: 100%;">
+                                <!-- Author Header -->
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #ff7b00; color: #ffffff; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-transform: uppercase;">
+                                        ${initial}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">${post.author_name}</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-grey); font-weight: 600;">@${post.author_username} • ${dateStr}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Post Text -->
+                                ${post.text ? `<p style="font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); margin: 0; white-space: pre-wrap;">${post.text}</p>` : ''}
+                                
+                                <!-- Attached Image -->
+                                ${post.base64_image ? `<img src="data:image/jpeg;base64,${post.base64_image}" alt="Milestone Image" style="width: 100%; border-radius: 12px; max-height: 360px; object-fit: cover; border: 1px solid var(--border-color);" />` : ''}
+                                
+                                <!-- Action Buttons -->
+                                <div style="display: flex; gap: 20px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px;">
+                                    <button onclick="handleLikePost('${post.id}')" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; color: ${isLiked ? '#ff7b00' : 'var(--text-secondary)'}; padding: 0;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="${isLiked ? '#ff7b00' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                        <span>${likesCount} Likes</span>
+                                    </button>
+                                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                        <span>${post.comments_count || 0} Comments</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    feedContainer.innerHTML = html || `<p style="text-align: center; color: var(--text-grey); font-size: 0.9rem; padding: 20px;">No feed updates yet. Be the first to share one!</p>`;
+                } catch (e) {
+                    console.error("Error fetching feed:", e);
+                }
+            };
+
+            await fetchFeed();
+
+            // Real-time Feed Channel
+            const feedChannel = supabase.channel('feed-posts-channel')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+                    fetchFeed();
+                })
+                .subscribe();
+
+            feedUnsubscribe = () => {
+                supabase.removeChannel(feedChannel);
+            };
+        }
+
+        // Like/Unlike post toggle handler
+        async function handleLikePost(postId) {
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
+            if (!user) return;
+
+            try {
+                const { data: post } = await supabase.from('posts').select('likes').eq('id', postId).single();
+                if (post) {
+                    let likes = post.likes || [];
+                    if (likes.includes(user.id)) {
+                        likes = likes.filter(id => id !== user.id);
+                    } else {
+                        likes.push(user.id);
+                    }
+                    await supabase.from('posts').update({ likes }).eq('id', postId);
+                }
+            } catch (e) {
+                console.error("Error liking post:", e);
+            }
+        }
+
+        // Bind Wellness Profile Tab info
+        async function bindUserProfile(user, userData) {
+            const nameDisplay = document.getElementById('profileNameDisplay');
+            const usernameDisplay = document.getElementById('profileUsernameDisplay');
+            const bioDisplay = document.getElementById('profileBioDisplay');
+            const avatarDisplay = document.getElementById('profileAvatar');
+            const streakDisplay = document.getElementById('profileStreakDisplay');
+            const postsStream = document.getElementById('profilePostsStream');
+
+            if (!nameDisplay) return;
+
+            const displayName = (userData && userData.name) ? userData.name : (user.user_metadata?.full_name || 'Gym Member');
+            const username = (userData && userData.username) ? userData.username : user.email.split('@')[0];
+            const bio = (userData && userData.profile && userData.profile.bio) ? userData.profile.bio : 'No biography set yet. You can customize your bio in the mobile app.';
+            
+            nameDisplay.textContent = displayName;
+            usernameDisplay.textContent = '@' + username;
+            bioDisplay.textContent = bio;
+            avatarDisplay.textContent = displayName.charAt(0);
+            
+            streakDisplay.textContent = (userData && userData.attendance_count) ? userData.attendance_count : 0;
+
+            if (profilePostsUnsubscribe) {
+                profilePostsUnsubscribe();
+                profilePostsUnsubscribe = null;
+            }
+
+            const fetchProfilePosts = async () => {
+                try {
+                    const { data: posts, error } = await supabase.from('posts')
+                        .select('*')
+                        .eq('author_id', user.id)
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+
+                    const postCountDisplay = document.getElementById('profilePostCount');
+                    if (postCountDisplay) {
+                        postCountDisplay.textContent = posts ? posts.length : 0;
+                    }
+
+                    let html = '';
+                    (posts || []).forEach(post => {
+                        const likesCount = post.likes ? post.likes.length : 0;
+                        
+                        let dateStr = 'Just now';
+                        if (post.created_at) {
+                            dateStr = new Date(post.created_at).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+
+                        html += `
+                            <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; width: 100%;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 0.8rem; color: var(--text-grey); font-weight: 600;">Posted on ${dateStr}</span>
+                                    <button onclick="handleDeletePost('${post.id}')" style="background: none; border: none; color: #dc3545; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">Delete</button>
+                                </div>
+                                ${post.text ? `<p style="font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); margin: 0; white-space: pre-wrap;">${post.text}</p>` : ''}
+                                ${post.base64_image ? `<img src="data:image/jpeg;base64,${post.base64_image}" alt="Milestone Image" style="width: 100%; border-radius: 12px; max-height: 300px; object-fit: cover; border: 1px solid var(--border-color);" />` : ''}
+                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); display: flex; gap: 16px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px;">
+                                    <span>${likesCount} Likes</span>
+                                    <span>${post.comments_count || 0} Comments</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    postsStream.innerHTML = html || `<p style="text-align: center; color: var(--text-grey); font-size: 0.9rem; padding: 20px;">You haven't shared any posts yet.</p>`;
+                } catch (e) {
+                    console.error("Error fetching profile posts:", e);
+                }
+            };
+
+            await fetchProfilePosts();
+
+            const profileChannel = supabase.channel(`profile-posts-channel-${user.id}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'posts', filter: `author_id=eq.${user.id}` }, () => {
+                    fetchProfilePosts();
+                })
+                .subscribe();
+
+            profilePostsUnsubscribe = () => {
+                supabase.removeChannel(profileChannel);
+            };
+        }
+
+        // Delete post handler
+        async function handleDeletePost(postId) {
+            if (confirm("Are you sure you want to delete this post? This cannot be undone.")) {
+                try {
+                    await supabase.from('posts').delete().eq('id', postId);
+                } catch (err) {
+                    alert("Failed to delete post: " + err.message);
+                }
+            }
         }
 
         // Smooth scroll implementation
@@ -1037,11 +1576,9 @@
             const inputGroup = form.querySelector('.input-group');
             const successMsg = form.querySelector('.waitlist-success-msg');
             
-            // Hide input, show success message
             inputGroup.style.display = 'none';
             successMsg.classList.add('visible');
             
-            // Log for mock submission
             console.log(`Waitlist submission from ${source}:`, form.querySelector('input').value);
         }
 
@@ -1086,21 +1623,23 @@
             if (resetError) resetError.textContent = "";
         }
 
-        function handleForgotPassword(e) {
+        async function handleForgotPassword(e) {
             e.preventDefault();
             const email = document.getElementById('reset-email').value;
             const errorDiv = document.getElementById('reset-error');
             errorDiv.textContent = "";
 
-            auth.sendPasswordResetEmail(email)
-                .then(() => {
-                    errorDiv.style.color = '#198754';
-                    errorDiv.textContent = "Reset link sent! Please check your email inbox.";
-                })
-                .catch(err => {
-                    errorDiv.style.color = '#dc3545';
-                    errorDiv.textContent = err.message;
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin
                 });
+                if (error) throw error;
+                errorDiv.style.color = '#198754';
+                errorDiv.textContent = "Reset link sent! Please check your email inbox.";
+            } catch (err) {
+                errorDiv.style.color = '#dc3545';
+                errorDiv.textContent = err.message;
+            }
         }
 
         function switchAuthTab(tab) {
@@ -1153,7 +1692,7 @@
             document.body.style.overflow = '';
         }
 
-        function handleAccountDeletion(e) {
+        async function handleAccountDeletion(e) {
             e.preventDefault();
             const email = document.getElementById('delete-email').value;
             const password = document.getElementById('delete-password').value;
@@ -1161,43 +1700,35 @@
             errorDiv.style.color = '#dc3545';
             errorDiv.textContent = "";
 
-            const user = auth.currentUser;
-            if (!user) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .then(cred => {
-                        const currentUser = cred.user;
-                        return db.collection('users').doc(currentUser.uid).delete().then(() => {
-                            return currentUser.delete();
-                        });
-                    })
-                    .then(() => {
-                        closeDeletionModal();
-                        alert("Your account has been deleted successfully.");
-                        window.location.reload();
-                    })
-                    .catch(err => {
-                        errorDiv.textContent = err.message;
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
+            
+            try {
+                if (!user) {
+                    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                        email,
+                        password
                     });
-            } else {
-                if (user.email !== email) {
-                    errorDiv.textContent = "Confirmed email does not match the active session email.";
-                    return;
+                    if (signInError) throw signInError;
+                    
+                    const currentUser = signInData.user;
+                    await supabase.from('users').delete().eq('id', currentUser.id);
+                    await supabase.auth.signOut();
+                } else {
+                    if (user.email !== email) {
+                        errorDiv.textContent = "Confirmed email does not match the active session email.";
+                        return;
+                    }
+                    // Delete public profile row
+                    await supabase.from('users').delete().eq('id', user.id);
+                    await supabase.auth.signOut();
                 }
-                const credential = firebase.auth.EmailAuthProvider.credential(email, password);
-                user.reauthenticateWithCredential(credential)
-                    .then(() => {
-                        return db.collection('users').doc(user.uid).delete().then(() => {
-                            return user.delete();
-                        });
-                    })
-                    .then(() => {
-                        closeDeletionModal();
-                        alert("Your account has been deleted successfully.");
-                        window.location.reload();
-                    })
-                    .catch(err => {
-                        errorDiv.textContent = err.message;
-                    });
+                
+                closeDeletionModal();
+                alert("Your profile data has been deleted. Note: To delete the primary login account, configure a Postgres trigger or an RPC function in Supabase as client-side users cannot delete Auth records directly.");
+                window.location.reload();
+            } catch (err) {
+                errorDiv.textContent = err.message;
             }
         }
 

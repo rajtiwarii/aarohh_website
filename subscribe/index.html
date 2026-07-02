@@ -13,10 +13,8 @@
     <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico?v=6.0">
     <link rel="stylesheet" href="../style.css?v=2.6">
     
-    <!-- Firebase Compat SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Supabase Client SDK CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -30,6 +28,7 @@
                 <a href="../index.html">Home</a>
                 <a href="../index.html#features">Features</a>
                 <a href="../index.html#about">About</a>
+                <a href="../index.html#gymSection">Gym</a>
                 <a href="../index.html#faq">FAQ</a>
                 <a href="./">Premium</a>
                 <a href="../index.html#contact-footer">Contact</a>
@@ -60,6 +59,7 @@
         <a href="../index.html" class="mobile-link">Home</a>
         <a href="../index.html#features" class="mobile-link">Features</a>
         <a href="../index.html#about" class="mobile-link">About</a>
+        <a href="../index.html#gymSection" class="mobile-link">Gym</a>
         <a href="../index.html#faq" class="mobile-link">FAQ</a>
         <a href="./" class="mobile-link">Premium</a>
         <a href="../index.html#contact-footer" class="mobile-link">Contact</a>
@@ -370,102 +370,111 @@
     </div>
 
     <script>
-        // Initialize Firebase
-        const firebaseConfig = {
-            apiKey: 'AIzaSyALqQLRDTtdtZhC1ceyVTJfmwdgb3Qf6xk',
-            appId: '1:364430634705:web:949baf3be012dc6d449ff0',
-            messagingSenderId: '364430634705',
-            projectId: 'yogyah-5aa01',
-            authDomain: 'yogyah-5aa01.firebaseapp.com',
-            storageBucket: 'yogyah-5aa01.firebasestorage.app',
-            measurementId: 'G-2V82FHWP64',
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // Initialize Supabase Client
+        // REPLACE these placeholder values with your actual Supabase Project URL and Anon Key
+        const SUPABASE_URL = 'https://your-supabase-url.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-supabase-anon-key';
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+        let userUnsubscribe = null;
 
         // Listen for Auth changes
-        auth.onAuthStateChanged(user => {
-            const loggedOutNav = document.getElementById('loggedOutNav');
-            const loggedInNav = document.getElementById('loggedInNav');
-            const userEmailDisplay = document.getElementById('userEmailDisplay');
-            const premiumBadge = document.getElementById('premiumBadge');
-            const upgradeBtn = document.getElementById('upgradeBtn');
-            const mobileAuthNav = document.getElementById('mobileAuthNav');
-            
-            // Page Checkout Section elements
-            const checkoutLoggedOut = document.getElementById('checkoutLoggedOut');
-            const checkoutLoggedIn = document.getElementById('checkoutLoggedIn');
-            const checkoutUserEmail = document.getElementById('checkoutUserEmail');
-            const checkoutAlreadyPremium = document.getElementById('checkoutAlreadyPremium');
-            const checkoutNeedsUpgrade = document.getElementById('checkoutNeedsUpgrade');
+        if (supabase) {
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                const user = session ? session.user : null;
 
-            if (user) {
-                // Logged In navbar
-                loggedOutNav.style.display = 'none';
-                loggedInNav.style.display = 'flex';
+                const loggedOutNav = document.getElementById('loggedOutNav');
+                const loggedInNav = document.getElementById('loggedInNav');
+                const userEmailDisplay = document.getElementById('userEmailDisplay');
+                const premiumBadge = document.getElementById('premiumBadge');
+                const upgradeBtn = document.getElementById('upgradeBtn');
+                const mobileAuthNav = document.getElementById('mobileAuthNav');
                 
-                // Fallback first name before Firestore loads
-                const initialName = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-                userEmailDisplay.textContent = initialName;
-                
-                // Page checkout box updates
-                checkoutLoggedOut.style.display = 'none';
-                checkoutLoggedIn.style.display = 'block';
-                checkoutUserEmail.textContent = `(${user.email})`;
-                
-                // Listen to Firestore premium status
-                db.collection('users').doc(user.uid).onSnapshot(doc => {
-                    const data = doc.exists ? doc.data() : null;
-                    const firstName = (data && data.name) ? data.name.split(' ')[0] : initialName;
-                    userEmailDisplay.textContent = firstName;
+                // Page Checkout Section elements
+                const checkoutLoggedOut = document.getElementById('checkoutLoggedOut');
+                const checkoutLoggedIn = document.getElementById('checkoutLoggedIn');
+                const checkoutUserEmail = document.getElementById('checkoutUserEmail');
+                const checkoutAlreadyPremium = document.getElementById('checkoutAlreadyPremium');
+                const checkoutNeedsUpgrade = document.getElementById('checkoutNeedsUpgrade');
+
+                if (userUnsubscribe) {
+                    userUnsubscribe();
+                    userUnsubscribe = null;
+                }
+
+                if (user) {
+                    // Logged In navbar
+                    loggedOutNav.style.display = 'none';
+                    loggedInNav.style.display = 'flex';
                     
-                    const isPremium = data && data.isPremium === true;
+                    const initialName = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name))
+                        ? (user.user_metadata.full_name || user.user_metadata.name).split(' ')[0]
+                        : user.email.split('@')[0];
+                    userEmailDisplay.textContent = initialName;
                     
-                    if (isPremium) {
-                        premiumBadge.style.display = 'inline-block';
-                        upgradeBtn.style.display = 'none';
+                    // Page checkout box updates
+                    checkoutLoggedOut.style.display = 'none';
+                    checkoutLoggedIn.style.display = 'block';
+                    checkoutUserEmail.textContent = `(${user.email})`;
+                    
+                    // Setup profile checker / listener
+                    const handleProfileCheck = (data) => {
+                        const firstName = (data && data.name) ? data.name.split(' ')[0] : initialName;
+                        userEmailDisplay.textContent = firstName;
                         
-                        // Page checkout box state
-                        checkoutAlreadyPremium.style.display = 'block';
-                        checkoutNeedsUpgrade.style.display = 'none';
-                        updateMobileNav(user, true, firstName);
-                    } else {
-                        premiumBadge.style.display = 'none';
-                        upgradeBtn.style.display = 'inline-block';
+                        const isPremium = data && data.is_premium === true;
                         
-                        // Page checkout box state
-                        checkoutAlreadyPremium.style.display = 'none';
-                        checkoutNeedsUpgrade.style.display = 'block';
-                        updateMobileNav(user, false, firstName);
-                    }
-                }, error => {
-                    // Fallback
-                    premiumBadge.style.display = 'none';
-                    upgradeBtn.style.display = 'inline-block';
-                    checkoutAlreadyPremium.style.display = 'none';
-                    checkoutNeedsUpgrade.style.display = 'block';
-                    updateMobileNav(user, false, initialName);
-                });
-            } else {
-                // Logged Out
-                loggedOutNav.style.display = 'flex';
-                loggedInNav.style.display = 'none';
-                
-                // Page checkout box states
-                checkoutLoggedOut.style.display = 'block';
-                checkoutLoggedIn.style.display = 'none';
-                
-                mobileAuthNav.innerHTML = `
-                    <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="openAuthModal('signin')">Log In</button>
-                    <button class="mobile-cta" onclick="window.location.href='./'">Get Premium</button>
-                `;
-            }
-        });
+                        if (isPremium) {
+                            premiumBadge.style.display = 'inline-block';
+                            upgradeBtn.style.display = 'none';
+                            
+                            checkoutAlreadyPremium.style.display = 'block';
+                            checkoutNeedsUpgrade.style.display = 'none';
+                            updateMobileNav(user, true, firstName);
+                        } else {
+                            premiumBadge.style.display = 'none';
+                            upgradeBtn.style.display = 'inline-block';
+                            
+                            checkoutAlreadyPremium.style.display = 'none';
+                            checkoutNeedsUpgrade.style.display = 'block';
+                            updateMobileNav(user, false, firstName);
+                        }
+                    };
+
+                    // Initial fetch
+                    const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
+                    handleProfileCheck(profile);
+
+                    // Subscribe to profile updates
+                    const userChannel = supabase.channel(`subscribe-user-profile-${user.id}`)
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, payload => {
+                            handleProfileCheck(payload.new);
+                        })
+                        .subscribe();
+
+                    userUnsubscribe = () => {
+                        supabase.removeChannel(userChannel);
+                    };
+                } else {
+                    // Logged Out
+                    loggedOutNav.style.display = 'flex';
+                    loggedInNav.style.display = 'none';
+                    
+                    // Page checkout box states
+                    checkoutLoggedOut.style.display = 'block';
+                    checkoutLoggedIn.style.display = 'none';
+                    
+                    mobileAuthNav.innerHTML = `
+                        <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="openAuthModal('signin')">Log In</button>
+                        <button class="mobile-cta" onclick="window.location.href='./'">Get Premium</button>
+                    `;
+                }
+            });
+        }
 
         function updateMobileNav(user, isPremium, firstName) {
             const mobileAuthNav = document.getElementById('mobileAuthNav');
-            const displayName = firstName || (user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0]);
+            const displayName = firstName || (user.user_metadata?.full_name || user.email.split('@')[0]);
             mobileAuthNav.innerHTML = `
                 <div style="text-align: center; margin-bottom: 8px;">
                     <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: block;">Hi, ${displayName}</span>
@@ -475,39 +484,23 @@
             `;
         }
 
-        // Firebase Auth operations
-        function handleGoogleSignIn(e) {
+        // Supabase Auth operations
+        async function handleGoogleSignIn(e) {
             if (e) e.preventDefault();
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then(result => {
-                    const user = result.user;
-                    // Check if doc exists in Firestore, otherwise write profile doc matching app standard
-                    return db.collection('users').doc(user.uid).get().then(doc => {
-                        if (!doc.exists) {
-                            return db.collection('users').doc(user.uid).set({
-                                'name': user.displayName || 'User',
-                                'email': user.email,
-                                'isPremium': false,
-                                'photoUrl': user.photoURL || '',
-                                'uid': user.uid,
-                                'createdAt': firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                        }
-                    });
-                })
-                .then(() => {
-                    closeAuthModal();
-                })
-                .catch(err => {
-                    const signinError = document.getElementById('signin-error');
-                    const signupError = document.getElementById('signup-error');
-                    if (signinError) signinError.textContent = err.message;
-                    if (signupError) signupError.textContent = err.message;
+            try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google'
                 });
+                if (error) throw error;
+            } catch (err) {
+                const signinError = document.getElementById('signin-error');
+                const signupError = document.getElementById('signup-error');
+                if (signinError) signinError.textContent = err.message;
+                if (signupError) signupError.textContent = err.message;
+            }
         }
 
-        function handleSignUp(e) {
+        async function handleSignUp(e) {
             e.preventDefault();
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
@@ -515,56 +508,73 @@
             const errorDiv = document.getElementById('signup-error');
             errorDiv.textContent = "";
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(cred => {
-                    return db.collection('users').doc(cred.user.uid).set({
-                        'name': name,
-                        'email': email,
-                        'isPremium': false,
-                        'photoUrl': '',
-                        'uid': cred.user.uid,
-                        'createdAt': firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                })
-                .then(() => {
-                    closeAuthModal();
-                })
-                .catch(err => {
-                    errorDiv.textContent = err.message;
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: name
+                        }
+                    }
                 });
+                if (error) throw error;
+                const user = data.user;
+                if (user) {
+                    await supabase.from('users').upsert({
+                        id: user.id,
+                        name: name,
+                        email: email,
+                        username: email.split('@')[0].toLowerCase(),
+                        is_premium: false,
+                        photo_url: ''
+                    });
+                }
+                closeAuthModal();
+            } catch (err) {
+                errorDiv.textContent = err.message;
+            }
         }
 
-        function handleSignIn(e) {
+        async function handleSignIn(e) {
             e.preventDefault();
             const email = document.getElementById('signin-email').value;
             const password = document.getElementById('signin-password').value;
             const errorDiv = document.getElementById('signin-error');
             errorDiv.textContent = "";
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    closeAuthModal();
-                })
-                .catch(err => {
-                    errorDiv.textContent = err.message;
+            try {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
                 });
+                if (error) throw error;
+                closeAuthModal();
+            } catch (err) {
+                errorDiv.textContent = err.message;
+            }
         }
 
-        function handleLogout() {
-            auth.signOut().then(() => {
-                const mobileNav = document.getElementById('mobileNav');
-                const menuToggle = document.getElementById('menuToggle');
-                mobileNav.classList.remove('active');
-                menuToggle.classList.remove('active');
-            });
+        async function handleLogout() {
+            if (userUnsubscribe) {
+                userUnsubscribe();
+                userUnsubscribe = null;
+            }
+            await supabase.auth.signOut();
+            const mobileNav = document.getElementById('mobileNav');
+            const menuToggle = document.getElementById('menuToggle');
+            mobileNav.classList.remove('active');
+            menuToggle.classList.remove('active');
         }
 
-        function handleCodeActivation(e) {
+        async function handleCodeActivation(e) {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
             const codeInput = document.getElementById('activationCode');
             const errorDiv = document.getElementById('code-error');
-            const user = auth.currentUser;
+            
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
 
             if (!user) {
                 errorDiv.style.color = '#dc3545';
@@ -582,11 +592,12 @@
                 errorDiv.style.color = '#198754';
                 errorDiv.textContent = "Validating activation code...";
                 
-                setTimeout(() => {
-                    db.collection('users').doc(user.uid).set({
-                        'isPremium': true
-                    }, { merge: true })
-                    .then(() => {
+                setTimeout(async () => {
+                    try {
+                        await supabase.from('users').update({
+                            is_premium: true
+                        }).eq('id', user.id);
+
                         btn.disabled = false;
                         btn.textContent = origText;
                         errorDiv.style.color = '#198754';
@@ -595,13 +606,12 @@
                         setTimeout(() => {
                             errorDiv.textContent = "";
                         }, 2000);
-                    })
-                    .catch(err => {
+                    } catch (err) {
                         btn.disabled = false;
                         btn.textContent = origText;
                         errorDiv.style.color = '#dc3545';
                         errorDiv.textContent = err.message;
-                    });
+                    }
                 }, 1200);
             } else {
                 errorDiv.style.color = '#dc3545';
@@ -610,11 +620,13 @@
         }
 
         // Simulate payment and upgrade user status
-        function handleCheckoutSubmit(e) {
+        async function handleCheckoutSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('checkoutBtn');
             const errorDiv = document.getElementById('checkout-error');
-            const user = auth.currentUser;
+            
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
 
             if (!user) {
                 errorDiv.style.color = '#dc3545';
@@ -626,11 +638,12 @@
             btn.textContent = "Processing Payment...";
             errorDiv.textContent = "";
 
-            setTimeout(() => {
-                db.collection('users').doc(user.uid).set({
-                    'isPremium': true
-                }, { merge: true })
-                .then(() => {
+            setTimeout(async () => {
+                try {
+                    await supabase.from('users').update({
+                        is_premium: true
+                    }).eq('id', user.id);
+
                     btn.disabled = false;
                     btn.textContent = "Pay & Upgrade to Premium";
                     errorDiv.style.color = '#198754';
@@ -638,13 +651,12 @@
                     setTimeout(() => {
                         errorDiv.textContent = "";
                     }, 2000);
-                })
-                .catch(err => {
+                } catch (err) {
                     btn.disabled = false;
                     btn.textContent = "Pay & Upgrade to Premium";
                     errorDiv.style.color = '#dc3545';
                     errorDiv.textContent = err.message;
-                });
+                }
             }, 1800);
         }
 
@@ -693,7 +705,7 @@
             document.body.style.overflow = '';
         }
 
-        function handleAccountDeletion(e) {
+        async function handleAccountDeletion(e) {
             e.preventDefault();
             const email = document.getElementById('delete-email').value;
             const password = document.getElementById('delete-password').value;
@@ -701,43 +713,34 @@
             errorDiv.style.color = '#dc3545';
             errorDiv.textContent = "";
 
-            const user = auth.currentUser;
-            if (!user) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .then(cred => {
-                        const currentUser = cred.user;
-                        return db.collection('users').doc(currentUser.uid).delete().then(() => {
-                            return currentUser.delete();
-                        });
-                    })
-                    .then(() => {
-                        closeDeletionModal();
-                        alert("Your account has been deleted successfully.");
-                        window.location.reload();
-                    })
-                    .catch(err => {
-                        errorDiv.textContent = err.message;
+            const session = (await supabase.auth.getSession()).data.session;
+            const user = session ? session.user : null;
+            
+            try {
+                if (!user) {
+                    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                        email,
+                        password
                     });
-            } else {
-                if (user.email !== email) {
-                    errorDiv.textContent = "Confirmed email does not match the active session email.";
-                    return;
+                    if (signInError) throw signInError;
+                    
+                    const currentUser = signInData.user;
+                    await supabase.from('users').delete().eq('id', currentUser.id);
+                    await supabase.auth.signOut();
+                } else {
+                    if (user.email !== email) {
+                        errorDiv.textContent = "Confirmed email does not match the active session email.";
+                        return;
+                    }
+                    await supabase.from('users').delete().eq('id', user.id);
+                    await supabase.auth.signOut();
                 }
-                const credential = firebase.auth.EmailAuthProvider.credential(email, password);
-                user.reauthenticateWithCredential(credential)
-                    .then(() => {
-                        return db.collection('users').doc(user.uid).delete().then(() => {
-                            return user.delete();
-                        });
-                    })
-                    .then(() => {
-                        closeDeletionModal();
-                        alert("Your account has been deleted successfully.");
-                        window.location.reload();
-                    })
-                    .catch(err => {
-                        errorDiv.textContent = err.message;
-                    });
+                
+                closeDeletionModal();
+                alert("Your profile data has been deleted. Note: To delete the primary login account, configure a Postgres trigger or an RPC function in Supabase as client-side users cannot delete Auth records directly.");
+                window.location.reload();
+            } catch (err) {
+                errorDiv.textContent = err.message;
             }
         }
 
@@ -769,21 +772,23 @@
             if (resetError) resetError.textContent = "";
         }
 
-        function handleForgotPassword(e) {
+        async function handleForgotPassword(e) {
             e.preventDefault();
             const email = document.getElementById('reset-email').value;
             const errorDiv = document.getElementById('reset-error');
             errorDiv.textContent = "";
 
-            auth.sendPasswordResetEmail(email)
-                .then(() => {
-                    errorDiv.style.color = '#198754';
-                    errorDiv.textContent = "Reset link sent! Please check your email inbox.";
-                })
-                .catch(err => {
-                    errorDiv.style.color = '#dc3545';
-                    errorDiv.textContent = err.message;
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin
                 });
+                if (error) throw error;
+                errorDiv.style.color = '#198754';
+                errorDiv.textContent = "Reset link sent! Please check your email inbox.";
+            } catch (err) {
+                errorDiv.style.color = '#dc3545';
+                errorDiv.textContent = err.message;
+            }
         }
 
         function switchAuthTab(tab) {
