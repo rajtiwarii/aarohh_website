@@ -717,9 +717,13 @@
                 window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } else {
                 console.error("Supabase SDK library (window.supabase) is not loaded on this page.");
+                setTimeout(() => {
+                    alert("Warning: The Supabase SDK failed to load. Your browser or internet connection might be blocking 'unpkg.com'. Please disable ad-blockers or try a different browser.");
+                }, 1500);
             }
         } catch (initErr) {
             console.error("Failed to initialize Supabase client:", initErr);
+            alert("Failed to initialize Supabase: " + initErr.message);
         }
         
         // Define global convenience pointer to avoid shadowing issues
