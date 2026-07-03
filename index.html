@@ -774,83 +774,92 @@
                     
                     switchDashboardTab('gym');
 
-                    // Check if profile exists, otherwise create it
-                    const { data: existingProfile } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
-                    if (!existingProfile) {
-                        await supabase.from('users').insert({
-                            id: user.id,
-                            name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
-                            email: user.email,
-                            username: user.email.split('@')[0].toLowerCase(),
-                            is_premium: false,
-                            photo_url: user.user_metadata?.avatar_url || ''
-                        });
-                    }
+                    try {
+                        // Check if profile exists, otherwise create it
+                        const { data: existingProfile, error: selectError } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
+                        if (selectError) throw selectError;
 
-                    // Setup real-time user profile listener
-                    const handleProfileUpdate = (data) => {
-                        if (!data) return;
-                        const firstName = data.name ? data.name.split(' ')[0] : initialName;
-                        userEmailDisplay.textContent = firstName;
-                        
-                        if (data.is_premium === true) {
-                            premiumBadge.style.display = 'inline-block';
-                            upgradeBtn.style.display = 'none';
-                            updateMobileNav(user, true, firstName);
-                        } else {
-                            premiumBadge.style.display = 'none';
-                            upgradeBtn.style.display = 'inline-block';
-                            updateMobileNav(user, false, firstName);
+                        if (!existingProfile) {
+                            const { error: insertError } = await supabase.from('users').insert({
+                                id: user.id,
+                                name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
+                                email: user.email,
+                                username: user.email.split('@')[0].toLowerCase(),
+                                is_premium: false,
+                                photo_url: user.user_metadata?.avatar_url || ''
+                            });
+                            if (insertError) throw insertError;
                         }
-                        
-                        if (gymSearchState && gymDashboardState) {
-                            if (data.gym_id) {
-                                gymSearchState.style.display = 'none';
-                                gymDashboardState.style.display = 'block';
-                                
-                                document.getElementById('dashGymName').textContent = data.gym_name;
-                                document.getElementById('attendanceCount').textContent = data.attendance_count || 0;
-                                
-                                const checkInBtn = document.getElementById('checkInBtn');
-                                const todayStr = new Date().toDateString();
-                                if (data.last_check_in === todayStr) {
-                                    checkInBtn.disabled = true;
-                                    checkInBtn.textContent = 'Checked In Today';
-                                } else {
-                                    checkInBtn.disabled = false;
-                                    checkInBtn.textContent = 'Check In Today';
-                                }
-                                
-                                renderLeaderboard(data.gym_id, user.id);
+
+                        // Setup real-time user profile listener
+                        const handleProfileUpdate = (data) => {
+                            if (!data) return;
+                            const firstName = data.name ? data.name.split(' ')[0] : initialName;
+                            userEmailDisplay.textContent = firstName;
+                            
+                            if (data.is_premium === true) {
+                                premiumBadge.style.display = 'inline-block';
+                                upgradeBtn.style.display = 'none';
+                                updateMobileNav(user, true, firstName);
                             } else {
-                                if (leaderboardUnsubscribe) {
-                                    leaderboardUnsubscribe();
-                                    leaderboardUnsubscribe = null;
-                                }
-                                gymSearchState.style.display = 'block';
-                                gymDashboardState.style.display = 'none';
+                                premiumBadge.style.display = 'none';
+                                upgradeBtn.style.display = 'inline-block';
+                                updateMobileNav(user, false, firstName);
                             }
-                        }
+                            
+                            if (gymSearchState && gymDashboardState) {
+                                if (data.gym_id) {
+                                    gymSearchState.style.display = 'none';
+                                    gymDashboardState.style.display = 'block';
+                                    
+                                    document.getElementById('dashGymName').textContent = data.gym_name;
+                                    document.getElementById('attendanceCount').textContent = data.attendance_count || 0;
+                                    
+                                    const checkInBtn = document.getElementById('checkInBtn');
+                                    const todayStr = new Date().toDateString();
+                                    if (data.last_check_in === todayStr) {
+                                        checkInBtn.disabled = true;
+                                        checkInBtn.textContent = 'Checked In Today';
+                                    } else {
+                                        checkInBtn.disabled = false;
+                                        checkInBtn.textContent = 'Check In Today';
+                                    }
+                                    
+                                    renderLeaderboard(data.gym_id, user.id);
+                                } else {
+                                    if (leaderboardUnsubscribe) {
+                                        leaderboardUnsubscribe();
+                                        leaderboardUnsubscribe = null;
+                                    }
+                                    gymSearchState.style.display = 'block';
+                                    gymDashboardState.style.display = 'none';
+                                }
+                            }
 
-                        bindUserProfile(user, data);
-                    };
+                            bindUserProfile(user, data);
+                        };
 
-                    // Initial call
-                    const { data: currentProfile } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
-                    handleProfileUpdate(currentProfile);
+                        // Initial call
+                        const { data: currentProfile, error: fetchError } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
+                        if (fetchError) throw fetchError;
+                        handleProfileUpdate(currentProfile);
 
-                    // Subscribe to profile changes
-                    const userChannel = supabase.channel(`user-profile-${user.id}`)
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, payload => {
-                            handleProfileUpdate(payload.new);
-                        })
-                        .subscribe();
+                        // Subscribe to profile changes
+                        const userChannel = supabase.channel(`user-profile-${user.id}`)
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, payload => {
+                                handleProfileUpdate(payload.new);
+                            })
+                            .subscribe();
 
-                    userUnsubscribe = () => {
-                        supabase.removeChannel(userChannel);
-                    };
+                        userUnsubscribe = () => {
+                            supabase.removeChannel(userChannel);
+                        };
 
-                    bindSocialFeed(user);
+                        bindSocialFeed(user);
+                    } catch (dbErr) {
+                        console.error("Database connection/schema error:", dbErr);
+                        alert("Database connection error. Please ensure that you have created the required tables (like 'users') in your Supabase database using the SQL Editor. Detail: " + dbErr.message);
+                    }
                 } else {
                     // Logged Out
                     loggedOutNav.style.display = 'flex';
