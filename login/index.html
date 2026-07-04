@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../style.css?v=2.6">
     
     <!-- Supabase SDK -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         /* Form styling extensions */
@@ -163,8 +163,12 @@
         }
 
         // Apply theme preferences dynamically on load
-        if (localStorage.getItem('appearance') === 'dark') {
-            document.body.classList.add('dark-mode');
+        try {
+            if (localStorage.getItem('appearance') === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        } catch (e) {
+            console.warn("localStorage sandbox restriction:", e);
         }
 
         // Auto-redirect if already signed in

@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../style.css?v=2.6">
     
     <!-- Supabase SDK -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Razorpay Checkout Integration -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -141,8 +141,12 @@
         }
 
         // Apply appearance settings on load
-        if (localStorage.getItem('appearance') === 'dark') {
-            document.body.classList.add('dark-mode');
+        try {
+            if (localStorage.getItem('appearance') === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        } catch (e) {
+            console.warn("localStorage sandbox restriction:", e);
         }
 
         // Initialize state changes and fetch profile details

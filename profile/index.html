@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../style.css?v=2.6">
     
     <!-- Supabase SDK -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         /* Tab layout styling */
@@ -293,8 +293,12 @@
         }
 
         // Apply appearance settings on load
-        if (localStorage.getItem('appearance') === 'dark') {
-            document.body.classList.add('dark-mode');
+        try {
+            if (localStorage.getItem('appearance') === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        } catch (e) {
+            console.warn("localStorage sandbox restriction:", e);
         }
 
         if (supabase) {
@@ -486,7 +490,11 @@
                 if (error) throw error;
 
                 // Sync local theme preferences
-                localStorage.setItem('appearance', appearance);
+                try {
+                    localStorage.setItem('appearance', appearance);
+                } catch (e) {
+                    console.warn("localStorage storage restriction:", e);
+                }
                 if (appearance === 'dark') {
                     document.body.classList.add('dark-mode');
                 } else {
