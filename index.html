@@ -37,7 +37,7 @@
             <div class="auth-nav-container">
                 <!-- Logged Out Buttons -->
                 <div id="loggedOutNav" class="nav-auth-group">
-                    <button class="nav-login-btn" onclick="openAuthModal('signin')">Log In</button>
+                    <button class="nav-login-btn" data-auth-action="login">Log In</button>
                     <button class="nav-cta" onclick="window.location.href='subscribe/'">Get Premium</button>
                 </div>
                 <!-- Logged In Buttons -->
@@ -45,7 +45,7 @@
                     <span id="userEmailDisplay" class="user-email-tag"></span>
                     <span id="premiumBadge" class="premium-badge-tag" style="display: none;">Premium</span>
                     <button id="upgradeBtn" class="nav-upgrade-btn" onclick="window.location.href='subscribe/'" style="display: none;">Upgrade</button>
-                    <button class="nav-login-btn" onclick="handleLogout()">Log Out</button>
+                    <button class="nav-login-btn" data-auth-action="logout">Log Out</button>
                 </div>
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
@@ -118,7 +118,7 @@
                     <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
                         Join your local partner gym to log daily attendance, view real-time member leaderboards, and sync workouts directly with your personal trainer.
                     </p>
-                    <button class="nav-cta" onclick="openAuthModal('signin')" style="margin-top: 0; min-height: 44px; min-width: 140px;">Log In to Join Gym</button>
+                    <button class="nav-cta" data-auth-action="login" style="margin-top: 0; min-height: 44px; min-width: 140px;">Log In to Join Gym</button>
                 </div>
             </div>
 
@@ -517,13 +517,13 @@
     </div>
 
     <!-- Auth Modal (Log In / Sign Up) -->
-    <div class="modal-overlay" id="authModal" onclick="closeAuthModal()">
-        <div class="modal-content auth-modal-content" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-content auth-modal-content">
+            <button class="modal-close" data-auth-action="close">&times;</button>
             
             <div class="auth-tabs">
-                <button id="tab-signin" class="auth-tab-btn active" onclick="switchAuthTab('signin')">Log In</button>
-                <button id="tab-signup" class="auth-tab-btn" onclick="switchAuthTab('signup')">Create Account</button>
+                <button id="tab-signin" class="auth-tab-btn active" data-auth-tab="signin">Log In</button>
+                <button id="tab-signup" class="auth-tab-btn" data-auth-tab="signup">Create Account</button>
             </div>
             
             <!-- Sign In Form -->
@@ -541,7 +541,7 @@
                         <label for="signin-password">Password</label>
                         <input type="password" id="signin-password" required placeholder="Enter password">
                         <div style="text-align: right; margin-top: 4px;">
-                            <a href="javascript:void(0)" onclick="showForgotPassword()" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+                            <a href="javascript:void(0)" data-auth-action="forgot" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
                         </div>
                     </div>
                     
@@ -578,7 +578,7 @@
                     <button type="submit" class="auth-submit-btn">Send Reset Link</button>
                     
                     <div style="text-align: center; margin-top: 16px;">
-                        <a href="javascript:void(0)" onclick="switchAuthTab('signin')" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
+                        <a href="javascript:void(0)" data-auth-tab="signin" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
                     </div>
                 </div>
             </form>
@@ -1807,13 +1807,50 @@
             });
         });
 
-        // Auto-open modal for testing after 3 seconds
-        setTimeout(() => {
-            console.log("Auto-opening auth modal...");
-            if (typeof openAuthModal === 'function') {
-                openAuthModal('signin');
+        // Global Event Delegation for Authentication Actions and Modal Toggles
+        document.addEventListener('click', (e) => {
+            // 1. Handle Auth Actions
+            const actionTrigger = e.target.closest('[data-auth-action]');
+            if (actionTrigger) {
+                e.preventDefault();
+                const action = actionTrigger.getAttribute('data-auth-action');
+                if (action === 'login') {
+                    openAuthModal('signin');
+                } else if (action === 'logout') {
+                    handleLogout();
+                } else if (action === 'signup') {
+                    openAuthModal('signup');
+                } else if (action === 'close') {
+                    closeAuthModal();
+                } else if (action === 'forgot') {
+                    showForgotPassword();
+                }
+                return;
             }
-        }, 3000);
+
+            // 2. Handle Auth Tab Switching
+            const tabTrigger = e.target.closest('[data-auth-tab]');
+            if (tabTrigger) {
+                e.preventDefault();
+                const tab = tabTrigger.getAttribute('data-auth-tab');
+                switchAuthTab(tab);
+                return;
+            }
+
+            // 3. Handle Clicking Outside Modal Content to Close
+            const modalOverlay = e.target.closest('.modal-overlay');
+            if (modalOverlay && !e.target.closest('.modal-content')) {
+                if (modalOverlay.id === 'authModal') {
+                    closeAuthModal();
+                } else if (modalOverlay.id === 'privacyModal') {
+                    closePrivacyModal();
+                } else if (modalOverlay.id === 'deletionModal') {
+                    closeDeletionModal();
+                } else if (modalOverlay.id === 'subscriptionModal') {
+                    closeSubscriptionModal();
+                }
+            }
+        });
     </script>
 </body>
 </html>

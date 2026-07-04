@@ -36,7 +36,7 @@
             <div class="auth-nav-container">
                 <!-- Logged Out Buttons -->
                 <div id="loggedOutNav" class="nav-auth-group">
-                    <button class="nav-login-btn" onclick="openAuthModal('signin')">Log In</button>
+                    <button class="nav-login-btn" data-auth-action="login">Log In</button>
                     <button class="nav-cta" onclick="window.location.href='./'">Get Premium</button>
                 </div>
                 <!-- Logged In Buttons -->
@@ -44,7 +44,7 @@
                     <span id="userEmailDisplay" class="user-email-tag"></span>
                     <span id="premiumBadge" class="premium-badge-tag" style="display: none;">Premium</span>
                     <button id="upgradeBtn" class="nav-upgrade-btn" onclick="window.location.href='./'" style="display: none;">Upgrade</button>
-                    <button class="nav-login-btn" onclick="handleLogout()">Log Out</button>
+                    <button class="nav-login-btn" data-auth-action="logout">Log Out</button>
                 </div>
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
@@ -114,7 +114,7 @@
                 <div id="checkoutLoggedOut">
                     <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 16px;">Log in to purchase</h3>
                     <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px;">Please create an account or sign in to configure your Premium billing.</p>
-                    <button class="auth-submit-btn" onclick="openAuthModal('signin')">Log In to Continue</button>
+                    <button class="auth-submit-btn" data-auth-action="login">Log In to Continue</button>
                 </div>
                 
                 <!-- Logged In checkout details -->
@@ -236,13 +236,13 @@
     </div>
 
     <!-- Auth Modal (Log In / Sign Up) -->
-    <div class="modal-overlay" id="authModal" onclick="closeAuthModal()">
-        <div class="modal-content auth-modal-content" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-content auth-modal-content">
+            <button class="modal-close" data-auth-action="close">&times;</button>
             
             <div class="auth-tabs">
-                <button id="tab-signin" class="auth-tab-btn active" onclick="switchAuthTab('signin')">Log In</button>
-                <button id="tab-signup" class="auth-tab-btn" onclick="switchAuthTab('signup')">Create Account</button>
+                <button id="tab-signin" class="auth-tab-btn active" data-auth-tab="signin">Log In</button>
+                <button id="tab-signup" class="auth-tab-btn" data-auth-tab="signup">Create Account</button>
             </div>
             
             <!-- Sign In Form -->
@@ -260,7 +260,7 @@
                         <label for="signin-password">Password</label>
                         <input type="password" id="signin-password" required placeholder="Enter password">
                         <div style="text-align: right; margin-top: 4px;">
-                            <a href="javascript:void(0)" onclick="showForgotPassword()" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+                            <a href="javascript:void(0)" data-auth-action="forgot" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
                         </div>
                     </div>
                     
@@ -297,7 +297,7 @@
                     <button type="submit" class="auth-submit-btn">Send Reset Link</button>
                     
                     <div style="text-align: center; margin-top: 16px;">
-                        <a href="javascript:void(0)" onclick="switchAuthTab('signin')" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
+                        <a href="javascript:void(0)" data-auth-tab="signin" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
                     </div>
                 </div>
             </form>
@@ -768,35 +768,50 @@
         // Auth Modal
         function openAuthModal(tab) {
             const modal = document.getElementById('authModal');
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            switchAuthTab(tab);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                switchAuthTab(tab);
+            }
         }
 
         function closeAuthModal() {
             const modal = document.getElementById('authModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-            document.getElementById('signin-error').textContent = "";
-            document.getElementById('signup-error').textContent = "";
-            const resetError = document.getElementById('reset-error');
-            if (resetError) resetError.textContent = "";
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                const signInErr = document.getElementById('signin-error');
+                if (signInErr) signInErr.textContent = "";
+                const signUpErr = document.getElementById('signup-error');
+                if (signUpErr) signUpErr.textContent = "";
+                const resetErr = document.getElementById('reset-error');
+                if (resetErr) resetErr.textContent = "";
+            }
         }
 
         function showForgotPassword() {
-            document.getElementById('signInForm').style.display = 'none';
-            document.getElementById('signUpForm').style.display = 'none';
-            document.getElementById('forgotPasswordForm').style.display = 'block';
-            document.getElementById('tab-signin').classList.remove('active');
-            document.getElementById('tab-signup').classList.remove('active');
-            const resetError = document.getElementById('reset-error');
-            if (resetError) resetError.textContent = "";
+            const signInForm = document.getElementById('signInForm');
+            const signUpForm = document.getElementById('signUpForm');
+            const forgotForm = document.getElementById('forgotPasswordForm');
+            const tabSignin = document.getElementById('tab-signin');
+            const tabSignup = document.getElementById('tab-signup');
+            const resetErr = document.getElementById('reset-error');
+
+            if (signInForm) signInForm.style.display = 'none';
+            if (signUpForm) signUpForm.style.display = 'none';
+            if (forgotForm) forgotForm.style.display = 'block';
+            if (tabSignin) tabSignin.classList.remove('active');
+            if (tabSignup) tabSignup.classList.remove('active');
+            if (resetErr) resetErr.textContent = "";
         }
 
         async function handleForgotPassword(e) {
-            e.preventDefault();
-            const email = document.getElementById('reset-email').value;
+            if (e) e.preventDefault();
+            const emailInput = document.getElementById('reset-email');
             const errorDiv = document.getElementById('reset-error');
+            if (!emailInput || !errorDiv) return;
+
+            const email = emailInput.value;
             errorDiv.textContent = "";
 
             try {
@@ -822,17 +837,62 @@
             if (forgotForm) forgotForm.style.display = 'none';
 
             if (tab === 'signin') {
-                tabSignin.classList.add('active');
-                tabSignup.classList.remove('active');
-                signInForm.style.display = 'block';
-                signUpForm.style.display = 'none';
+                if (tabSignin) tabSignin.classList.add('active');
+                if (tabSignup) tabSignup.classList.remove('active');
+                if (signInForm) signInForm.style.display = 'block';
+                if (signUpForm) signUpForm.style.display = 'none';
             } else {
-                tabSignup.classList.add('active');
-                tabSignin.classList.remove('active');
-                signUpForm.style.display = 'block';
-                signInForm.style.display = 'none';
+                if (tabSignup) tabSignup.classList.add('active');
+                if (tabSignin) tabSignin.classList.remove('active');
+                if (signUpForm) signUpForm.style.display = 'block';
+                if (signInForm) signInForm.style.display = 'none';
             }
         }
+
+        // Global Event Delegation for Authentication Actions and Modal Toggles
+        document.addEventListener('click', (e) => {
+            // 1. Handle Auth Actions
+            const actionTrigger = e.target.closest('[data-auth-action]');
+            if (actionTrigger) {
+                e.preventDefault();
+                const action = actionTrigger.getAttribute('data-auth-action');
+                if (action === 'login') {
+                    openAuthModal('signin');
+                } else if (action === 'logout') {
+                    handleLogout();
+                } else if (action === 'signup') {
+                    openAuthModal('signup');
+                } else if (action === 'close') {
+                    closeAuthModal();
+                } else if (action === 'forgot') {
+                    showForgotPassword();
+                }
+                return;
+            }
+
+            // 2. Handle Auth Tab Switching
+            const tabTrigger = e.target.closest('[data-auth-tab]');
+            if (tabTrigger) {
+                e.preventDefault();
+                const tab = tabTrigger.getAttribute('data-auth-tab');
+                switchAuthTab(tab);
+                return;
+            }
+
+            // 3. Handle Clicking Outside Modal Content to Close
+            const modalOverlay = e.target.closest('.modal-overlay');
+            if (modalOverlay && !e.target.closest('.modal-content')) {
+                if (modalOverlay.id === 'authModal') {
+                    closeAuthModal();
+                } else if (modalOverlay.id === 'privacyModal') {
+                    closePrivacyModal();
+                } else if (modalOverlay.id === 'deletionModal') {
+                    closeDeletionModal();
+                } else if (modalOverlay.id === 'subscriptionModal') {
+                    closeSubscriptionModal();
+                }
+            }
+        });
     </script>
 </body>
 </html>
