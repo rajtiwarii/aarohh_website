@@ -12,9 +12,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/logo_square.png?v=6.0">
     <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico?v=6.0">
     <link rel="stylesheet" href="../style.css?v=2.6">
-    
-    <!-- Supabase Client SDK CDN -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -34,18 +31,7 @@
                 <a href="../index.html#contact-footer">Contact</a>
             </nav>
             <div class="auth-nav-container">
-                <!-- Logged Out Buttons -->
-                <div id="loggedOutNav" class="nav-auth-group">
-                    <button class="nav-login-btn" data-auth-action="login">Log In</button>
-                    <button class="nav-cta" onclick="window.location.href='./'">Get Premium</button>
-                </div>
-                <!-- Logged In Buttons -->
-                <div id="loggedInNav" class="nav-auth-group" style="display: none;">
-                    <span id="userEmailDisplay" class="user-email-tag"></span>
-                    <span id="premiumBadge" class="premium-badge-tag" style="display: none;">Premium</span>
-                    <button id="upgradeBtn" class="nav-upgrade-btn" onclick="window.location.href='./'" style="display: none;">Upgrade</button>
-                    <button class="nav-login-btn" data-auth-action="logout">Log Out</button>
-                </div>
+                <button class="nav-cta" onclick="window.location.href='./'">Get Premium</button>
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
                 <span></span>
@@ -64,8 +50,8 @@
         <a href="./" class="mobile-link">Premium</a>
         <a href="../index.html#contact-footer" class="mobile-link">Contact</a>
         <hr style="width: 80%; border-color: var(--border-color); margin: 10px 0;">
-        <div id="mobileAuthNav" style="display: flex; flex-direction: column; gap: 15px; width: 80%;">
-            <!-- Dynamic elements added by JS -->
+        <div style="display: flex; flex-direction: column; gap: 15px; width: 80%;">
+            <button class="mobile-cta" onclick="window.location.href='../index.html#waitlist-section'">Join Waitlist</button>
         </div>
     </div>
 
@@ -109,62 +95,16 @@
             </div>
             
             <!-- Checkout Action Box -->
-            <div id="checkoutBox" style="max-width: 500px; margin: 60px auto 0 auto; width: 100%; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px;">
-                <!-- Logged Out checkout message -->
-                <div id="checkoutLoggedOut">
-                    <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 16px;">Log in to purchase</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px;">Please create an account or sign in to configure your Premium billing.</p>
-                    <button class="auth-submit-btn" data-auth-action="login">Log In to Continue</button>
-                </div>
-                
-                <!-- Logged In checkout details -->
-                <div id="checkoutLoggedIn" style="display: none;">
-                    <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Upgrade <span id="checkoutUserEmail" style="color: var(--text-grey); font-weight: 500; font-size: 0.95rem;"></span></h3>
-                    
-                    <!-- Already Premium State -->
-                    <div id="checkoutAlreadyPremium" style="display: none; padding: 20px 0;">
-                        <span class="premium-badge-tag" style="font-size: 0.85rem; padding: 6px 12px; border-radius: 6px;">Premium Active</span>
-                        <p style="color: var(--text-secondary); margin-top: 16px; font-size: 0.95rem;">Your account is currently upgraded. Thank you for supporting AAROHH!</p>
+            <div id="checkoutBox" style="max-width: 500px; margin: 60px auto 0 auto; width: 100%; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; text-align: center;">
+                <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 12px;">Premium Launching Soon</h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 30px; line-height: 1.5;">Our premium subscription plans and coach dashboards will be launching in the upcoming public beta. Join the waitlist to receive an invite!</p>
+                <form class="waitlist-form" onsubmit="handleWaitlistSubmit(event, 'premium')">
+                    <div class="input-group">
+                        <input type="email" placeholder="Enter your email" required class="waitlist-input" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-family); outline: none;">
+                        <button type="submit" class="waitlist-btn">Join Waitlist</button>
                     </div>
-                    
-                    <!-- Needs Upgrade State -->
-                    <div id="checkoutNeedsUpgrade" style="display: none;">
-                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px;">Complete your simulated Stripe transaction below to activate your plan.</p>
-                        
-                        <form onsubmit="handleCheckoutSubmit(event)">
-                            <div class="form-group">
-                                <label>Cardholder Name</label>
-                                <input type="text" required placeholder="Alex Mercer" id="cardName">
-                            </div>
-                            <div class="form-group">
-                                <label>Card Details</label>
-                                <div class="card-input-mock">
-                                    <span style="font-size: 1.2rem; margin-right: 10px;">💳</span>
-                                    <input type="text" required placeholder="4242 4242 4242 4242" style="border: none; outline: none; flex: 1; padding: 0; width: 100%;">
-                                </div>
-                            </div>
-                            <div class="auth-error-msg" id="checkout-error" style="color: #198754; font-weight: bold; margin-top: 10px;"></div>
-                            <button type="submit" id="checkoutBtn" class="auth-submit-btn" style="margin-top: 16px; background-color: #ff7b00; color: #ffffff;">Pay & Upgrade to Premium</button>
-                        </form>
-                        
-                        <div style="display: flex; align-items: center; justify-content: center; margin: 24px 0;">
-                            <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                            <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
-                            <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                        </div>
-                        
-                        <form onsubmit="handleCodeActivation(event)">
-                            <div class="form-group" style="margin-bottom: 8px;">
-                                <label>Activate Premium with Code</label>
-                                <div style="display: flex; gap: 10px; margin-top: 6px;">
-                                    <input type="text" id="activationCode" required placeholder="Enter code (e.g. AAROHH49)" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-family); outline: none;">
-                                    <button type="submit" class="auth-submit-btn" style="width: auto; padding: 12px 24px; margin-top: 0; background-color: #000000; color: #ffffff;">Activate</button>
-                                </div>
-                            </div>
-                            <div class="auth-error-msg" id="code-error" style="font-weight: bold; margin-top: 8px; min-height: 18px; font-size: 0.85rem;"></div>
-                        </form>
-                    </div>
-                </div>
+                    <div class="waitlist-success-msg">Thanks! You've been added to the waitlist.</div>
+                </form>
             </div>
         </div>
     </section>
@@ -235,452 +175,9 @@
         </div>
     </div>
 
-    <!-- Auth Modal (Log In / Sign Up) -->
-    <div class="modal-overlay" id="authModal">
-        <div class="modal-content auth-modal-content">
-            <button class="modal-close" data-auth-action="close">&times;</button>
-            
-            <div class="auth-tabs">
-                <button id="tab-signin" class="auth-tab-btn active" data-auth-tab="signin">Log In</button>
-                <button id="tab-signup" class="auth-tab-btn" data-auth-tab="signup">Create Account</button>
-            </div>
-            
-            <!-- Sign In Form -->
-            <form id="signInForm" class="auth-form" onsubmit="handleSignIn(event)">
-                <div class="auth-form-body">
-                    <h2>Welcome back</h2>
-                    <p>Enter your details to manage your lifestyle profile and subscription.</p>
-                    
-                    <div class="form-group">
-                        <label for="signin-email">Email Address</label>
-                        <input type="email" id="signin-email" required placeholder="alex.mercer@gmail.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signin-password">Password</label>
-                        <input type="password" id="signin-password" required placeholder="Enter password">
-                        <div style="text-align: right; margin-top: 4px;">
-                            <a href="javascript:void(0)" data-auth-action="forgot" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
-                        </div>
-                    </div>
-                    
-                    <div class="auth-error-msg" id="signin-error"></div>
-                    
-                    <button type="submit" class="auth-submit-btn">Log In</button>
-                    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
-                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                        <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
-                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                    </div>
-                    <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)">
-                        <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24">
-                            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
-                        </svg>
-                        Continue with Google
-                    </button>
-                </div>
-            </form>
 
-            <!-- Forgot Password Form -->
-            <form id="forgotPasswordForm" class="auth-form" style="display: none;" onsubmit="handleForgotPassword(event)">
-                <div class="auth-form-body">
-                    <h2>Reset Password</h2>
-                    <p>Enter your email address and we'll send you a link to reset your password.</p>
-                    
-                    <div class="form-group">
-                        <label for="reset-email">Email Address</label>
-                        <input type="email" id="reset-email" required placeholder="alex.mercer@gmail.com">
-                    </div>
-                    
-                    <div class="auth-error-msg" id="reset-error" style="color: #198754; font-weight: bold; margin-top: 10px;"></div>
-                    
-                    <button type="submit" class="auth-submit-btn">Send Reset Link</button>
-                    
-                    <div style="text-align: center; margin-top: 16px;">
-                        <a href="javascript:void(0)" data-auth-tab="signin" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
-                    </div>
-                </div>
-            </form>
-            
-            <!-- Sign Up Form -->
-            <form id="signUpForm" class="auth-form" style="display: none;" onsubmit="handleSignUp(event)">
-                <div class="auth-form-body">
-                    <h2>Join AAROHH</h2>
-                    <p>Create your social profile. Share streaks, connect with friends and coaches.</p>
-                    
-                    <div class="form-group">
-                        <label for="signup-name">Display Name</label>
-                        <input type="text" id="signup-name" required placeholder="Alex Mercer">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signup-email">Email Address</label>
-                        <input type="email" id="signup-email" required placeholder="alex.mercer@gmail.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signup-password">Password</label>
-                        <input type="password" id="signup-password" required placeholder="Create password (min 6 chars)">
-                    </div>
-                    
-                    <div class="auth-error-msg" id="signup-error"></div>
-                    
-                    <button type="submit" class="auth-submit-btn">Create Account</button>
-                    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
-                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                        <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
-                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                    </div>
-                    <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)">
-                        <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24">
-                            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
-                        </svg>
-                        Continue with Google
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Account Deletion Modal -->
-    <div class="modal-overlay" id="deletionModal" onclick="closeDeletionModal()">
-        <div class="modal-content auth-modal-content" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeDeletionModal()">&times;</button>
-            <div class="auth-form-body">
-                <h2>Delete Account</h2>
-                <p>We are sorry to see you go. For security, please confirm your email and password to permanently delete your AAROHH account and associated logs.</p>
-                
-                <form id="deletionForm" onsubmit="handleAccountDeletion(event)">
-                    <div class="form-group">
-                        <label for="delete-email">Confirm Email Address</label>
-                        <input type="email" id="delete-email" required placeholder="alex.mercer@gmail.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="delete-password">Confirm Password</label>
-                        <input type="password" id="delete-password" required placeholder="Enter password">
-                    </div>
-                    
-                    <div class="auth-error-msg" id="delete-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 10px; min-height: 18px;"></div>
-                    
-                    <button type="submit" class="auth-submit-btn" style="background-color: #dc3545; color: #ffffff;">Permanently Delete Account</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <script>
-        // Global Error Handler for Diagnostics
-        window.onerror = function(message, source, lineno, colno, error) {
-            alert("JS Error: " + message + " on line " + lineno + " in " + source);
-            return false;
-        };
-
-        // Initialize Supabase Client
-        // REPLACE these placeholder values with your actual Supabase Project URL and Anon Key
-        const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
-        try {
-            if (window.supabase && typeof window.supabase.createClient === 'function') {
-                window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else {
-                console.error("Supabase SDK library (window.supabase) is not loaded on this page.");
-                setTimeout(() => {
-                    alert("Warning: The Supabase SDK failed to load. Your browser or internet connection might be blocking 'unpkg.com'. Please disable ad-blockers or try a different browser.");
-                }, 1500);
-            }
-        } catch (initErr) {
-            console.error("Failed to initialize Supabase client:", initErr);
-            alert("Failed to initialize Supabase: " + initErr.message);
-        }
-        
-        // Define global convenience pointer to avoid shadowing issues
-        const supabase = window.supabase;
-
-        let userUnsubscribe = null;
-
-        // Listen for Auth changes
-        if (supabase && supabase.auth) {
-            supabase.auth.onAuthStateChange(async (event, session) => {
-                const user = session ? session.user : null;
-
-                const loggedOutNav = document.getElementById('loggedOutNav');
-                const loggedInNav = document.getElementById('loggedInNav');
-                const userEmailDisplay = document.getElementById('userEmailDisplay');
-                const premiumBadge = document.getElementById('premiumBadge');
-                const upgradeBtn = document.getElementById('upgradeBtn');
-                const mobileAuthNav = document.getElementById('mobileAuthNav');
-                
-                // Page Checkout Section elements
-                const checkoutLoggedOut = document.getElementById('checkoutLoggedOut');
-                const checkoutLoggedIn = document.getElementById('checkoutLoggedIn');
-                const checkoutUserEmail = document.getElementById('checkoutUserEmail');
-                const checkoutAlreadyPremium = document.getElementById('checkoutAlreadyPremium');
-                const checkoutNeedsUpgrade = document.getElementById('checkoutNeedsUpgrade');
-
-                if (userUnsubscribe) {
-                    userUnsubscribe();
-                    userUnsubscribe = null;
-                }
-
-                if (user) {
-                    // Logged In navbar
-                    loggedOutNav.style.display = 'none';
-                    loggedInNav.style.display = 'flex';
-                    
-                    const initialName = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name))
-                        ? (user.user_metadata.full_name || user.user_metadata.name).split(' ')[0]
-                        : user.email.split('@')[0];
-                    userEmailDisplay.textContent = initialName;
-                    
-                    // Page checkout box updates
-                    checkoutLoggedOut.style.display = 'none';
-                    checkoutLoggedIn.style.display = 'block';
-                    checkoutUserEmail.textContent = `(${user.email})`;
-                    
-                    // Setup profile checker / listener
-                    const handleProfileCheck = (data) => {
-                        const firstName = (data && data.name) ? data.name.split(' ')[0] : initialName;
-                        userEmailDisplay.textContent = firstName;
-                        
-                        const isPremium = data && data.is_premium === true;
-                        
-                        if (isPremium) {
-                            premiumBadge.style.display = 'inline-block';
-                            upgradeBtn.style.display = 'none';
-                            
-                            checkoutAlreadyPremium.style.display = 'block';
-                            checkoutNeedsUpgrade.style.display = 'none';
-                            updateMobileNav(user, true, firstName);
-                        } else {
-                            premiumBadge.style.display = 'none';
-                            upgradeBtn.style.display = 'inline-block';
-                            
-                            checkoutAlreadyPremium.style.display = 'none';
-                            checkoutNeedsUpgrade.style.display = 'block';
-                            updateMobileNav(user, false, firstName);
-                        }
-                    };
-
-                    // Initial fetch
-                    const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
-                    handleProfileCheck(profile);
-
-                    // Subscribe to profile updates
-                    const userChannel = supabase.channel(`subscribe-user-profile-${user.id}`)
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, payload => {
-                            handleProfileCheck(payload.new);
-                        })
-                        .subscribe();
-
-                    userUnsubscribe = () => {
-                        supabase.removeChannel(userChannel);
-                    };
-                } else {
-                    // Logged Out
-                    loggedOutNav.style.display = 'flex';
-                    loggedInNav.style.display = 'none';
-                    
-                    // Page checkout box states
-                    checkoutLoggedOut.style.display = 'block';
-                    checkoutLoggedIn.style.display = 'none';
-                    
-                    mobileAuthNav.innerHTML = `
-                        <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="openAuthModal('signin')">Log In</button>
-                        <button class="mobile-cta" onclick="window.location.href='./'">Get Premium</button>
-                    `;
-                }
-            });
-        }
-
-        function updateMobileNav(user, isPremium, firstName) {
-            const mobileAuthNav = document.getElementById('mobileAuthNav');
-            const displayName = firstName || (user.user_metadata?.full_name || user.email.split('@')[0]);
-            mobileAuthNav.innerHTML = `
-                <div style="text-align: center; margin-bottom: 8px;">
-                    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: block;">Hi, ${displayName}</span>
-                    ${isPremium ? '<span class="premium-badge-tag" style="display: inline-block; margin-top: 4px;">Premium</span>' : '<button class="mobile-cta" style="background-color: var(--text-primary); color: var(--bg-white); margin-top: 8px; width: 100%;" onclick="window.location.href=\'./\'">Upgrade to Premium</button>'}
-                </div>
-                <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary);" onclick="handleLogout()">Log Out</button>
-            `;
-        }
-
-        // Supabase Auth operations
-        async function handleGoogleSignIn(e) {
-            if (e) e.preventDefault();
-            try {
-                const { error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google'
-                });
-                if (error) throw error;
-            } catch (err) {
-                const signinError = document.getElementById('signin-error');
-                const signupError = document.getElementById('signup-error');
-                if (signinError) signinError.textContent = err.message;
-                if (signupError) signupError.textContent = err.message;
-            }
-        }
-
-        async function handleSignUp(e) {
-            e.preventDefault();
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const errorDiv = document.getElementById('signup-error');
-            errorDiv.textContent = "";
-
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: name
-                        }
-                    }
-                });
-                if (error) throw error;
-                const user = data.user;
-                if (user) {
-                    await supabase.from('users').upsert({
-                        id: user.id,
-                        name: name,
-                        email: email,
-                        username: email.split('@')[0].toLowerCase(),
-                        is_premium: false,
-                        photo_url: ''
-                    });
-                }
-                closeAuthModal();
-            } catch (err) {
-                errorDiv.textContent = err.message;
-            }
-        }
-
-        async function handleSignIn(e) {
-            e.preventDefault();
-            const email = document.getElementById('signin-email').value;
-            const password = document.getElementById('signin-password').value;
-            const errorDiv = document.getElementById('signin-error');
-            errorDiv.textContent = "";
-
-            try {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-                if (error) throw error;
-                closeAuthModal();
-            } catch (err) {
-                errorDiv.textContent = err.message;
-            }
-        }
-
-        async function handleLogout() {
-            if (userUnsubscribe) {
-                userUnsubscribe();
-                userUnsubscribe = null;
-            }
-            await supabase.auth.signOut();
-            const mobileNav = document.getElementById('mobileNav');
-            const menuToggle = document.getElementById('menuToggle');
-            mobileNav.classList.remove('active');
-            menuToggle.classList.remove('active');
-        }
-
-        async function handleCodeActivation(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const codeInput = document.getElementById('activationCode');
-            const errorDiv = document.getElementById('code-error');
-            
-            const session = (await supabase.auth.getSession()).data.session;
-            const user = session ? session.user : null;
-
-            if (!user) {
-                errorDiv.style.color = '#dc3545';
-                errorDiv.textContent = "Please sign in first.";
-                return;
-            }
-
-            const code = codeInput.value.trim().toUpperCase();
-            const validCodes = ['AAROHH49', 'AAROHHPREMIUM', 'FREEPREMIUM', 'FIT2026'];
-
-            if (validCodes.includes(code)) {
-                btn.disabled = true;
-                const origText = btn.textContent;
-                btn.textContent = "Verifying...";
-                errorDiv.style.color = '#198754';
-                errorDiv.textContent = "Validating activation code...";
-                
-                setTimeout(async () => {
-                    try {
-                        await supabase.from('users').update({
-                            is_premium: true
-                        }).eq('id', user.id);
-
-                        btn.disabled = false;
-                        btn.textContent = origText;
-                        errorDiv.style.color = '#198754';
-                        errorDiv.textContent = "Code accepted! Premium activated.";
-                        codeInput.value = "";
-                        setTimeout(() => {
-                            errorDiv.textContent = "";
-                        }, 2000);
-                    } catch (err) {
-                        btn.disabled = false;
-                        btn.textContent = origText;
-                        errorDiv.style.color = '#dc3545';
-                        errorDiv.textContent = err.message;
-                    }
-                }, 1200);
-            } else {
-                errorDiv.style.color = '#dc3545';
-                errorDiv.textContent = "Invalid code. Please try again.";
-            }
-        }
-
-        // Simulate payment and upgrade user status
-        async function handleCheckoutSubmit(e) {
-            e.preventDefault();
-            const btn = document.getElementById('checkoutBtn');
-            const errorDiv = document.getElementById('checkout-error');
-            
-            const session = (await supabase.auth.getSession()).data.session;
-            const user = session ? session.user : null;
-
-            if (!user) {
-                errorDiv.style.color = '#dc3545';
-                errorDiv.textContent = "Please sign in to upgrade.";
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = "Processing Payment...";
-            errorDiv.textContent = "";
-
-            setTimeout(async () => {
-                try {
-                    await supabase.from('users').update({
-                        is_premium: true
-                    }).eq('id', user.id);
-
-                    btn.disabled = false;
-                    btn.textContent = "Pay & Upgrade to Premium";
-                    errorDiv.style.color = '#198754';
-                    errorDiv.textContent = "Premium Activated! Enjoy your unlimited features.";
-                    setTimeout(() => {
-                        errorDiv.textContent = "";
-                    }, 2000);
-                } catch (err) {
-                    btn.disabled = false;
-                    btn.textContent = "Pay & Upgrade to Premium";
-                    errorDiv.style.color = '#dc3545';
-                    errorDiv.textContent = err.message;
-                }
-            }, 1800);
-        }
-
         // Mobile Nav Hamburger Toggle
         const menuToggle = document.getElementById('menuToggle');
         const mobileNav = document.getElementById('mobileNav');
@@ -698,198 +195,42 @@
             });
         });
 
-        // Modal Handlers
+        // Waitlist Form Handler
+        function handleWaitlistSubmit(event, source) {
+            event.preventDefault();
+            const form = event.target;
+            const inputGroup = form.querySelector('.input-group');
+            const successMsg = form.querySelector('.waitlist-success-msg');
+            
+            inputGroup.style.display = 'none';
+            successMsg.classList.add('visible');
+            
+            console.log(`Waitlist submission from ${source}:`, form.querySelector('input').value);
+        }
+
+        // Privacy Modal Handlers
         function openPrivacyModal() {
             const modal = document.getElementById('privacyModal');
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; 
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden'; 
+            }
         }
 
         function closePrivacyModal() {
             const modal = document.getElementById('privacyModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = ''; 
-        }
-
-        // Account Deletion Modals & Operation
-        function openDeletionModal() {
-            const modal = document.getElementById('deletionModal');
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            const errorDiv = document.getElementById('delete-error');
-            if (errorDiv) errorDiv.textContent = "";
-        }
-
-        function closeDeletionModal() {
-            const modal = document.getElementById('deletionModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        async function handleAccountDeletion(e) {
-            e.preventDefault();
-            const email = document.getElementById('delete-email').value;
-            const password = document.getElementById('delete-password').value;
-            const errorDiv = document.getElementById('delete-error');
-            errorDiv.style.color = '#dc3545';
-            errorDiv.textContent = "";
-
-            const session = (await supabase.auth.getSession()).data.session;
-            const user = session ? session.user : null;
-            
-            try {
-                if (!user) {
-                    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-                    if (signInError) throw signInError;
-                    
-                    const currentUser = signInData.user;
-                    await supabase.from('users').delete().eq('id', currentUser.id);
-                    await supabase.auth.signOut();
-                } else {
-                    if (user.email !== email) {
-                        errorDiv.textContent = "Confirmed email does not match the active session email.";
-                        return;
-                    }
-                    await supabase.from('users').delete().eq('id', user.id);
-                    await supabase.auth.signOut();
-                }
-                
-                closeDeletionModal();
-                alert("Your profile data has been deleted. Note: To delete the primary login account, configure a Postgres trigger or an RPC function in Supabase as client-side users cannot delete Auth records directly.");
-                window.location.reload();
-            } catch (err) {
-                errorDiv.textContent = err.message;
-            }
-        }
-
-        // Auth Modal
-        function openAuthModal(tab) {
-            const modal = document.getElementById('authModal');
-            if (modal) {
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                switchAuthTab(tab);
-            }
-        }
-
-        function closeAuthModal() {
-            const modal = document.getElementById('authModal');
             if (modal) {
                 modal.classList.remove('active');
-                document.body.style.overflow = '';
-                const signInErr = document.getElementById('signin-error');
-                if (signInErr) signInErr.textContent = "";
-                const signUpErr = document.getElementById('signup-error');
-                if (signUpErr) signUpErr.textContent = "";
-                const resetErr = document.getElementById('reset-error');
-                if (resetErr) resetErr.textContent = "";
+                document.body.style.overflow = ''; 
             }
         }
 
-        function showForgotPassword() {
-            const signInForm = document.getElementById('signInForm');
-            const signUpForm = document.getElementById('signUpForm');
-            const forgotForm = document.getElementById('forgotPasswordForm');
-            const tabSignin = document.getElementById('tab-signin');
-            const tabSignup = document.getElementById('tab-signup');
-            const resetErr = document.getElementById('reset-error');
-
-            if (signInForm) signInForm.style.display = 'none';
-            if (signUpForm) signUpForm.style.display = 'none';
-            if (forgotForm) forgotForm.style.display = 'block';
-            if (tabSignin) tabSignin.classList.remove('active');
-            if (tabSignup) tabSignup.classList.remove('active');
-            if (resetErr) resetErr.textContent = "";
-        }
-
-        async function handleForgotPassword(e) {
-            if (e) e.preventDefault();
-            const emailInput = document.getElementById('reset-email');
-            const errorDiv = document.getElementById('reset-error');
-            if (!emailInput || !errorDiv) return;
-
-            const email = emailInput.value;
-            errorDiv.textContent = "";
-
-            try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin
-                });
-                if (error) throw error;
-                errorDiv.style.color = '#198754';
-                errorDiv.textContent = "Reset link sent! Please check your email inbox.";
-            } catch (err) {
-                errorDiv.style.color = '#dc3545';
-                errorDiv.textContent = err.message;
-            }
-        }
-
-        function switchAuthTab(tab) {
-            const tabSignin = document.getElementById('tab-signin');
-            const tabSignup = document.getElementById('tab-signup');
-            const signInForm = document.getElementById('signInForm');
-            const signUpForm = document.getElementById('signUpForm');
-            const forgotForm = document.getElementById('forgotPasswordForm');
-
-            if (forgotForm) forgotForm.style.display = 'none';
-
-            if (tab === 'signin') {
-                if (tabSignin) tabSignin.classList.add('active');
-                if (tabSignup) tabSignup.classList.remove('active');
-                if (signInForm) signInForm.style.display = 'block';
-                if (signUpForm) signUpForm.style.display = 'none';
-            } else {
-                if (tabSignup) tabSignup.classList.add('active');
-                if (tabSignin) tabSignin.classList.remove('active');
-                if (signUpForm) signUpForm.style.display = 'block';
-                if (signInForm) signInForm.style.display = 'none';
-            }
-        }
-
-        // Global Event Delegation for Authentication Actions and Modal Toggles
+        // Close Privacy Modal by clicking outside content
         document.addEventListener('click', (e) => {
-            // 1. Handle Auth Actions
-            const actionTrigger = e.target.closest('[data-auth-action]');
-            if (actionTrigger) {
-                e.preventDefault();
-                const action = actionTrigger.getAttribute('data-auth-action');
-                if (action === 'login') {
-                    openAuthModal('signin');
-                } else if (action === 'logout') {
-                    handleLogout();
-                } else if (action === 'signup') {
-                    openAuthModal('signup');
-                } else if (action === 'close') {
-                    closeAuthModal();
-                } else if (action === 'forgot') {
-                    showForgotPassword();
-                }
-                return;
-            }
-
-            // 2. Handle Auth Tab Switching
-            const tabTrigger = e.target.closest('[data-auth-tab]');
-            if (tabTrigger) {
-                e.preventDefault();
-                const tab = tabTrigger.getAttribute('data-auth-tab');
-                switchAuthTab(tab);
-                return;
-            }
-
-            // 3. Handle Clicking Outside Modal Content to Close
             const modalOverlay = e.target.closest('.modal-overlay');
             if (modalOverlay && !e.target.closest('.modal-content')) {
-                if (modalOverlay.id === 'authModal') {
-                    closeAuthModal();
-                } else if (modalOverlay.id === 'privacyModal') {
+                if (modalOverlay.id === 'privacyModal') {
                     closePrivacyModal();
-                } else if (modalOverlay.id === 'deletionModal') {
-                    closeDeletionModal();
-                } else if (modalOverlay.id === 'subscriptionModal') {
-                    closeSubscriptionModal();
                 }
             }
         });
