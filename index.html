@@ -360,6 +360,7 @@
                 
                 if (user) {
                     navLinksContainer.innerHTML = `
+                        <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                         <a href="dashboard/">Dashboard</a>
                         <a href="dashboard/#community">Community</a>
                         <a href="subscribe/">Premium</a>
@@ -379,6 +380,7 @@
                     `;
                     
                     mobileLinksContainer.innerHTML = `
+                        <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); toggleMobileMenu(); return false;" class="mobile-link">Home</a>
                         <a href="dashboard/" class="mobile-link">Dashboard</a>
                         <a href="dashboard/#community" class="mobile-link">Community</a>
                         <a href="subscribe/" class="mobile-link">Premium</a>
