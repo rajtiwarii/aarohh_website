@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — AAROHH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo_square.png?v=6.0">
+    <link rel="stylesheet" href="../style.css?v=2.6">
+    
+    <!-- Supabase SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Form styling extensions */
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-light);
+            padding: 24px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .auth-card {
+            background-color: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+        }
+
+        /* Dark mode overrides (Appearance Preference Support) */
+        body.dark-mode {
+            --bg-white: #121212;
+            --bg-light: #0a0a0a;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --border-color: #2c2c2e;
+        }
+        body.dark-mode .auth-card {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        body.dark-mode input {
+            background-color: #1c1c1e;
+            color: #ffffff;
+        }
+        body.dark-mode .google-signin-btn, 
+        body.dark-mode .apple-signin-btn {
+            background-color: #1c1c1e;
+            color: #ffffff;
+            border-color: #2c2c2e;
+        }
+        body.dark-mode .google-signin-btn:hover,
+        body.dark-mode .apple-signin-btn:hover {
+            background-color: #2c2c2e;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Logo link back to marketing home -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <a href="../" style="display: inline-block; text-decoration: none; color: inherit;">
+                    <img src="../assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 36px; width: auto; display: block; margin: 0 auto 8px auto; object-fit: contain;">
+                    <img src="../assets/logo_wordmark.png" alt="AAROHH" style="height: 12px; width: auto; display: block; margin: 0 auto; object-fit: contain;">
+                </a>
+            </div>
+
+            <!-- Sign In Header -->
+            <div style="margin-bottom: 24px;">
+                <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Welcome Back</h1>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Enter details to manage active tracking metrics and workouts.</p>
+            </div>
+
+            <!-- OAuth Buttons -->
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; background-color: var(--bg-white); color: var(--text-primary); font-family: var(--font-family); transition: background-color 0.2s;">
+                    <svg style="width: 18px; height: 18px; margin-right: 10px;" viewBox="0 0 24 24">
+                        <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
+                    </svg>
+                    Continue with Google
+                </button>
+                
+                <button type="button" class="apple-signin-btn" onclick="handleAppleSignIn(event)" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; background-color: var(--bg-white); color: var(--text-primary); font-family: var(--font-family); transition: background-color 0.2s;">
+                    <svg style="width: 18px; height: 18px; margin-right: 10px; fill: currentColor;" viewBox="0 0 24 24">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.22.67-2.94 1.5-.63.73-1.18 1.87-1.03 2.97 1.12.09 2.27-.56 2.98-1.41z"/>
+                    </svg>
+                    Continue with Apple
+                </button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
+                <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">or</span>
+                <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+            </div>
+
+            <!-- Email Form -->
+            <form id="signInForm" onsubmit="handleSignIn(event)">
+                <div class="form-group">
+                    <label for="signin-email">Email Address</label>
+                    <input type="email" id="signin-email" required placeholder="alex.mercer@gmail.com" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none; box-sizing: border-box;">
+                </div>
+                
+                <div class="form-group">
+                    <label for="signin-password">Password</label>
+                    <input type="password" id="signin-password" required placeholder="Enter password" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none; box-sizing: border-box;">
+                    <div style="text-align: right; margin-top: 6px;">
+                        <a href="javascript:void(0)" onclick="showForgotPassword()" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 600;">Forgot Password?</a>
+                    </div>
+                </div>
+                
+                <div class="auth-error-msg" id="signin-error" style="color: #dc3545; font-size: 0.85rem; font-weight: 700; margin-bottom: 15px;"></div>
+                
+                <button type="submit" class="auth-submit-btn" style="width: 100%; background-color: #000; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer;">Sign In</button>
+            </form>
+
+            <!-- Reset Password Form (Initially hidden) -->
+            <form id="resetForm" style="display: none;" onsubmit="handleForgotPassword(event)">
+                <div class="form-group">
+                    <label for="reset-email">Email Address</label>
+                    <input type="email" id="reset-email" required placeholder="alex.mercer@gmail.com" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none; box-sizing: border-box;">
+                </div>
+                
+                <div id="reset-feedback" style="font-size: 0.85rem; font-weight: bold; margin-bottom: 15px;"></div>
+                
+                <button type="submit" class="auth-submit-btn" style="width: 100%; background-color: #000; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer; margin-bottom: 15px;">Send Reset Link</button>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0)" onclick="showSignIn()" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Sign In</a>
+                </div>
+            </form>
+
+            <div style="text-align: center; margin-top: 30px; font-size: 0.9rem; color: var(--text-secondary);">
+                Don't have an account? <a href="../signup/" style="color: var(--text-primary); font-weight: 700; text-decoration: none;">Create Account</a>
+            </div>
+
+            <!-- Footer links -->
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 40px; font-size: 0.75rem; color: var(--text-grey);">
+                <a href="../#privacy" style="color: inherit; text-decoration: none;">Privacy Policy</a>
+                <span>&bull;</span>
+                <a href="../" style="color: inherit; text-decoration: none;">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
+        
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (err) {
+            console.error("Supabase failed:", err);
+        }
+
+        // Apply theme preferences dynamically on load
+        if (localStorage.getItem('appearance') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Auto-redirect if already signed in
+        if (supabase) {
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    window.location.href = '../dashboard/';
+                }
+            });
+
+            // Set up state change listener
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (session) {
+                    window.location.href = '../dashboard/';
+                }
+            });
+        }
+
+        async function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+            const errorDiv = document.getElementById('signin-error');
+            errorDiv.textContent = "";
+
+            try {
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+            } catch (err) {
+                errorDiv.textContent = err.message;
+            }
+        }
+
+        async function handleGoogleSignIn(e) {
+            e.preventDefault();
+            try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin + '/dashboard/' }
+                });
+                if (error) throw error;
+            } catch (err) {
+                alert("Google Sign-In failed: " + err.message);
+            }
+        }
+
+        async function handleAppleSignIn(e) {
+            e.preventDefault();
+            try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'apple',
+                    options: { redirectTo: window.location.origin + '/dashboard/' }
+                });
+                if (error) throw error;
+            } catch (err) {
+                alert("Apple Sign-In failed: " + err.message);
+            }
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            const feedback = document.getElementById('reset-feedback');
+            feedback.textContent = "";
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/profile/'
+                });
+                if (error) throw error;
+                feedback.style.color = '#198754';
+                feedback.textContent = "Reset link sent! Please check your inbox.";
+            } catch (err) {
+                feedback.style.color = '#dc3545';
+                feedback.textContent = err.message;
+            }
+        }
+
+        function showForgotPassword() {
+            document.getElementById('signInForm').style.display = 'none';
+            document.getElementById('resetForm').style.display = 'block';
+            document.getElementById('signin-error').textContent = "";
+        }
+
+        function showSignIn() {
+            document.getElementById('signInForm').style.display = 'block';
+            document.getElementById('resetForm').style.display = 'none';
+            document.getElementById('reset-feedback').textContent = "";
+        }
+    </script>
+</body>
+</html>

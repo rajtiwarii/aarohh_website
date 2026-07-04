@@ -12,6 +12,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="assets/logo_square.png?v=6.0">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=6.0">
     <link rel="stylesheet" href="style.css?v=2.5">
+    <!-- Supabase SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -21,15 +23,12 @@
                 <img src="assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
                 <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
-            <nav class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="index.html#features">Features</a>
-                <a href="index.html#about">About</a>
-                <a href="index.html#faq">FAQ</a>
-                <a href="subscribe/">Premium</a>
-                <a href="mailto:support@aarohh.com">Contact</a>
+            <nav class="nav-links" id="navLinks">
+                <!-- Dynamically populated -->
             </nav>
-            <button class="nav-cta" onclick="window.location.href='index.html#waitlist-section'">Join Waitlist</button>
+            <div class="auth-nav-container" id="authNav">
+                <!-- Dynamically populated -->
+            </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
                 <span></span>
                 <span></span>
@@ -39,13 +38,13 @@
 
     <!-- Mobile Nav Overlay -->
     <div class="mobile-nav" id="mobileNav">
-        <a href="index.html" class="mobile-link">Home</a>
-        <a href="index.html#features" class="mobile-link">Features</a>
-        <a href="index.html#about" class="mobile-link">About</a>
-        <a href="index.html#faq" class="mobile-link">FAQ</a>
-        <a href="subscribe/" class="mobile-link">Premium</a>
-        <a href="mailto:support@aarohh.com" class="mobile-link">Contact</a>
-        <button class="mobile-cta" onclick="window.location.href='index.html#waitlist-section'">Join Waitlist</button>
+        <div id="mobileNavLinks" style="display: flex; flex-direction: column; width: 100%; gap: 15px; margin-bottom: 20px;">
+            <!-- Dynamically populated -->
+        </div>
+        <hr style="width: 100%; border-color: var(--border-color); margin: 10px 0;">
+        <div id="mobileAuthContainer" style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
+            <!-- Dynamically populated -->
+        </div>
     </div>
 
     <!-- Careers Hero -->
@@ -186,6 +185,140 @@
                 }
             }
         });
+
+        // Initialize Supabase Client
+        const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
+        
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (err) {
+            console.error("Supabase failed:", err);
+        }
+
+        // Apply appearance settings on load
+        if (localStorage.getItem('appearance') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        if (supabase) {
+            supabase.auth.onAuthStateChange((event, session) => {
+                const user = session ? session.user : null;
+                const navLinksContainer = document.getElementById('navLinks');
+                const authNavContainer = document.getElementById('authNav');
+                const mobileLinksContainer = document.getElementById('mobileNavLinks');
+                const mobileAuthContainer = document.getElementById('mobileAuthContainer');
+                
+                if (user) {
+                    navLinksContainer.innerHTML = `
+                        <a href="dashboard/">Dashboard</a>
+                        <a href="dashboard/#community">Community</a>
+                        <a href="subscribe/">Premium</a>
+                        <a href="dashboard/#notifications" class="notifications-bell-link">Notifications <span id="navNotifyBadge" style="background-color: #ff7b00; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; margin-left: 2px; display: none;">!</span></a>
+                    `;
+                    authNavContainer.innerHTML = `
+                        <div class="profile-dropdown">
+                            <button class="profile-dropdown-btn" onclick="toggleProfileDropdown()">Profile Menu ▾</button>
+                            <div id="profileDropdownContent" class="profile-dropdown-content">
+                                <a href="profile/">Profile</a>
+                                <a href="subscribe/#billing">Billing</a>
+                                <a href="profile/#settings">Settings</a>
+                                <hr style="border-color: var(--border-color); margin: 8px 0;">
+                                <a href="javascript:void(0)" onclick="handleLogout()">Logout</a>
+                            </div>
+                        </div>
+                    `;
+                    
+                    mobileLinksContainer.innerHTML = `
+                        <a href="dashboard/" class="mobile-link">Dashboard</a>
+                        <a href="dashboard/#community" class="mobile-link">Community</a>
+                        <a href="subscribe/" class="mobile-link">Premium</a>
+                        <a href="profile/" class="mobile-link">Profile</a>
+                        <a href="subscribe/#billing" class="mobile-link">Billing</a>
+                        <a href="profile/#settings" class="mobile-link">Settings</a>
+                    `;
+                    mobileAuthContainer.innerHTML = `
+                        <button class="mobile-cta" onclick="handleLogout()">Logout</button>
+                    `;
+                    
+                    checkLiveNotifications();
+                } else {
+                    navLinksContainer.innerHTML = `
+                        <a href="index.html">Home</a>
+                        <a href="index.html#features">Features</a>
+                        <a href="subscribe/">Pricing</a>
+                        <a href="index.html#community">Community</a>
+                        <a href="index.html#about">About</a>
+                    `;
+                    authNavContainer.innerHTML = `
+                        <button class="nav-login-btn" onclick="window.location.href='login/'">Sign In</button>
+                        <button class="nav-cta" onclick="window.location.href='signup/'">Get Started</button>
+                    `;
+                    
+                    mobileLinksContainer.innerHTML = `
+                        <a href="index.html" class="mobile-link">Home</a>
+                        <a href="index.html#features" class="mobile-link">Features</a>
+                        <a href="subscribe/" class="mobile-link">Pricing</a>
+                        <a href="index.html#community" class="mobile-link">Community</a>
+                        <a href="index.html#about" class="mobile-link">About</a>
+                    `;
+                    mobileAuthContainer.innerHTML = `
+                        <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); margin-bottom: 10px;" onclick="window.location.href='login/'">Sign In</button>
+                        <button class="mobile-cta" onclick="window.location.href='signup/'">Get Started</button>
+                    `;
+                }
+            });
+        }
+
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdownContent');
+            if (dropdown) dropdown.classList.toggle('active');
+        }
+
+        window.addEventListener('click', (e) => {
+            if (!e.target.matches('.profile-dropdown-btn')) {
+                const dropdowns = document.getElementsByClassName('profile-dropdown-content');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('active')) {
+                        openDropdown.classList.remove('active');
+                    }
+                }
+            }
+        });
+
+        async function checkLiveNotifications() {
+            try {
+                const session = (await supabase.auth.getSession()).data.session;
+                if (!session) return;
+                const { data: workouts } = await supabase.from('workouts')
+                    .select('id')
+                    .eq('user_id', session.user.id)
+                    .eq('status', 'pending');
+                
+                const badge = document.getElementById('navNotifyBadge');
+                if (workouts && workouts.length > 0) {
+                    if (badge) {
+                        badge.textContent = workouts.length;
+                        badge.style.display = 'inline-block';
+                    }
+                } else {
+                    if (badge) badge.style.display = 'none';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await supabase.auth.signOut();
+                window.location.href = 'login/';
+            } catch (err) {
+                console.error("Logout failed:", err);
+            }
+        }
     </script>
 </body>
 </html>

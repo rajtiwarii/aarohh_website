@@ -325,113 +325,6 @@
         </div>
     </div>
 
-    <!-- Auth Modal (Log In / Sign Up) -->
-    <div class="modal-overlay" id="authModal">
-        <div class="modal-content auth-modal-content" onclick="event.stopPropagation()">
-            <button class="modal-close" data-auth-action="close">&times;</button>
-            
-            <div class="auth-tabs">
-                <button id="tab-signin" class="auth-tab-btn active" data-auth-tab="signin">Log In</button>
-                <button id="tab-signup" class="auth-tab-btn" data-auth-tab="signup">Create Account</button>
-            </div>
-            
-            <!-- Sign In Form -->
-            <form id="signInForm" class="auth-form" onsubmit="handleSignIn(event)">
-                <div class="auth-form-body">
-                    <h2>Welcome back</h2>
-                    <p>Enter your details to manage your lifestyle profile and subscription.</p>
-                    
-                    <div class="form-group">
-                        <label for="signin-email">Email Address</label>
-                        <input type="email" id="signin-email" required placeholder="alex.mercer@gmail.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signin-password">Password</label>
-                        <input type="password" id="signin-password" required placeholder="Enter password">
-                        <div style="text-align: right; margin-top: 4px;">
-                            <a href="javascript:void(0)" data-auth-action="forgot" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
-                        </div>
-                    </div>
-                    
-                    <div class="auth-error-msg" id="signin-error"></div>
-                    
-                    <button type="submit" class="auth-submit-btn">Log In</button>
-                    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
-                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                        <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
-                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                    </div>
-                    <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)">
-                        <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24">
-                            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
-                        </svg>
-                        Continue with Google
-                    </button>
-                </div>
-            </form>
-
-            <!-- Forgot Password Form -->
-            <form id="forgotPasswordForm" class="auth-form" style="display: none;" onsubmit="handleForgotPassword(event)">
-                <div class="auth-form-body">
-                    <h2>Reset Password</h2>
-                    <p>Enter your email address and we'll send you a link to reset your password.</p>
-                    
-                    <div class="form-group">
-                        <label for="reset-email">Email Address</label>
-                        <input type="email" id="reset-email" required placeholder="alex.mercer@gmail.com">
-                    </div>
-                    
-                    <div class="auth-error-msg" id="reset-error" style="color: #198754; font-weight: bold; margin-top: 10px;"></div>
-                    
-                    <button type="submit" class="auth-submit-btn">Send Reset Link</button>
-                    
-                    <div style="text-align: center; margin-top: 16px;">
-                        <a href="javascript:void(0)" data-auth-tab="signin" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
-                    </div>
-                </div>
-            </form>
-            
-            <!-- Sign Up Form -->
-            <form id="signUpForm" class="auth-form" style="display: none;" onsubmit="handleSignUp(event)">
-                <div class="auth-form-body">
-                    <h2>Join AAROHH</h2>
-                    <p>Create your social profile. Share streaks, connect with friends and coaches.</p>
-                    
-                    <div class="form-group">
-                        <label for="signup-name">Display Name</label>
-                        <input type="text" id="signup-name" required placeholder="Alex Mercer">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signup-email">Email Address</label>
-                        <input type="email" id="signup-email" required placeholder="alex.mercer@gmail.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signup-password">Password</label>
-                        <input type="password" id="signup-password" required placeholder="Create password (min 6 chars)">
-                    </div>
-                    
-                    <div class="auth-error-msg" id="signup-error"></div>
-                    
-                    <button type="submit" class="auth-submit-btn">Create Account</button>
-                    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
-                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                        <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
-                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
-                    </div>
-                    <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)">
-                        <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24">
-                            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
-                        </svg>
-                        Continue with Google
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
         // Initialize Supabase Client
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
@@ -460,25 +353,37 @@
                 if (user) {
                     navLinksContainer.innerHTML = `
                         <a href="dashboard/">Dashboard</a>
-                        <a href="profile/">Profile</a>
+                        <a href="dashboard/#community">Community</a>
                         <a href="subscribe/">Premium</a>
-                        <a href="subscribe/#billing">Billing</a>
-                        <a href="profile/#settings">Settings</a>
+                        <a href="dashboard/#notifications" class="notifications-bell-link">Notifications <span id="navNotifyBadge" style="background-color: #ff7b00; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; margin-left: 2px; display: none;">!</span></a>
                     `;
                     authNavContainer.innerHTML = `
-                        <button class="nav-cta" onclick="handleLogout()">Logout</button>
+                        <div class="profile-dropdown">
+                            <button class="profile-dropdown-btn" onclick="toggleProfileDropdown()">Profile Menu ▾</button>
+                            <div id="profileDropdownContent" class="profile-dropdown-content">
+                                <a href="profile/">Profile</a>
+                                <a href="subscribe/#billing">Billing</a>
+                                <a href="profile/#settings">Settings</a>
+                                <hr style="border-color: var(--border-color); margin: 8px 0;">
+                                <a href="javascript:void(0)" onclick="handleLogout()">Logout</a>
+                            </div>
+                        </div>
                     `;
                     
                     mobileLinksContainer.innerHTML = `
                         <a href="dashboard/" class="mobile-link">Dashboard</a>
-                        <a href="profile/" class="mobile-link">Profile</a>
+                        <a href="dashboard/#community" class="mobile-link">Community</a>
                         <a href="subscribe/" class="mobile-link">Premium</a>
+                        <a href="profile/" class="mobile-link">Profile</a>
                         <a href="subscribe/#billing" class="mobile-link">Billing</a>
                         <a href="profile/#settings" class="mobile-link">Settings</a>
                     `;
                     mobileAuthContainer.innerHTML = `
                         <button class="mobile-cta" onclick="handleLogout()">Logout</button>
                     `;
+                    
+                    // Check notifications count dynamically from DB
+                    checkLiveNotifications();
                 } else {
                     navLinksContainer.innerHTML = `
                         <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
@@ -486,11 +391,10 @@
                         <a href="subscribe/">Pricing</a>
                         <a href="#community">Community</a>
                         <a href="#about">About</a>
-                        <a href="careers.html">Resources</a>
                     `;
                     authNavContainer.innerHTML = `
-                        <button class="nav-login-btn" data-auth-action="login">Sign In</button>
-                        <button class="nav-cta" data-auth-action="signup">Get Started</button>
+                        <button class="nav-login-btn" onclick="window.location.href='login/'">Sign In</button>
+                        <button class="nav-cta" onclick="window.location.href='signup/'">Get Started</button>
                     `;
                     
                     mobileLinksContainer.innerHTML = `
@@ -499,14 +403,58 @@
                         <a href="subscribe/" class="mobile-link">Pricing</a>
                         <a href="#community" class="mobile-link">Community</a>
                         <a href="#about" class="mobile-link">About</a>
-                        <a href="careers.html" class="mobile-link">Resources</a>
                     `;
                     mobileAuthContainer.innerHTML = `
-                        <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); margin-bottom: 10px;" data-auth-action="login">Sign In</button>
-                        <button class="mobile-cta" data-auth-action="signup">Get Started</button>
+                        <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); margin-bottom: 10px;" onclick="window.location.href='login/'">Sign In</button>
+                        <button class="mobile-cta" onclick="window.location.href='signup/'">Get Started</button>
                     `;
                 }
             });
+        }
+
+        // Toggle profile dropdown contents
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdownContent');
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (e) => {
+            if (!e.target.matches('.profile-dropdown-btn')) {
+                const dropdowns = document.getElementsByClassName('profile-dropdown-content');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('active')) {
+                        openDropdown.classList.remove('active');
+                    }
+                }
+            }
+        });
+
+        // Query active workouts to show alerts/notifications count
+        async function checkLiveNotifications() {
+            try {
+                const session = (await supabase.auth.getSession()).data.session;
+                if (!session) return;
+                const { data: workouts } = await supabase.from('workouts')
+                    .select('id')
+                    .eq('user_id', session.user.id)
+                    .eq('status', 'pending');
+                
+                const badge = document.getElementById('navNotifyBadge');
+                if (workouts && workouts.length > 0) {
+                    if (badge) {
+                        badge.textContent = workouts.length;
+                        badge.style.display = 'inline-block';
+                    }
+                } else {
+                    if (badge) badge.style.display = 'none';
+                }
+            } catch (err) {
+                console.error("Failed fetching alerts:", err);
+            }
         }
 
         // Mobile Nav Hamburger Toggle
@@ -572,112 +520,6 @@
             }
         }
 
-        // Auth Modal Operations
-        function openAuthModal(tab) {
-            const modal = document.getElementById('authModal');
-            if (modal) {
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                switchAuthTab(tab);
-            }
-        }
-
-        function closeAuthModal() {
-            const modal = document.getElementById('authModal');
-            if (modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-                const signInErr = document.getElementById('signin-error');
-                if (signInErr) signInErr.textContent = "";
-                const signUpErr = document.getElementById('signup-error');
-                if (signUpErr) signUpErr.textContent = "";
-                const resetErr = document.getElementById('reset-error');
-                if (resetErr) resetErr.textContent = "";
-            }
-        }
-
-        function switchAuthTab(tab) {
-            const tabSignin = document.getElementById('tab-signin');
-            const tabSignup = document.getElementById('tab-signup');
-            const signInForm = document.getElementById('signInForm');
-            const signUpForm = document.getElementById('signUpForm');
-            const forgotForm = document.getElementById('forgotPasswordForm');
-
-            if (forgotForm) forgotForm.style.display = 'none';
-
-            if (tab === 'signin') {
-                if (tabSignin) tabSignin.classList.add('active');
-                if (tabSignup) tabSignup.classList.remove('active');
-                if (signInForm) signInForm.style.display = 'block';
-                if (signUpForm) signUpForm.style.display = 'none';
-            } else {
-                if (tabSignup) tabSignup.classList.add('active');
-                if (tabSignin) tabSignin.classList.remove('active');
-                if (signUpForm) signUpForm.style.display = 'block';
-                if (signInForm) signInForm.style.display = 'none';
-            }
-        }
-
-        function showForgotPassword() {
-            const signInForm = document.getElementById('signInForm');
-            const signUpForm = document.getElementById('signUpForm');
-            const forgotForm = document.getElementById('forgotPasswordForm');
-            const tabSignin = document.getElementById('tab-signin');
-            const tabSignup = document.getElementById('tab-signup');
-
-            if (signInForm) signInForm.style.display = 'none';
-            if (signUpForm) signUpForm.style.display = 'none';
-            if (forgotForm) forgotForm.style.display = 'block';
-            if (tabSignin) tabSignin.classList.remove('active');
-            if (tabSignup) tabSignup.classList.remove('active');
-        }
-
-        // Supabase authentication executions
-        async function handleSignUp(e) {
-            e.preventDefault();
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const errorDiv = document.getElementById('signup-error');
-            errorDiv.textContent = "";
-
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: name
-                        }
-                    }
-                });
-                if (error) throw error;
-                closeAuthModal();
-                alert("Sign-up successful! Please check your email to verify your account.");
-            } catch (err) {
-                errorDiv.textContent = err.message;
-            }
-        }
-
-        async function handleSignIn(e) {
-            e.preventDefault();
-            const email = document.getElementById('signin-email').value;
-            const password = document.getElementById('signin-password').value;
-            const errorDiv = document.getElementById('signin-error');
-            errorDiv.textContent = "";
-
-            try {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-                if (error) throw error;
-                closeAuthModal();
-            } catch (err) {
-                errorDiv.textContent = err.message;
-            }
-        }
-
         async function handleLogout() {
             try {
                 await supabase.auth.signOut();
@@ -685,75 +527,6 @@
                 console.error("Logout failed:", err);
             }
         }
-
-        async function handleForgotPassword(e) {
-            e.preventDefault();
-            const email = document.getElementById('reset-email').value;
-            const errorDiv = document.getElementById('reset-error');
-            errorDiv.textContent = "";
-
-            try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin
-                });
-                if (error) throw error;
-                errorDiv.style.color = '#198754';
-                errorDiv.textContent = "Reset link sent! Please check your email.";
-            } catch (err) {
-                errorDiv.style.color = '#dc3545';
-                errorDiv.textContent = err.message;
-            }
-        }
-
-        async function handleGoogleSignIn(e) {
-            e.preventDefault();
-            try {
-                const { error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: { redirectTo: window.location.origin }
-                });
-                if (error) throw error;
-            } catch (err) {
-                alert("Google Sign-In failed: " + err.message);
-            }
-        }
-
-        // Global Event Delegation for clicks
-        document.addEventListener('click', (e) => {
-            const actionTrigger = e.target.closest('[data-auth-action]');
-            if (actionTrigger) {
-                e.preventDefault();
-                const action = actionTrigger.getAttribute('data-auth-action');
-                if (action === 'login') {
-                    openAuthModal('signin');
-                } else if (action === 'signup') {
-                    openAuthModal('signup');
-                } else if (action === 'close') {
-                    closeAuthModal();
-                } else if (action === 'forgot') {
-                    showForgotPassword();
-                }
-                return;
-            }
-
-            const tabTrigger = e.target.closest('[data-auth-tab]');
-            if (tabTrigger) {
-                e.preventDefault();
-                const tab = tabTrigger.getAttribute('data-auth-tab');
-                switchAuthTab(tab);
-                return;
-            }
-
-            // Close modal on outside click
-            const modalOverlay = e.target.closest('.modal-overlay');
-            if (modalOverlay && !e.target.closest('.modal-content')) {
-                if (modalOverlay.id === 'authModal') {
-                    closeAuthModal();
-                } else if (modalOverlay.id === 'privacyModal') {
-                    closePrivacyModal();
-                }
-            }
-        });
     </script>
 </body>
 </html>

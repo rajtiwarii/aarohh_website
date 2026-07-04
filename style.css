@@ -1284,3 +1284,105 @@ footer {
     }
 }
 
+/* Unified Profile Menu Dropdown styles */
+.profile-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-dropdown-btn {
+    background-color: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-family);
+    transition: var(--transition-base);
+}
+
+.profile-dropdown-btn:hover {
+    background-color: var(--border-color);
+}
+
+.profile-dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background-color: var(--bg-white);
+    min-width: 180px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    z-index: 200;
+    padding: 8px 0;
+    animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.profile-dropdown-content.active {
+    display: block;
+}
+
+.profile-dropdown-content a {
+    color: var(--text-primary);
+    padding: 10px 18px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.profile-dropdown-content a:hover {
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+}
+
+/* Global Dark Mode Style tokens */
+body.dark-mode {
+    --bg-white: #121212;
+    --bg-light: #0a0a0a;
+    --text-primary: #f5f5f7;
+    --text-secondary: #86868b;
+    --border-color: #2c2c2e;
+}
+
+body.dark-mode .navbar {
+    background-color: rgba(18, 18, 18, 0.8);
+}
+
+body.dark-mode .feature-card,
+body.dark-mode .about-card,
+body.dark-mode .profile-dropdown-content,
+body.dark-mode div[style*="background-color: var(--bg-white)"],
+body.dark-mode div[style*="background-color: #ffffff"] {
+    background-color: #1c1c1e !important;
+    border-color: #2c2c2e !important;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #1c1c1e !important;
+    color: #ffffff !important;
+    border-color: #2c2c2e !important;
+}
+
+body.dark-mode button[style*="background-color: var(--bg-light)"],
+body.dark-mode select {
+    background-color: #2c2c2e !important;
+    color: #ffffff !important;
+    border-color: #3a3a3c !important;
+}
+
+body.dark-mode hr {
+    border-color: #2c2c2e !important;
+}
+
+

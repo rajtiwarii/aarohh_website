@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS public.users (
     photo_url TEXT,
     is_premium BOOLEAN DEFAULT FALSE,
     premium_until TIMESTAMPTZ,
+    language TEXT DEFAULT 'en',
+    appearance TEXT DEFAULT 'light',
+    notifications_enabled BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
@@ -168,3 +171,15 @@ CREATE POLICY "Allow service role or edge functions to insert/update subscriptio
     ON public.subscriptions FOR ALL
     USING (TRUE)
     WITH CHECK (TRUE);
+
+
+-- 6. Webhook Events Table (Idempotency and log)
+CREATE TABLE IF NOT EXISTS public.webhook_events (
+    id TEXT PRIMARY KEY, -- Razorpay Event ID (e.g. 'evt_XXXXXX')
+    event_type TEXT NOT NULL,
+    payload JSONB NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Enable RLS for webhook_events table (Service role only access)
+ALTER TABLE public.webhook_events ENABLE ROW LEVEL SECURITY;

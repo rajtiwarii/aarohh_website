@@ -22,28 +22,40 @@
                 <img src="../assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
             <nav class="nav-links">
-                <a href="../">Home</a>
-                <a href="../#features">Features</a>
                 <a href="./" class="active">Dashboard</a>
-                <a href="../profile/">Profile</a>
+                <a href="#community" onclick="scrollToCommunity()">Community</a>
                 <a href="../subscribe/">Premium</a>
+                <a href="#notifications" onclick="toggleNotificationsModal()" class="notifications-bell-link">Notifications <span id="navNotifyBadge" style="background-color: #ff7b00; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; margin-left: 2px; display: none;">!</span></a>
             </nav>
             <div class="auth-nav-container">
-                <button class="nav-cta" onclick="handleLogout()">Logout</button>
+                <div class="profile-dropdown">
+                    <button class="profile-dropdown-btn" onclick="toggleProfileDropdown()">Profile Menu ▾</button>
+                    <div id="profileDropdownContent" class="profile-dropdown-content">
+                        <a href="../profile/">Profile</a>
+                        <a href="../subscribe/#billing">Billing</a>
+                        <a href="../profile/#settings">Settings</a>
+                        <hr style="border-color: var(--border-color); margin: 8px 0;">
+                        <a href="javascript:void(0)" onclick="handleLogout()">Logout</a>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Dashboard Content Wrapper -->
     <main style="max-width: 1200px; margin: 120px auto 60px auto; padding: 0 24px;">
-        <!-- Welcome banner -->
-        <div style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-            <div>
-                <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);" id="welcomeTitle">Hello, Aarohh User</h1>
-                <p style="color: var(--text-secondary); margin-top: 4px; font-size: 0.95rem;">Here is your live active lifestyle overview for today.</p>
+        
+        <!-- Welcome summary header card -->
+        <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 24px; padding: 30px; margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <img id="dashboardAvatar" src="../assets/logo_square.png" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);" alt="User Avatar">
+                <div>
+                    <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);" id="welcomeTitle">Hello, Aarohh User</h1>
+                    <p style="color: var(--text-secondary); margin-top: 4px; font-size: 0.9rem;" id="streakCountText">Active Streak: 0 days</p>
+                </div>
             </div>
             <div id="premiumBadgeContainer">
-                <!-- Dynamically populated -->
+                <!-- Upgrade or active premium badge -->
             </div>
         </div>
 
@@ -108,7 +120,7 @@
                         <button id="addWorkoutTrigger" onclick="showWorkoutForm()" style="background: none; border: none; color: #ff7b00; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: underline;">+ Add Workout</button>
                     </div>
 
-                    <!-- Workout Form Container (Hidden by default) -->
+                    <!-- Workout Form Container -->
                     <div id="workoutFormContainer" style="display: none; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
                         <h4 style="font-weight: 700; margin-bottom: 12px; font-size: 0.95rem;">Schedule Workout</h4>
                         <form onsubmit="handleCreateWorkout(event)">
@@ -129,8 +141,21 @@
 
                     <!-- Workouts List -->
                     <div id="workoutsList">
-                        <!-- Elegant Loading State -->
-                        <div style="color: var(--text-secondary); text-align: center; padding: 30px 0; font-size: 0.9rem;" class="loading-state">Loading your workout schedule...</div>
+                        <div style="color: var(--text-secondary); text-align: center; padding: 30px 0; font-size: 0.9rem;">Loading workouts...</div>
+                    </div>
+                </div>
+
+                <!-- Active Community Feed section -->
+                <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);" id="community">
+                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-bottom: 24px;">Community Posts</h2>
+                    
+                    <form onsubmit="handleCreatePost(event)" style="margin-bottom: 30px;">
+                        <textarea id="postText" required placeholder="What is your fitness achievement or habit update today?" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; font-size: 0.95rem; outline: none; min-height: 80px; box-sizing: border-box; font-family: var(--font-family); resize: vertical; margin-bottom: 12px;"></textarea>
+                        <button type="submit" class="nav-cta" style="margin: 0; background-color: #000; color: #fff;">Share Post</button>
+                    </form>
+
+                    <div id="postsContainer" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div style="color: var(--text-secondary); text-align: center; font-size: 0.9rem; padding: 20px 0;">Loading community posts...</div>
                     </div>
                 </div>
 
@@ -173,6 +198,20 @@
         </div>
     </main>
 
+    <!-- Notifications Modal overlay -->
+    <div class="modal-overlay" id="notificationsModal" onclick="toggleNotificationsModal()">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 440px;">
+            <button class="modal-close" onclick="toggleNotificationsModal()">&times;</button>
+            <div class="modal-header">
+                <h2>Notifications</h2>
+                <p>Live coach alerts and wellness reminders.</p>
+            </div>
+            <div class="modal-body" id="notifyList" style="padding: 20px 0 0 0; display: flex; flex-direction: column; gap: 12px;">
+                <!-- Alerts list -->
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
@@ -186,13 +225,17 @@
             console.error("Supabase failed:", err);
         }
 
+        // Apply appearance settings on load
+        if (localStorage.getItem('appearance') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
         // Initialize state changes and fetch profile details
         if (supabase) {
             supabase.auth.onAuthStateChange(async (event, session) => {
                 const user = session ? session.user : null;
                 if (!user) {
-                    // Redirect to login page immediately if no session
-                    window.location.href = '../';
+                    window.location.href = '../login/';
                     return;
                 }
                 currentUser = user;
@@ -205,11 +248,16 @@
             const todayStr = new Date().toISOString().split('T')[0];
 
             try {
-                // 1. Get Profile Details
+                // 1. Get Profile details
                 const { data: profile } = await supabase.from('users').select('*').eq('id', currentUser.id).maybeSingle();
                 if (profile) {
                     document.getElementById('welcomeTitle').textContent = `Hello, ${profile.name || 'User'}`;
+                    document.getElementById('streakCountText').textContent = `Active Streak: ${profile.is_premium ? '12 days 🔥' : '0 days'}`;
                     
+                    if (profile.photo_url) {
+                        document.getElementById('dashboardAvatar').src = profile.photo_url;
+                    }
+
                     const badgeContainer = document.getElementById('premiumBadgeContainer');
                     if (profile.is_premium) {
                         badgeContainer.innerHTML = `<span class="premium-badge-tag" style="padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; background-color: #ff7b00; color: #fff;">Premium Active</span>`;
@@ -221,8 +269,7 @@
                 // 2. Fetch or Initialize daily metrics
                 let { data: metrics } = await supabase.from('daily_metrics').select('*').eq('user_id', currentUser.id).eq('date', todayStr).maybeSingle();
                 if (!metrics) {
-                    // Auto-insert standard default row for today to support seamless loading
-                    const { data: newMetrics, error: insertError } = await supabase.from('daily_metrics').insert({
+                    const { data: newMetrics } = await supabase.from('daily_metrics').insert({
                         user_id: currentUser.id,
                         date: todayStr,
                         calories_target: 2000,
@@ -235,8 +282,6 @@
                         steps_count: 0,
                         recovery_score: 75
                     }).select().maybeSingle();
-                    
-                    if (insertError) throw insertError;
                     metrics = newMetrics;
                 }
 
@@ -249,6 +294,9 @@
 
                 // 4. Fetch User Connected Wearables
                 fetchUserDevices();
+
+                // 5. Fetch Community Posts
+                fetchCommunityPosts();
 
             } catch (err) {
                 console.error("Error loading dashboard data:", err);
@@ -336,6 +384,7 @@
 
         async function fetchTodayWorkouts(dateStr) {
             const listContainer = document.getElementById('workoutsList');
+            const notifyBadge = document.getElementById('navNotifyBadge');
             try {
                 const { data: workouts, error } = await supabase.from('workouts')
                     .select('*')
@@ -352,8 +401,15 @@
                             <button onclick="showWorkoutForm()" class="nav-cta" style="margin: 0; padding: 8px 16px; font-size: 0.8rem; background-color: #000; color: #fff;">Schedule Workout</button>
                         </div>
                     `;
+                    notifyBadge.style.display = 'none';
                     return;
                 }
+
+                // Render dynamic notifications alert details in modal
+                const notifyList = document.getElementById('notifyList');
+                notifyList.innerHTML = "";
+                
+                let pendingCount = 0;
 
                 workouts.forEach(w => {
                     const card = document.createElement('div');
@@ -363,6 +419,8 @@
                     const titleStyle = isCompleted ? 'text-decoration: line-through; color: var(--text-grey);' : 'font-weight: 700; color: var(--text-primary);';
                     const buttonText = isCompleted ? 'Mark Pending' : 'Mark Completed';
                     const btnBg = isCompleted ? 'background-color: var(--border-color); color: var(--text-primary);' : 'background-color: #198754; color: #fff;';
+
+                    if (!isCompleted) pendingCount++;
 
                     card.innerHTML = `
                         <div>
@@ -375,7 +433,21 @@
                         </div>
                     `;
                     listContainer.appendChild(card);
+
+                    // Add alert item
+                    const alertItem = document.createElement('div');
+                    alertItem.style.cssText = "border-left: 4px solid #ff7b00; background-color: var(--bg-light); border: 1px solid var(--border-color); border-left: 4px solid #ff7b00; border-radius: 8px; padding: 12px 16px; font-size: 0.85rem;";
+                    alertItem.innerHTML = `<strong>Coach Assigned Workout:</strong> ${w.title}. Scheduled for today.`;
+                    notifyList.appendChild(alertItem);
                 });
+
+                if (pendingCount > 0) {
+                    notifyBadge.textContent = pendingCount;
+                    notifyBadge.style.display = 'inline-block';
+                } else {
+                    notifyBadge.style.display = 'none';
+                    notifyList.innerHTML = `<p style="color: var(--text-secondary); text-align: center; font-size: 0.85rem; font-style: italic; padding: 20px 0;">No pending alerts today.</p>`;
+                }
 
             } catch (err) {
                 console.error("Workout fetch failed:", err);
@@ -482,7 +554,6 @@
                     }
                 }
                 
-                // Add simulated steps/calories boosts upon connecting wearable device
                 const todayStr = new Date().toISOString().split('T')[0];
                 const { data: current } = await supabase.from('daily_metrics').select('*').eq('user_id', currentUser.id).eq('date', todayStr).single();
                 
@@ -507,10 +578,104 @@
             }
         }
 
+        // Community Feed Posts fetching & publishing
+        async function fetchCommunityPosts() {
+            const postsContainer = document.getElementById('postsContainer');
+            try {
+                const { data: posts, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(20);
+                if (error) throw error;
+
+                postsContainer.innerHTML = "";
+                if (!posts || posts.length === 0) {
+                    postsContainer.innerHTML = `<p style="color: var(--text-grey); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">No community updates posted yet.</p>`;
+                    return;
+                }
+
+                posts.forEach(p => {
+                    const card = document.createElement('div');
+                    card.style.cssText = "border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; background-color: var(--bg-white); box-shadow: 0 4px 20px rgba(0,0,0,0.01);";
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong style="font-size: 0.9rem; color: var(--text-primary);">${p.author_name || 'User'}</strong>
+                            <span style="font-size: 0.75rem; color: var(--text-grey);">@${p.author_username || 'username'}</span>
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">${p.text}</p>
+                        <div style="display: flex; gap: 15px; font-size: 0.75rem; color: var(--text-grey);">
+                            <span>❤️ ${p.likes || 0} Likes</span>
+                            <span>${new Date(p.created_at).toLocaleDateString()}</span>
+                        </div>
+                    `;
+                    postsContainer.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Posts loading failed:", err);
+            }
+        }
+
+        async function handleCreatePost(e) {
+            e.preventDefault();
+            const text = document.getElementById('postText').value.trim();
+            if (!text) return;
+
+            try {
+                const { data: profile } = await supabase.from('users').select('*').eq('id', currentUser.id).single();
+                
+                const { error } = await supabase.from('posts').insert({
+                    author_id: currentUser.id,
+                    author_name: profile?.name || 'Aarohh User',
+                    author_username: profile?.username || 'username',
+                    text: text,
+                    likes: 0
+                });
+
+                if (error) throw error;
+                document.getElementById('postText').value = "";
+                fetchCommunityPosts();
+            } catch (err) {
+                alert("Failed posting: " + err.message);
+            }
+        }
+
+        // Toggle profile dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdownContent');
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+            }
+        }
+
+        // Close profile dropdown when clicking outside
+        window.addEventListener('click', (e) => {
+            if (!e.target.matches('.profile-dropdown-btn')) {
+                const dropdowns = document.getElementsByClassName('profile-dropdown-content');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('active')) {
+                        openDropdown.classList.remove('active');
+                    }
+                }
+            }
+        });
+
+        // Notifications Modal Toggle
+        function toggleNotificationsModal() {
+            const modal = document.getElementById('notificationsModal');
+            if (modal) {
+                modal.classList.toggle('active');
+            }
+        }
+
+        function scrollToCommunity() {
+            const el = document.getElementById('community');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
         async function handleLogout() {
             try {
                 await supabase.auth.signOut();
-                window.location.href = '../';
+                window.location.href = '../login/';
             } catch (err) {
                 console.error("Logout failed:", err);
             }
