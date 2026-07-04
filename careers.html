@@ -25,7 +25,6 @@
                 <a href="index.html">Home</a>
                 <a href="index.html#features">Features</a>
                 <a href="index.html#about">About</a>
-                <a href="index.html#gymSection">Gym</a>
                 <a href="index.html#faq">FAQ</a>
                 <a href="subscribe/">Premium</a>
                 <a href="mailto:support@aarohh.com">Contact</a>
@@ -43,7 +42,6 @@
         <a href="index.html" class="mobile-link">Home</a>
         <a href="index.html#features" class="mobile-link">Features</a>
         <a href="index.html#about" class="mobile-link">About</a>
-        <a href="index.html#gymSection" class="mobile-link">Gym</a>
         <a href="index.html#faq" class="mobile-link">FAQ</a>
         <a href="subscribe/" class="mobile-link">Premium</a>
         <a href="mailto:support@aarohh.com" class="mobile-link">Contact</a>
@@ -103,7 +101,6 @@
                     <a href="#">Help Center</a>
                     <a href="javascript:void(0)" onclick="openPrivacyModal()">Privacy Policy</a>
                     <a href="#">Terms & Conditions</a>
-                    <a href="#">Account Deletion</a>
                 </div>
                 <div class="footer-column">
                     <h4>Connect</h4>
@@ -166,15 +163,29 @@
         // Privacy Modal Handlers
         function openPrivacyModal() {
             const modal = document.getElementById('privacyModal');
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Disable scroll under modal
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Disable scroll under modal
+            }
         }
 
         function closePrivacyModal() {
             const modal = document.getElementById('privacyModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = ''; // Re-enable scroll
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = ''; // Re-enable scroll
+            }
         }
+
+        // Close Privacy Modal by clicking outside content
+        document.addEventListener('click', (e) => {
+            const modalOverlay = e.target.closest('.modal-overlay');
+            if (modalOverlay && !e.target.closest('.modal-content')) {
+                if (modalOverlay.id === 'privacyModal') {
+                    closePrivacyModal();
+                }
+            }
+        });
     </script>
 </body>
 </html>

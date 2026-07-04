@@ -26,7 +26,6 @@
                 <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                 <a href="#features">Features</a>
                 <a href="#about">About</a>
-                <a href="#gymSection" onclick="handleGymNavLink(event)">Gym</a>
                 <a href="#faq">FAQ</a>
                 <a href="subscribe/">Premium</a>
                 <a href="#contact-footer" onclick="scrollToSection('contact-footer'); return false;">Contact</a>
@@ -46,7 +45,6 @@
         <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="mobile-link">Home</a>
         <a href="#features" class="mobile-link">Features</a>
         <a href="#about" class="mobile-link">About</a>
-        <a href="#gymSection" onclick="handleGymNavLink(event)" class="mobile-link">Gym</a>
         <a href="#faq" class="mobile-link">FAQ</a>
         <a href="subscribe/" class="mobile-link">Premium</a>
         <a href="#contact-footer" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
@@ -78,115 +76,6 @@
             <div class="hero-right">
                 <img src="assets/two_phones.png" alt="AAROHH Mobile App Screenshots showing Wellness Tracker and Workout Summary" class="hero-image">
             </div>
-        </div>
-    </section>
-
-                            
-                            <hr style="border-color: var(--border-color); margin: 20px 0;">
-                            
-                            <div style="text-align: center; padding: 20px 0;">
-                                <div style="font-size: 3rem; font-weight: 800; color: #ff7b00; line-height: 1;" id="attendanceCount">0</div>
-                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Days Attended This Month</div>
-                                
-                                <button id="checkInBtn" class="nav-cta" onclick="handleGymCheckIn()" style="width: 100%; margin-top: 24px; background-color: #ff7b00; color: #ffffff;">Check In Today</button>
-                                <div id="checkin-success-msg" style="color: #198754; font-size: 0.85rem; font-weight: bold; margin-top: 8px; min-height: 18px;"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Right: Leaderboard -->
-                        <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 20px;">Gym Leaderboard</h3>
-                            
-                            <div id="leaderboardList" style="display: flex; flex-direction: column; gap: 12px;">
-                                <!-- Dynamically populated -->
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab Panel 2: Social Feed -->
-            <div id="feedTabPanel" style="display: none;">
-                <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
-                    
-                    <!-- Create Post Card -->
-                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; color: var(--text-primary);">Share a Wellness Milestone</h3>
-                        
-                        <textarea id="feedPostText" placeholder="What is your fitness achievement or habit update today?" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; font-size: 0.95rem; outline: none; min-height: 100px; box-sizing: border-box; font-family: var(--font-family); resize: vertical; margin-bottom: 12px;"></textarea>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                            <!-- Image Attachment Button -->
-                            <div style="position: relative; overflow: hidden; display: inline-block;">
-                                <button type="button" style="background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                                    Add Photo
-                                </button>
-                                <input type="file" id="feedPostImageInput" accept="image/*" onchange="handlePostImageChange()" style="position: absolute; left: 0; top: 0; opacity: 0; font-size: 100px; cursor: pointer; width: 100%; height: 100%;">
-                            </div>
-                            
-                            <!-- Attached Image Indicator -->
-                            <span id="attachedImageLabel" style="font-size: 0.8rem; color: #198754; font-weight: 600; display: none;">Photo Selected ✓</span>
-                            
-                            <button class="nav-cta" onclick="submitFeedPost()" style="margin: 0; background-color: var(--text-primary); color: var(--bg-white);">Share Post</button>
-                        </div>
-                        
-                        <!-- Post Error/Success Message -->
-                        <div id="post-feedback-msg" style="margin-top: 10px; font-size: 0.85rem; font-weight: bold; text-align: center; min-height: 18px;"></div>
-                    </div>
-                    
-                    <!-- Feed Posts List -->
-                    <div id="feedPostsStream" style="display: flex; flex-direction: column; gap: 20px;">
-                        <!-- Dynamic list -->
-                    </div>
-                    
-                </div>
-            </div>
-
-            <!-- Tab Panel 3: Profile -->
-            <div id="profileTabPanel" style="display: none;">
-                <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px;">
-                    
-                    <!-- Profile Header Card -->
-                    <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); text-align: center;">
-                        
-                        <!-- Avatar -->
-                        <div id="profileAvatar" style="width: 80px; height: 80px; border-radius: 50%; background-color: #ff7b00; color: #ffffff; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; text-transform: uppercase;">
-                            U
-                        </div>
-                        
-                        <h3 id="profileNameDisplay" style="font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; color: var(--text-primary);">Your Name</h3>
-                        <p id="profileUsernameDisplay" style="font-size: 0.9rem; color: var(--text-grey); font-weight: 600; margin-bottom: 16px;">@username</p>
-                        
-                        <p id="profileBioDisplay" style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px; max-width: 440px; margin-left: auto; margin-right: auto;">
-                            No biography set yet. You can customize your bio in the mobile app.
-                        </p>
-                        
-                        <!-- Stats Counters Row -->
-                        <div style="display: flex; justify-content: center; gap: 40px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                            <div>
-                                <div id="profilePostCount" style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">0</div>
-                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-grey); text-transform: uppercase; margin-top: 4px;">Posts</div>
-                            </div>
-                            <div>
-                                <div id="profileStreakDisplay" style="font-size: 1.5rem; font-weight: 800; color: #ff7b00;">0</div>
-                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-grey); text-transform: uppercase; margin-top: 4px;">Days Attended</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Profile Posts Header -->
-                    <div>
-                        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; color: var(--text-primary);">Your Shared Milestones</h3>
-                        <div id="profilePostsStream" style="display: flex; flex-direction: column; gap: 20px;">
-                            <!-- User's own posts populated here -->
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-            
         </div>
     </section>
 
