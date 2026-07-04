@@ -338,10 +338,10 @@
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
         
-        let supabase;
+        let supabaseClient;
         try {
             if (window.supabase && typeof window.supabase.createClient === 'function') {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } else {
                 console.error("Supabase SDK is not loaded.");
             }
@@ -350,8 +350,8 @@
         }
 
         // Navigation state handlers
-        if (supabase) {
-            supabase.auth.onAuthStateChange((event, session) => {
+        if (supabaseClient) {
+            supabaseClient.auth.onAuthStateChange((event, session) => {
                 const user = session ? session.user : null;
                 const navLinksContainer = document.getElementById('navLinks');
                 const authNavContainer = document.getElementById('authNav');
@@ -442,9 +442,9 @@
         // Query active workouts to show alerts/notifications count
         async function checkLiveNotifications() {
             try {
-                const session = (await supabase.auth.getSession()).data.session;
+                const session = (await supabaseClient.auth.getSession()).data.session;
                 if (!session) return;
-                const { data: workouts } = await supabase.from('workouts')
+                const { data: workouts } = await supabaseClient.from('workouts')
                     .select('id')
                     .eq('user_id', session.user.id)
                     .eq('status', 'pending');
@@ -528,7 +528,7 @@
 
         async function handleLogout() {
             try {
-                await supabase.auth.signOut();
+                await supabaseClient.auth.signOut();
             } catch (err) {
                 console.error("Logout failed:", err);
             }

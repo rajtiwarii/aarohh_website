@@ -282,12 +282,12 @@
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
         
-        let supabase;
+        let supabaseClient;
         let currentUser;
         let attachedImageBase64 = "";
 
         try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (err) {
             console.error("Supabase failed:", err);
         }
@@ -301,8 +301,8 @@
             console.warn("localStorage sandbox restriction:", e);
         }
 
-        if (supabase) {
-            supabase.auth.onAuthStateChange(async (event, session) => {
+        if (supabaseClient) {
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 const user = session ? session.user : null;
                 if (!user) {
                     window.location.href = '../login/';
@@ -341,7 +341,7 @@
         async function loadProfileSettings() {
             if (!currentUser) return;
             try {
-                const { data: profile } = await supabase.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                const { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
                 if (profile) {
                     document.getElementById('profileName').value = profile.name || "";
                     document.getElementById('profileUsername').value = profile.username || "";
@@ -357,7 +357,7 @@
                 }
 
                 // Load latest daily metrics targets
-                const { data: metrics } = await supabase.from('daily_metrics')
+                const { data: metrics } = await supabaseClient.from('daily_metrics')
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .order('date', { ascending: false })
@@ -411,7 +411,7 @@
                     updatePayload.photo_url = attachedImageBase64;
                 }
 
-                const { error } = await supabase.from('users').update(updatePayload).eq('id', currentUser.id);
+                const { error } = await supabaseClient.from('users').update(updatePayload).eq('id', currentUser.id);
                 if (error) {
                     if (error.code === '23505') throw new Error("Username taken.");
                     throw error;
@@ -434,7 +434,7 @@
 
             try {
                 const todayStr = new Date().toISOString().split('T')[0];
-                await supabase.from('daily_metrics').update({
+                await supabaseClient.from('daily_metrics').update({
                     calories_target: calories,
                     water_target: water,
                     steps_target: steps
@@ -460,7 +460,7 @@
             }
 
             try {
-                const { error } = await supabase.auth.updateUser({ password });
+                const { error } = await supabaseClient.auth.updateUser({ password });
                 if (error) throw error;
 
                 successDiv.textContent = "Password updated successfully!";
@@ -481,7 +481,7 @@
             successDiv.textContent = "";
 
             try {
-                const { error } = await supabase.from('users').update({
+                const { error } = await supabaseClient.from('users').update({
                     language,
                     appearance,
                     notifications_enabled: notifications
@@ -511,7 +511,7 @@
         async function fetchUserDevices() {
             const devicesContainer = document.getElementById('devicesList');
             try {
-                const { data: devices } = await supabase.from('user_devices').select('*').eq('user_id', currentUser.id);
+                const { data: devices } = await supabaseClient.from('user_devices').select('*').eq('user_id', currentUser.id);
                 devicesContainer.innerHTML = "";
 
                 if (!devices || devices.length === 0) {
@@ -537,7 +537,7 @@
 
         async function handleDisconnectDevice(id) {
             try {
-                await supabase.from('user_devices').delete().eq('id', id);
+                await supabaseClient.from('user_devices').delete().eq('id', id);
                 fetchUserDevices();
             } catch (err) {
                 console.error("Failed disconnecting device:", err);
@@ -561,17 +561,17 @@
             errorDiv.textContent = "";
 
             try {
-                const { error: signInError } = await supabase.auth.signInWithPassword({
+                const { error: signInError } = await supabaseClient.auth.signInWithPassword({
                     email: currentUser.email,
                     password: password
                 });
                 
                 if (signInError) throw new Error("Invalid verification password.");
 
-                const { error: dbDeleteError } = await supabase.from('users').delete().eq('id', currentUser.id);
+                const { error: dbDeleteError } = await supabaseClient.from('users').delete().eq('id', currentUser.id);
                 if (dbDeleteError) throw dbDeleteError;
 
-                await supabase.auth.signOut();
+                await supabaseClient.auth.signOut();
                 alert("Account deleted.");
                 window.location.href = '../';
             } catch (err) {
@@ -602,7 +602,7 @@
         // Notifications checks
         async function checkLiveNotifications() {
             try {
-                const { data: workouts } = await supabase.from('workouts')
+                const { data: workouts } = await supabaseClient.from('workouts')
                     .select('id')
                     .eq('user_id', currentUser.id)
                     .eq('status', 'pending');
@@ -623,7 +623,7 @@
 
         async function handleLogout() {
             try {
-                await supabase.auth.signOut();
+                await supabaseClient.auth.signOut();
                 window.location.href = '../login/';
             } catch (err) {
                 console.error("Logout failed:", err);

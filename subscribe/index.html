@@ -131,11 +131,11 @@
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
         
-        let supabase;
+        let supabaseClient;
         let currentUser;
 
         try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (err) {
             console.error("Supabase failed:", err);
         }
@@ -150,8 +150,8 @@
         }
 
         // Initialize state changes and fetch profile details
-        if (supabase) {
-            supabase.auth.onAuthStateChange(async (event, session) => {
+        if (supabaseClient) {
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 const user = session ? session.user : null;
                 currentUser = user;
                 
@@ -203,7 +203,7 @@
 
             try {
                 // Fetch profile
-                const { data: profile } = await supabase.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                const { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
                 if (profile) {
                     const subBadge = document.getElementById('subBadge');
                     const subExpirationText = document.getElementById('subExpirationText');
@@ -211,7 +211,7 @@
                     const subActionPanel = document.getElementById('subActionPanel');
                     
                     // Fetch latest active transaction to determine plan details
-                    const { data: activeSub } = await supabase.from('subscriptions')
+                    const { data: activeSub } = await supabaseClient.from('subscriptions')
                         .select('*')
                         .eq('user_id', currentUser.id)
                         .eq('status', 'active')
@@ -266,7 +266,7 @@
                 }
 
                 // Fetch billing transactions
-                const { data: subs, error } = await supabase.from('subscriptions')
+                const { data: subs, error } = await supabaseClient.from('subscriptions')
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .order('created_at', { ascending: false });
@@ -323,7 +323,7 @@
             }
 
             try {
-                const session = (await supabase.auth.getSession()).data.session;
+                const session = (await supabaseClient.auth.getSession()).data.session;
                 if (!session) throw new Error("Session expired");
 
                 const response = await fetch("https://bbniblgdjyxolrbwbhek.supabase.co/functions/v1/razorpay-create-order", {
@@ -388,13 +388,13 @@
             if (!confirm("Are you sure you want to cancel your Premium subscription?")) return;
             try {
                 // Cancel active premium status in users profile
-                await supabase.from('users').update({
+                await supabaseClient.from('users').update({
                     is_premium: false,
                     premium_until: null
                 }).eq('id', currentUser.id);
 
                 // Set active subscriptions in DB to cancelled
-                await supabase.from('subscriptions')
+                await supabaseClient.from('subscriptions')
                     .update({ status: 'cancelled' })
                     .eq('user_id', currentUser.id)
                     .eq('status', 'active');
@@ -428,7 +428,7 @@
 
         async function handleLogout() {
             try {
-                await supabase.auth.signOut();
+                await supabaseClient.auth.signOut();
                 window.location.href = '../login/';
             } catch (err) {
                 console.error("Logout failed:", err);

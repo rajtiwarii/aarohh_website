@@ -140,9 +140,9 @@
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
         
-        let supabase;
+        let supabaseClient;
         try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (err) {
             console.error("Supabase failed:", err);
         }
@@ -156,14 +156,14 @@
         }
 
         // Auto-redirect if already signed in
-        if (supabase) {
-            supabase.auth.getSession().then(({ data: { session } }) => {
+        if (supabaseClient) {
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
                 if (session) {
                     window.location.href = '../dashboard/';
                 }
             });
 
-            supabase.auth.onAuthStateChange((event, session) => {
+            supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (session) {
                     window.location.href = '../dashboard/';
                 }
@@ -184,7 +184,7 @@
             errorDiv.textContent = "";
 
             try {
-                const { data, error } = await supabase.auth.signUp({
+                const { data, error } = await supabaseClient.auth.signUp({
                     email,
                     password,
                     options: {
@@ -212,7 +212,7 @@
             e.preventDefault();
             try {
                 const redirectUrl = getBaseDir() + '/dashboard/';
-                const { error } = await supabase.auth.signInWithOAuth({
+                const { error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: { redirectTo: redirectUrl }
                 });
@@ -226,7 +226,7 @@
             e.preventDefault();
             try {
                 const redirectUrl = getBaseDir() + '/dashboard/';
-                const { error } = await supabase.auth.signInWithOAuth({
+                const { error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'apple',
                     options: { redirectTo: redirectUrl }
                 });
