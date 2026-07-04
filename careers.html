@@ -24,10 +24,15 @@
                 <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
             <nav class="nav-links" id="navLinks">
-                <!-- Dynamically populated -->
+                <a href="index.html">Home</a>
+                <a href="index.html#features">Features</a>
+                <a href="subscribe/">Pricing</a>
+                <a href="index.html#community">Community</a>
+                <a href="index.html#about">About</a>
             </nav>
             <div class="auth-nav-container" id="authNav">
-                <!-- Dynamically populated -->
+                <button class="nav-login-btn" onclick="window.location.href='login/'">Sign In</button>
+                <button class="nav-cta" onclick="window.location.href='signup/'">Get Started</button>
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
                 <span></span>
@@ -39,11 +44,16 @@
     <!-- Mobile Nav Overlay -->
     <div class="mobile-nav" id="mobileNav">
         <div id="mobileNavLinks" style="display: flex; flex-direction: column; width: 100%; gap: 15px; margin-bottom: 20px;">
-            <!-- Dynamically populated -->
+            <a href="index.html" class="mobile-link">Home</a>
+            <a href="index.html#features" class="mobile-link">Features</a>
+            <a href="subscribe/" class="mobile-link">Pricing</a>
+            <a href="index.html#community" class="mobile-link">Community</a>
+            <a href="index.html#about" class="mobile-link">About</a>
         </div>
         <hr style="width: 100%; border-color: var(--border-color); margin: 10px 0;">
         <div id="mobileAuthContainer" style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
-            <!-- Dynamically populated -->
+            <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); margin-bottom: 10px;" onclick="window.location.href='login/'">Sign In</button>
+            <button class="mobile-cta" onclick="window.location.href='signup/'">Get Started</button>
         </div>
     </div>
 
