@@ -96,7 +96,7 @@
     </section>
 
     <!-- Dynamic Gym Section (Only visible for logged-in users) -->
-    <section id="gymSection" class="features" style="background-color: var(--bg-light); border-bottom: 1px solid var(--border-color); padding-top: 80px; padding-bottom: 80px;">
+    <section id="gymSection" class="features" style="display: none; background-color: var(--bg-light); border-bottom: 1px solid var(--border-color); padding-top: 80px; padding-bottom: 80px;">
         <div class="features-header" style="margin-bottom: 40px;">
             <div class="pill-tag center">AAROHH GYM CLUB</div>
             <h2 class="section-title center" id="gymSectionTitle">Your Gym Space</h2>
@@ -708,6 +708,12 @@
     </div>
 
     <script>
+        // Global Error Handler for Diagnostics
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert("JS Error: " + message + " on line " + lineno + " in " + source);
+            return false;
+        };
+
         // Initialize Supabase Client
         // REPLACE these placeholder values with your actual Supabase Project URL and Anon Key
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
@@ -880,8 +886,8 @@
                     loggedOutNav.style.display = 'flex';
                     loggedInNav.style.display = 'none';
                     
-                    if (gymSection) gymSection.style.display = 'block';
-                    if (gymLoggedOutState) gymLoggedOutState.style.display = 'block';
+                    if (gymSection) gymSection.style.display = 'none';
+                    if (gymLoggedOutState) gymLoggedOutState.style.display = 'none';
                     if (gymSearchState) gymSearchState.style.display = 'none';
                     if (gymDashboardState) gymDashboardState.style.display = 'none';
                     if (dashboardTabs) dashboardTabs.style.display = 'none';

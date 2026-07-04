@@ -370,6 +370,12 @@
     </div>
 
     <script>
+        // Global Error Handler for Diagnostics
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert("JS Error: " + message + " on line " + lineno + " in " + source);
+            return false;
+        };
+
         // Initialize Supabase Client
         // REPLACE these placeholder values with your actual Supabase Project URL and Anon Key
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
