@@ -102,7 +102,7 @@
             </div>
 
             <!-- Signup Form -->
-            <form id="signUpForm" onsubmit="handleSignUp(event)">
+            <form id="signUpForm" onsubmit="return false;">
                 <div class="form-group">
                     <label for="signup-name">Display Name</label>
                     <input type="text" id="signup-name" required placeholder="Alex Mercer" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none; box-sizing: border-box;">
@@ -120,7 +120,7 @@
                 
                 <div class="auth-error-msg" id="signup-error" style="color: #dc3545; font-size: 0.85rem; font-weight: 700; margin-bottom: 15px;"></div>
                 
-                <button type="submit" class="auth-submit-btn" style="width: 100%; background-color: #000; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer;">Create Account</button>
+                <button type="button" onclick="handleSignUp(event)" class="auth-submit-btn" style="width: 100%; background-color: #000; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer;">Create Account</button>
             </form>
 
             <div style="text-align: center; margin-top: 30px; font-size: 0.9rem; color: var(--text-secondary);">

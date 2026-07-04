@@ -104,7 +104,7 @@
             </div>
 
             <!-- Email Form -->
-            <form id="signInForm" onsubmit="handleSignIn(event)">
+            <form id="signInForm" onsubmit="return false;">
                 <div class="form-group">
                     <label for="signin-email">Email Address</label>
                     <input type="email" id="signin-email" required placeholder="alex.mercer@gmail.com" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none; box-sizing: border-box;">
@@ -120,11 +120,11 @@
                 
                 <div class="auth-error-msg" id="signin-error" style="color: #dc3545; font-size: 0.85rem; font-weight: 700; margin-bottom: 15px;"></div>
                 
-                <button type="submit" class="auth-submit-btn" style="width: 100%; background-color: #000; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer;">Sign In</button>
+                <button type="button" onclick="handleSignIn(event)" class="auth-submit-btn" style="width: 100%; background-color: #000; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer;">Sign In</button>
             </form>
 
             <!-- Reset Password Form (Initially hidden) -->
-            <form id="resetForm" style="display: none;" onsubmit="handleForgotPassword(event)">
+            <form id="resetForm" style="display: none;" onsubmit="return false;">
                 <div class="form-group">
                     <label for="reset-email">Email Address</label>
                     <input type="email" id="reset-email" required placeholder="alex.mercer@gmail.com" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none; box-sizing: border-box;">
@@ -132,7 +132,7 @@
                 
                 <div id="reset-feedback" style="font-size: 0.85rem; font-weight: bold; margin-bottom: 15px;"></div>
                 
-                <button type="submit" class="auth-submit-btn" style="width: 100%; background-color: #000; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer; margin-bottom: 15px;">Send Reset Link</button>
+                <button type="button" onclick="handleForgotPassword(event)" class="auth-submit-btn" style="width: 100%; background-color: #000; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer; margin-bottom: 15px;">Send Reset Link</button>
                 <div style="text-align: center;">
                     <a href="javascript:void(0)" onclick="showSignIn()" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Sign In</a>
                 </div>
