@@ -170,6 +170,11 @@
             });
         }
 
+        // Helper to get base directory URL
+        function getBaseDir() {
+            return window.location.href.replace(/\/+(login|signup)(\/.*)?$/, '');
+        }
+
         async function handleSignUp(e) {
             e.preventDefault();
             const name = document.getElementById('signup-name').value.trim();
@@ -193,12 +198,10 @@
 
                 // Check if user is auto-confirmed or needs email confirmation
                 if (data.session) {
-                    const baseDir = window.location.href.split('/signup/')[0];
-                    window.location.href = baseDir + '/dashboard/';
+                    window.location.href = getBaseDir() + '/dashboard/';
                 } else {
                     alert("Sign-up successful! Please check your email to verify your account.");
-                    const baseDir = window.location.href.split('/signup/')[0];
-                    window.location.href = baseDir + '/login/';
+                    window.location.href = getBaseDir() + '/login/';
                 }
             } catch (err) {
                 errorDiv.textContent = err.message;
@@ -208,8 +211,7 @@
         async function handleGoogleSignIn(e) {
             e.preventDefault();
             try {
-                const baseDir = window.location.href.split('/signup/')[0];
-                const redirectUrl = baseDir + '/dashboard/';
+                const redirectUrl = getBaseDir() + '/dashboard/';
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: { redirectTo: redirectUrl }
@@ -223,8 +225,7 @@
         async function handleAppleSignIn(e) {
             e.preventDefault();
             try {
-                const baseDir = window.location.href.split('/signup/')[0];
-                const redirectUrl = baseDir + '/dashboard/';
+                const redirectUrl = getBaseDir() + '/dashboard/';
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'apple',
                     options: { redirectTo: redirectUrl }
