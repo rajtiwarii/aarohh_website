@@ -216,6 +216,7 @@
         }
 
         let metricsSubscription;
+        let workoutsSubscription;
 
         // Initialize state changes and fetch profile details
         if (supabaseClient) {
@@ -224,6 +225,9 @@
                 if (!user) {
                     if (metricsSubscription) {
                         supabaseClient.removeChannel(metricsSubscription);
+                    }
+                    if (workoutsSubscription) {
+                        supabaseClient.removeChannel(workoutsSubscription);
                     }
                     window.location.href = '../login/';
                     return;
@@ -248,6 +252,21 @@
                         })
                         .subscribe();
                 }
+
+                // Listen to workouts updates in real-time
+                if (!workoutsSubscription) {
+                    workoutsSubscription = supabaseClient
+                        .channel('public:workouts')
+                        .on('postgres_changes', {
+                            event: '*',
+                            schema: 'public',
+                            table: 'workouts',
+                            filter: `user_id=eq.${currentUser.id}`
+                        }, payload => {
+                            fetchTodayWorkouts(todayStr);
+                        })
+                        .subscribe();
+                }
             });
         }
 
@@ -257,7 +276,22 @@
 
             try {
                 // 1. Get Profile details
-                const { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                let { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                if (!profile) {
+                    const fallbackName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'Aarohh User';
+                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.floor(Math.random() * 1000);
+                    const { data: newProfile } = await supabaseClient.from('users').insert({
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        name: fallbackName,
+                        username: fallbackUsername,
+                        is_premium: false
+                    }).select().maybeSingle();
+                    if (newProfile) {
+                        profile = newProfile;
+                    }
+                }
+
                 if (profile) {
                     document.getElementById('welcomeTitle').textContent = `Hello, ${profile.name || 'User'}`;
                     document.getElementById('streakCountText').textContent = `Active Streak: ${profile.is_premium ? '12 days 🔥' : '0 days'}`;

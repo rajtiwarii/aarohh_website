@@ -342,7 +342,22 @@
         async function loadProfileSettings() {
             if (!currentUser) return;
             try {
-                const { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                let { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                if (!profile) {
+                    const fallbackName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'Aarohh User';
+                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.floor(Math.random() * 1000);
+                    const { data: newProfile } = await supabaseClient.from('users').insert({
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        name: fallbackName,
+                        username: fallbackUsername,
+                        is_premium: false
+                    }).select().maybeSingle();
+                    if (newProfile) {
+                        profile = newProfile;
+                    }
+                }
+
                 if (profile) {
                     document.getElementById('profileName').value = profile.name || "";
                     document.getElementById('profileUsername').value = profile.username || "";

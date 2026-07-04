@@ -201,3 +201,33 @@ CREATE TABLE IF NOT EXISTS public.webhook_events (
 
 -- Enable RLS for webhook_events table (Service role only access)
 ALTER TABLE public.webhook_events ENABLE ROW LEVEL SECURITY;
+
+
+-- 7. Community Posts Table
+CREATE TABLE IF NOT EXISTS public.posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    author_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    author_name TEXT,
+    author_username TEXT,
+    text TEXT NOT NULL,
+    likes INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Enable RLS for posts table
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow anyone to read posts" ON public.posts;
+CREATE POLICY "Allow anyone to read posts"
+    ON public.posts FOR SELECT
+    USING (TRUE);
+
+DROP POLICY IF EXISTS "Allow authenticated users to insert posts" ON public.posts;
+CREATE POLICY "Allow authenticated users to insert posts"
+    ON public.posts FOR INSERT
+    WITH CHECK (auth.uid() = author_id);
+
+DROP POLICY IF EXISTS "Allow users to delete their own posts" ON public.posts;
+CREATE POLICY "Allow users to delete their own posts"
+    ON public.posts FOR DELETE
+    USING (auth.uid() = author_id);
