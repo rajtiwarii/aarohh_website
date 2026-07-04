@@ -185,7 +185,7 @@
 
         async function handleSignIn(e) {
             e.preventDefault();
-            const email = document.getElementById('signin-email').value;
+            const email = document.getElementById('signin-email').value.trim();
             const password = document.getElementById('signin-password').value;
             const errorDiv = document.getElementById('signin-error');
             errorDiv.textContent = "";
@@ -193,6 +193,9 @@
             try {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
+                // Explicitly redirect to base dashboard path
+                const baseDir = window.location.href.split('/login/')[0];
+                window.location.href = baseDir + '/dashboard/';
             } catch (err) {
                 errorDiv.textContent = err.message;
             }
@@ -201,9 +204,11 @@
         async function handleGoogleSignIn(e) {
             e.preventDefault();
             try {
+                const baseDir = window.location.href.split('/login/')[0];
+                const redirectUrl = baseDir + '/dashboard/';
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
-                    options: { redirectTo: window.location.origin + '/dashboard/' }
+                    options: { redirectTo: redirectUrl }
                 });
                 if (error) throw error;
             } catch (err) {
@@ -214,9 +219,11 @@
         async function handleAppleSignIn(e) {
             e.preventDefault();
             try {
+                const baseDir = window.location.href.split('/login/')[0];
+                const redirectUrl = baseDir + '/dashboard/';
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'apple',
-                    options: { redirectTo: window.location.origin + '/dashboard/' }
+                    options: { redirectTo: redirectUrl }
                 });
                 if (error) throw error;
             } catch (err) {

@@ -186,8 +186,16 @@
                 });
                 
                 if (error) throw error;
-                alert("Sign-up successful! Please check your email to verify your account.");
-                window.location.href = '../login/';
+
+                // Check if user is auto-confirmed or needs email confirmation
+                if (data.session) {
+                    const baseDir = window.location.href.split('/signup/')[0];
+                    window.location.href = baseDir + '/dashboard/';
+                } else {
+                    alert("Sign-up successful! Please check your email to verify your account.");
+                    const baseDir = window.location.href.split('/signup/')[0];
+                    window.location.href = baseDir + '/login/';
+                }
             } catch (err) {
                 errorDiv.textContent = err.message;
             }
@@ -196,9 +204,11 @@
         async function handleGoogleSignIn(e) {
             e.preventDefault();
             try {
+                const baseDir = window.location.href.split('/signup/')[0];
+                const redirectUrl = baseDir + '/dashboard/';
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
-                    options: { redirectTo: window.location.origin + '/dashboard/' }
+                    options: { redirectTo: redirectUrl }
                 });
                 if (error) throw error;
             } catch (err) {
@@ -209,9 +219,11 @@
         async function handleAppleSignIn(e) {
             e.preventDefault();
             try {
+                const baseDir = window.location.href.split('/signup/')[0];
+                const redirectUrl = baseDir + '/dashboard/';
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'apple',
-                    options: { redirectTo: window.location.origin + '/dashboard/' }
+                    options: { redirectTo: redirectUrl }
                 });
                 if (error) throw error;
             } catch (err) {
