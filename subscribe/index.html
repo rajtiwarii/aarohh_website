@@ -3,234 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buy Premium — AAROHH</title>
+    <title>Premium Subscriptions — AAROHH</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo_square.png?v=6.0">
-    <link rel="icon" type="image/png" sizes="16x16" href="../assets/logo_square.png?v=6.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="../assets/logo_square.png?v=6.0">
-    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico?v=6.0">
     <link rel="stylesheet" href="../style.css?v=2.6">
+    
+    <!-- Supabase SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Razorpay Checkout Integration -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
-<body>
+<body style="background-color: var(--bg-light);">
     <!-- Navbar -->
     <header class="navbar">
         <div class="nav-container">
-            <a href="../index.html" class="logo-container">
+            <a href="../" class="logo-container">
                 <img src="../assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
                 <img src="../assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
-            <nav class="nav-links">
-                <a href="../index.html">Home</a>
-                <a href="../index.html#features">Features</a>
-                <a href="../index.html#about">About</a>
-                <a href="../index.html#faq">FAQ</a>
-                <a href="./">Premium</a>
-                <a href="../index.html#contact-footer">Contact</a>
+            <nav class="nav-links" id="navLinks">
+                <!-- Dynamically populated -->
             </nav>
-            <div class="auth-nav-container">
-                <button class="nav-cta" onclick="window.location.href='./'">Get Premium</button>
+            <div class="auth-nav-container" id="authNav">
+                <!-- Dynamically populated -->
             </div>
-            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
-                <span></span>
-                <span></span>
-            </button>
         </div>
     </header>
 
-    <!-- Mobile Nav Overlay -->
-    <div class="mobile-nav" id="mobileNav">
-        <a href="../index.html" class="mobile-link">Home</a>
-        <a href="../index.html#features" class="mobile-link">Features</a>
-        <a href="../index.html#about" class="mobile-link">About</a>
-        <a href="../index.html#faq" class="mobile-link">FAQ</a>
-        <a href="./" class="mobile-link">Premium</a>
-        <a href="../index.html#contact-footer" class="mobile-link">Contact</a>
-        <hr style="width: 80%; border-color: var(--border-color); margin: 10px 0;">
-        <div style="display: flex; flex-direction: column; gap: 15px; width: 80%;">
-            <button class="mobile-cta" onclick="window.location.href='../index.html#waitlist-section'">Join Waitlist</button>
+    <!-- Content Wrapper -->
+    <main style="max-width: 900px; margin: 120px auto 60px auto; padding: 0 24px;">
+        
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 50px;">
+            <div class="pill-tag center">AAROHH PREMIUM</div>
+            <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-top: 10px;">Select your premium tier.</h1>
+            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem;">Unleash wearable device syncs, infinite history logs, and custom coach updates.</p>
         </div>
-    </div>
 
-    <!-- Pricing / Upgrade Section -->
-    <section class="hero" style="padding-top: 160px; padding-bottom: 80px; border-bottom: none;">
-        <div class="hero-container" style="flex-direction: column; text-align: center; gap: 0;">
-            <div class="pill-tag">AAROHH PREMIUM</div>
-            <h1 class="hero-title" style="font-size: 3.5rem; margin-bottom: 20px; line-height: 1.2;">Choose your peak plan.</h1>
-            <p class="hero-desc" style="max-width: 600px; margin: 0 auto 60px auto;">
-                Connect with elite gym coaches, unlock unlimited post uploads, and share your fitness journey.
-            </p>
-            
-            <div class="sub-benefits-grid" style="max-width: 840px; margin: 0 auto; width: 100%;">
-                <div class="benefit-col" style="background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; height: 100%;">
-                    <h3>Free Tier</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.9rem;">Basic lifestyle tracking and local features.</p>
-                    <div style="font-size: 2.25rem; font-weight: 800; margin-bottom: 30px;">$0 <span style="font-size: 1rem; color: var(--text-grey); font-weight: 500;">/ forever</span></div>
-                    
-                    <ul style="margin-bottom: 30px;">
-                        <li>Build wellness profile</li>
-                        <li>Add up to 5 friends</li>
-                        <li>Post limit: 1 per day</li>
-                        <li>Local photos only</li>
-                    </ul>
+        <!-- Billing Overview Panel (Only shown when logged in) -->
+        <div id="billingOverviewBox" style="display: none; background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; margin-bottom: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary);">Subscription Status</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;" id="subExpirationText">Your account tier is free. Upgrade below to activate premium features.</p>
                 </div>
-                
-                <div class="benefit-col premium-benefit-col" style="background-color: var(--bg-white); border: 2px solid #ff7b00; border-radius: 20px; padding: 40px; height: 100%; position: relative; box-shadow: 0 10px 30px rgba(255, 123, 0, 0.05);">
-                    <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background-color: #ff7b00; color: #ffffff; padding: 4px 16px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">RECOMMENDED</div>
-                    <h3>Premium Plan</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.9rem;">Unlock the professional social loop.</p>
-                    <div style="font-size: 2.25rem; font-weight: 800; margin-bottom: 30px;">₹49 <span style="font-size: 1rem; color: var(--text-grey); font-weight: 500;">/ month</span></div>
-                    
-                    <ul style="margin-bottom: 30px;">
-                        <li>Connect with certified coaches</li>
-                        <li>Unlimited feed posts</li>
-                        <li>Cloud photo attachments</li>
-                        <li>Custom recovery streaks</li>
-                        <li>Prioritized feed algorithm</li>
-                    </ul>
+                <div id="subBadge">
+                    <span class="premium-badge-tag" style="background-color: var(--border-color); color: var(--text-primary); font-size: 0.8rem; padding: 6px 16px; border-radius: 20px; font-weight: 700;">Free Tier</span>
                 </div>
             </div>
+        </div>
+
+        <!-- Pricing Tiers Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 50px;">
             
-            <!-- Checkout Action Box -->
-            <div id="checkoutBox" style="max-width: 500px; margin: 60px auto 0 auto; width: 100%; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; text-align: center;">
-                <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 12px;">Premium Launching Soon</h3>
-                <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 30px; line-height: 1.5;">Our premium subscription plans and coach dashboards will be launching in the upcoming public beta. Join the waitlist to receive an invite!</p>
-                <form class="waitlist-form" onsubmit="handleWaitlistSubmit(event, 'premium')">
-                    <div class="input-group">
-                        <input type="email" placeholder="Enter your email" required class="waitlist-input" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-family); outline: none;">
-                        <button type="submit" class="waitlist-btn">Join Waitlist</button>
+            <!-- Monthly Tier -->
+            <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.01); display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Monthly Plan</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 30px;">Perfect for kickstarting your active lifestyle goals.</p>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <span style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);">₹49</span>
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;"> / month</span>
                     </div>
-                    <div class="waitlist-success-msg">Thanks! You've been added to the waitlist.</div>
-                </form>
-            </div>
-        </div>
-    </section>
 
-    <!-- Footer -->
-    <footer id="contact-footer">
-        <div class="footer-container">
-            <div class="footer-left">
-                <a href="../index.html" class="logo-container">
-                    <img src="../assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
-                    <img src="../assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
-                </a>
-                <p class="footer-tagline">
-                    The professional lifestyle & fitness network connecting friends, members, and coaches.
-                </p>
-            </div>
-            <div class="footer-right">
-                <div class="footer-column">
-                    <h4>Company</h4>
-                    <a href="../index.html#about">About Us</a>
-                    <a href="mailto:support@aarohh.com">Contact</a>
-                    <a href="../careers.html">Careers</a>
+                    <ul style="list-style: none; padding: 0; margin-bottom: 40px; display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #ff7b00; font-weight: bold;">✓</span> Unlimited feed uploads</li>
+                        <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #ff7b00; font-weight: bold;">✓</span> Wearable sensor sync</li>
+                        <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #ff7b00; font-weight: bold;">✓</span> Direct coach notifications</li>
+                    </ul>
                 </div>
-                <div class="footer-column">
-                    <h4>Support</h4>
-                    <a href="#">Help Center</a>
-                    <a href="javascript:void(0)" onclick="openPrivacyModal()">Privacy Policy</a>
-                    <a href="#">Terms & Conditions</a>
+                <button onclick="handleSubscribePlan('monthly')" class="auth-submit-btn" style="background-color: #000; color: #fff; margin-top: auto;">Subscribe Monthly</button>
+            </div>
+
+            <!-- Yearly Tier -->
+            <div style="background-color: var(--bg-white); border: 2px solid #ff7b00; border-radius: 20px; padding: 40px; box-shadow: 0 8px 30px rgba(255, 123, 0, 0.05); display: flex; flex-direction: column; justify-content: space-between; height: 100%; position: relative;">
+                <span style="position: absolute; top: -12px; right: 24px; background-color: #ff7b00; color: #fff; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 12px; border-radius: 12px; letter-spacing: 0.05em;">Best Value</span>
+                <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Yearly Plan</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 30px;">For the dedicated athletes targeting long-term success.</p>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <span style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);">₹499</span>
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;"> / year</span>
+                        <span style="display: block; font-size: 0.75rem; color: #198754; font-weight: 700; margin-top: 4px;">Save 15% compared to monthly</span>
+                    </div>
+
+                    <ul style="list-style: none; padding: 0; margin-bottom: 40px; display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #ff7b00; font-weight: bold;">✓</span> Everything in Monthly</li>
+                        <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #ff7b00; font-weight: bold;">✓</span> Priority feed placement</li>
+                        <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #ff7b00; font-weight: bold;">✓</span> Upcoming AI Coach insights</li>
+                    </ul>
                 </div>
-                <div class="footer-column">
-                    <h4>Connect</h4>
-                    <a href="https://www.instagram.com/aarohh.app/" target="_blank" rel="noopener noreferrer">Instagram</a>
-                    <a href="#">YouTube</a>
-                    <a href="mailto:support@aarohh.com">Email</a>
-                    <span class="footer-email-text">support@aarohh.com</span>
-                </div>
+                <button onclick="handleSubscribePlan('yearly')" class="auth-submit-btn" style="background-color: #ff7b00; color: #fff; margin-top: auto; border: none;">Subscribe Yearly</button>
+            </div>
+
+        </div>
+
+        <!-- Billing History Section (Only shown when logged in) -->
+        <div id="billingHistoryBox" style="display: none; background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 24px; color: var(--text-primary);" id="billing">Billing History</h3>
+            
+            <div id="invoiceTableContainer">
+                <!-- Dynamically populated or empty state -->
+                <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; padding: 20px 0;">Loading billing history...</div>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 AAROHH. All rights reserved.</p>
-        </div>
-    </footer>
 
-    <!-- Privacy Policy Modal -->
-    <div class="modal-overlay" id="privacyModal" onclick="closePrivacyModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closePrivacyModal()">&times;</button>
-            <div class="modal-header">
-                <h2>Privacy Policy</h2>
-                <p>Last updated: June 20, 2026</p>
-            </div>
-            <div class="modal-body">
-                <p>At AAROHH, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your personal information when you use our fitness network and website.</p>
-                
-                <h3>1. Information We Collect</h3>
-                <p>We may collect information you provide directly to us, such as your email address when you join our waitlist. When the platform is launched, we may collect wellness logs, sleep metrics, habit trends, and connection lists to personalize your feed.</p>
-                
-                <h3>2. How We Use Your Data</h3>
-                <p>We use your email address exclusively to send you updates regarding our launch, beta testing invitations, and direct support. We do not sell or share your personal data with third-party advertisers.</p>
-                
-                <h3>3. Connection Data</h3>
-                <p>AAROHH processes your connections, messages, and feed shares securely to maintain your social network. Biometric logs are stored securely and you retain full control over what metrics are shared with friends or coaches.</p>
-                
-                <h3>4. Your Rights</h3>
-                <p>You have the right to request access to the information we hold about you or request its complete deletion. Contact us at <strong>support@aarohh.com</strong> for any data deletion requests.</p>
-            </div>
-        </div>
-    </div>
-
-
+    </main>
 
     <script>
-        // Mobile Nav Hamburger Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const mobileNav = document.getElementById('mobileNav');
+        const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
+        
+        let supabase;
+        let currentUser;
 
-        menuToggle.addEventListener('click', () => {
-            menuToggle.classList.toggle('active');
-            mobileNav.classList.toggle('active');
-        });
-
-        // Close mobile nav when clicking a link
-        document.querySelectorAll('.mobile-link, .mobile-cta').forEach(link => {
-            link.addEventListener('click', () => {
-                menuToggle.classList.remove('active');
-                mobileNav.classList.remove('active');
-            });
-        });
-
-        // Waitlist Form Handler
-        function handleWaitlistSubmit(event, source) {
-            event.preventDefault();
-            const form = event.target;
-            const inputGroup = form.querySelector('.input-group');
-            const successMsg = form.querySelector('.waitlist-success-msg');
-            
-            inputGroup.style.display = 'none';
-            successMsg.classList.add('visible');
-            
-            console.log(`Waitlist submission from ${source}:`, form.querySelector('input').value);
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (err) {
+            console.error("Supabase failed:", err);
         }
 
-        // Privacy Modal Handlers
-        function openPrivacyModal() {
-            const modal = document.getElementById('privacyModal');
-            if (modal) {
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden'; 
-            }
-        }
-
-        function closePrivacyModal() {
-            const modal = document.getElementById('privacyModal');
-            if (modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = ''; 
-            }
-        }
-
-        // Close Privacy Modal by clicking outside content
-        document.addEventListener('click', (e) => {
-            const modalOverlay = e.target.closest('.modal-overlay');
-            if (modalOverlay && !e.target.closest('.modal-content')) {
-                if (modalOverlay.id === 'privacyModal') {
-                    closePrivacyModal();
+        // Initialize state changes and fetch profile details
+        if (supabase) {
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                const user = session ? session.user : null;
+                currentUser = user;
+                
+                const navLinksContainer = document.getElementById('navLinks');
+                const authNavContainer = document.getElementById('authNav');
+                
+                if (user) {
+                    navLinksContainer.innerHTML = `
+                        <a href="../dashboard/">Dashboard</a>
+                        <a href="../profile/">Profile</a>
+                        <a href="./" class="active">Premium</a>
+                        <a href="#billing">Billing</a>
+                    `;
+                    authNavContainer.innerHTML = `
+                        <button class="nav-cta" onclick="handleLogout()">Logout</button>
+                    `;
+                    
+                    document.getElementById('billingOverviewBox').style.display = 'block';
+                    document.getElementById('billingHistoryBox').style.display = 'block';
+                    loadBillingDetails();
+                } else {
+                    navLinksContainer.innerHTML = `
+                        <a href="../">Home</a>
+                        <a href="../#features">Features</a>
+                        <a href="./" class="active">Pricing</a>
+                        <a href="../#about">About</a>
+                        <a href="../careers.html">Resources</a>
+                    `;
+                    authNavContainer.innerHTML = `
+                        <button class="nav-cta" onclick="window.location.href='../?login=true'">Sign In</button>
+                    `;
+                    
+                    document.getElementById('billingOverviewBox').style.display = 'none';
+                    document.getElementById('billingHistoryBox').style.display = 'none';
                 }
+            });
+        }
+
+        async function loadBillingDetails() {
+            if (!currentUser) return;
+
+            try {
+                // 1. Fetch profile for subscription dates
+                const { data: profile } = await supabase.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                if (profile) {
+                    const subBadge = document.getElementById('subBadge');
+                    const subExpirationText = document.getElementById('subExpirationText');
+                    
+                    if (profile.is_premium) {
+                        subBadge.innerHTML = `<span class="premium-badge-tag" style="background-color: #ff7b00; color: #fff; font-size: 0.85rem; padding: 6px 16px; border-radius: 20px; font-weight: 700;">Premium Active</span>`;
+                        const expDate = profile.premium_until ? new Date(profile.premium_until).toLocaleDateString() : 'N/A';
+                        subExpirationText.innerHTML = `Your premium subscription is active and will renew/expire on <strong>${expDate}</strong>.`;
+                    } else {
+                        subBadge.innerHTML = `<span class="premium-badge-tag" style="background-color: var(--border-color); color: var(--text-primary); font-size: 0.8rem; padding: 6px 16px; border-radius: 20px; font-weight: 700;">Free Tier</span>`;
+                        subExpirationText.innerHTML = `Your account tier is free. Upgrade below to activate premium features.`;
+                    }
+                }
+
+                // 2. Fetch billing transaction list from subscriptions table
+                const { data: subs, error } = await supabase.from('subscriptions')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                const historyContainer = document.getElementById('invoiceTableContainer');
+
+                if (!subs || subs.length === 0) {
+                    historyContainer.innerHTML = `<p style="color: var(--text-secondary); text-align: center; font-size: 0.95rem; font-style: italic; padding: 20px 0;">No subscription payment history found.</p>`;
+                    return;
+                }
+
+                let html = `
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-primary); font-weight: 700;">
+                                <th style="padding: 12px 8px;">Date</th>
+                                <th style="padding: 12px 8px;">Order ID</th>
+                                <th style="padding: 12px 8px;">Payment ID</th>
+                                <th style="padding: 12px 8px;">Amount</th>
+                                <th style="padding: 12px 8px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                subs.forEach(s => {
+                    const dateStr = new Date(s.created_at).toLocaleDateString();
+                    const amountStr = `₹${(s.amount / 100).toFixed(2)}`;
+                    html += `
+                        <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary);">
+                            <td style="padding: 16px 8px;">${dateStr}</td>
+                            <td style="padding: 16px 8px; font-family: monospace; font-size: 0.8rem;">${s.razorpay_order_id || 'N/A'}</td>
+                            <td style="padding: 16px 8px; font-family: monospace; font-size: 0.8rem;">${s.razorpay_payment_id || 'N/A'}</td>
+                            <td style="padding: 16px 8px; font-weight: 600; color: var(--text-primary);">${amountStr}</td>
+                            <td style="padding: 16px 8px;"><span style="color: #198754; font-weight: 700;">${s.status.toUpperCase()}</span></td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table>`;
+                historyContainer.innerHTML = html;
+
+            } catch (err) {
+                console.error("Failed fetching billing history:", err);
             }
-        });
+        }
+
+        async function handleSubscribePlan(planId) {
+            if (!currentUser) {
+                // If not logged in, direct to login page
+                window.location.href = '../?login=true';
+                return;
+            }
+
+            try {
+                const session = (await supabase.auth.getSession()).data.session;
+                if (!session) throw new Error("User session expired");
+
+                // 1. Call Deno Edge Function to create order
+                const response = await fetch("https://bbniblgdjyxolrbwbhek.supabase.co/functions/v1/razorpay-create-order", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify({ plan_id: planId })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to initiate payment");
+                }
+
+                // 2. Open Razorpay checkout checkout modal
+                const options = {
+                    key: "rzp_test_placeholder", // Will fall back to test mode, replaced in production
+                    amount: data.amount,
+                    currency: data.currency,
+                    name: "AAROHH Premium",
+                    description: `${planId.toUpperCase()} Subscription Plan`,
+                    order_id: data.order_id,
+                    handler: async function (checkoutResponse) {
+                        // 3. Send checkout parameters back to verify payment signature and store details
+                        const verificationResponse = await fetch("https://bbniblgdjyxolrbwbhek.supabase.co/functions/v1/razorpay-verify-payment", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${session.access_token}`
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: checkoutResponse.razorpay_order_id,
+                                razorpay_payment_id: checkoutResponse.razorpay_payment_id,
+                                razorpay_signature: checkoutResponse.razorpay_signature,
+                                plan_id: planId
+                            })
+                        });
+
+                        const verificationData = await verificationResponse.json();
+                        if (verificationResponse.ok) {
+                            alert("Subscription activated successfully!");
+                            loadBillingDetails();
+                        } else {
+                            alert("Payment verification failed: " + verificationData.error);
+                        }
+                    },
+                    prefill: {
+                        email: currentUser.email
+                    },
+                    theme: {
+                        color: "#ff7b00"
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (err) {
+                alert("Subscription initialization failed: " + err.message);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await supabase.auth.signOut();
+                window.location.href = '../';
+            } catch (err) {
+                console.error("Logout failed:", err);
+            }
+        }
     </script>
 </body>
 </html>

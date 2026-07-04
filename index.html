@@ -1,37 +1,43 @@
 <!DOCTYPE html>
-<!-- force redeploy 1 -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AAROHH — The Professional Network for Lifestyle & Fitness</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Aarohh is the intelligent social network for lifestyle and fitness. Connect with friends, sync wearable sensors, track metrics, and connect with elite trainers.">
+    <meta property="og:title" content="AAROHH — The Professional Network for Lifestyle & Fitness">
+    <meta property="og:description" content="Intelligent social network for lifestyle and fitness. Connect with friends, track daily wellness targets, and train with elite coaches.">
+    <meta property="og:image" content="assets/logo_square.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/logo_square.png?v=6.0">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/logo_square.png?v=6.0">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/logo_square.png?v=6.0">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=6.0">
     <link rel="stylesheet" href="style.css?v=2.6">
+    
+    <!-- Supabase SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Navbar -->
     <header class="navbar">
         <div class="nav-container">
-            <a href="#" class="logo-container">
+            <a href="#" class="logo-container" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
                 <img src="assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
                 <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
             </a>
-            <nav class="nav-links">
-                <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
-                <a href="#features">Features</a>
-                <a href="#about">About</a>
-                <a href="#faq">FAQ</a>
-                <a href="subscribe/">Premium</a>
-                <a href="#contact-footer" onclick="scrollToSection('contact-footer'); return false;">Contact</a>
+            <nav class="nav-links" id="navLinks">
+                <!-- Dynamically populated based on auth status -->
             </nav>
-            <div class="auth-nav-container">
-                <button class="nav-cta" onclick="window.location.href='subscribe/'">Get Premium</button>
+            <div class="auth-nav-container" id="authNav">
+                <!-- Dynamically populated based on auth status -->
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
                 <span></span>
@@ -42,26 +48,23 @@
 
     <!-- Mobile Nav Overlay -->
     <div class="mobile-nav" id="mobileNav">
-        <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="mobile-link">Home</a>
-        <a href="#features" class="mobile-link">Features</a>
-        <a href="#about" class="mobile-link">About</a>
-        <a href="#faq" class="mobile-link">FAQ</a>
-        <a href="subscribe/" class="mobile-link">Premium</a>
-        <a href="#contact-footer" onclick="scrollToSection('contact-footer')" class="mobile-link">Contact</a>
-        <hr style="width: 80%; border-color: var(--border-color); margin: 10px 0;">
-        <div style="display: flex; flex-direction: column; gap: 15px; width: 80%;">
-            <button class="mobile-cta" onclick="scrollToSection('waitlist-section')">Join Waitlist</button>
+        <div id="mobileNavLinks" style="display: flex; flex-direction: column; width: 100%; gap: 15px; margin-bottom: 20px;">
+            <!-- Dynamically populated based on auth status -->
+        </div>
+        <hr style="width: 100%; border-color: var(--border-color); margin: 10px 0;">
+        <div id="mobileAuthContainer" style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
+            <!-- Dynamically populated -->
         </div>
     </div>
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" id="top">
         <div class="hero-container">
             <div class="hero-left">
-                <div class="pill-tag">THE LIFESTYLE & FITNESS NETWORK</div>
-                <h1 class="hero-title">Your Fitness.<br>Personalized.<br><span class="highlight-grey">Everyday.</span></h1>
+                <div class="pill-tag">THE INTELLIGENT FITNESS ECOSYSTEM</div>
+                <h1 class="hero-title">Your Wellness.<br>Connected.<br><span class="highlight-grey">Everyday.</span></h1>
                 <p class="hero-desc">
-                    Aarohh is the social platform for your active life. Connect with friends, pair with elite trainers, share your daily habits, and build your wellness identity — all in one place.
+                    Aarohh bridges the gap between active social connections, elite trainers, and device analytics. Log daily targets, sync sensors, share milestones, and accelerate your fitness goals.
                 </p>
                 
                 <!-- Email Waitlist Form -->
@@ -83,110 +86,138 @@
     <section id="features" class="features">
         <div class="features-header">
             <div class="pill-tag center">FEATURES</div>
-            <h2 class="section-title center">Everything you need.<br>Nothing you don't.</h2>
+            <h2 class="section-title center">Engineered for results.</h2>
+            <p style="color: var(--text-secondary); text-align: center; max-width: 600px; margin: 12px auto 0 auto;">Our tools allow you to track your workouts, measure daily wellness habits, and join local partner fitness gyms in a single space.</p>
         </div>
+        
         <div class="features-grid">
             <div class="feature-card">
-                <div class="icon-wrapper">
-                    <!-- Profile Icon (User/Network) -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                </div>
-                <h3>Wellness Identity</h3>
-                <p>Build your professional wellness profile. Showcase your habits, milestones, and active streak.</p>
+                <div class="feature-icon">📊</div>
+                <h3>Unified Dashboard</h3>
+                <p>Track your calories, water consumption, step counts, and active recovery metrics from connected sensors on one clean screen.</p>
             </div>
             <div class="feature-card">
-                <div class="icon-wrapper">
-                    <!-- Feed Icon (Message/Social) -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                    </svg>
-                </div>
-                <h3>Social Wellness Feed</h3>
-                <p>Share daily achievements, cheer your friends' streaks, and discover lifestyle recommendations.</p>
+                <div class="feature-icon">🤝</div>
+                <h3>Active Community</h3>
+                <p>Share wellness logs, celebrate workout check-ins, keep streak counts active, and connect with peer members.</p>
             </div>
             <div class="feature-card">
-                <div class="icon-wrapper">
-                    <!-- Trainer/Connect Icon (Connection/Globe) -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-                        <path d="M2 12h20"/>
-                    </svg>
-                </div>
-                <h3>Trainer & Gym Match</h3>
-                <p>Discover, follow, and work directly with certified coaches and local gym networks in your area.</p>
-            </div>
-            <div class="feature-card">
-                <div class="icon-wrapper">
-                    <!-- Shared Streaks Icon (Flame) -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 3.5z"/>
-                    </svg>
-                </div>
-                <h3>Shared Accountability</h3>
-                <p>Form group streaks with friends. Build recovery habits, sleep better, and grow together.</p>
-            </div>
-            <div class="feature-card">
-                <div class="icon-wrapper">
-                    <!-- Nutrition Icon (Fork & Knife) -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v20M17 5v14c0 1.66-1.34 3-3 3s-3-1.34-3-3M17 9h-6M7 2v10c0 1.66 1.34 3 3 3s3-1.34 3-3V2M6 6h8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <h3>Lifestyle Adaptation</h3>
-                <p>Calibrate your nutrition and daily activity targets relative to your current recovery level.</p>
-            </div>
-            <div class="feature-card">
-                <div class="icon-wrapper">
-                    <!-- Security/Privacy Icon (Shield) -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    </svg>
-                </div>
-                <h3>Zero Ad Tracking</h3>
-                <p>Your biometrics and lifestyle logs are kept completely secure, localized, and ad-free.</p>
+                <div class="feature-icon">🏋️‍♂️</div>
+                <h3>Coach Direct Connect</h3>
+                <p>Get personalized nutrition targets and scheduled workout programs sent directly to your phone by certified trainers.</p>
             </div>
         </div>
     </section>
 
-    <!-- About Section -->
-    <section id="about" class="about">
-        <div class="about-card">
+    <!-- AI Coach Section -->
+    <section id="ai-coach" class="about" style="background-color: var(--bg-light); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="about-container" style="flex-direction: row-reverse;">
             <div class="about-left">
-                <div class="pill-tag">ABOUT AAROHH</div>
-                <h2 class="about-title">Built to elevate every version of <span class="highlight-grey">you.</span></h2>
-                <p class="about-desc">
-                    Aarohh is the premier professional network for active living. We bring friends, members, and elite coaches into a unified ecosystem designed to build, share, and sustain healthy habits.
+                <div class="pill-tag">AI TRAINING</div>
+                <h2 class="section-title" style="margin-bottom: 20px;">Intelligent feedback loop.</h2>
+                <p class="about-text" style="margin-bottom: 24px;">
+                    Our upcoming AI integration analyzes your logs, sleep metrics, and habit trends to personalize your recovery targets and nutrition suggestions. It acts as an active assistant to help you prepare for workouts.
                 </p>
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <div class="stat-value">Social</div>
-                        <div class="stat-label">Network</div>
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1; background-color: var(--bg-white); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <h4 style="font-weight: 700; margin-bottom: 5px; font-size: 0.95rem;">AI Nutrition</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Adapts target macros based on energy expenditure logs.</p>
                     </div>
-                    <div class="stat-divider"></div>
-                    <div class="stat-box">
-                        <div class="stat-value">Elite</div>
-                        <div class="stat-label">Coaching</div>
-                    </div>
-                    <div class="stat-divider"></div>
-                    <div class="stat-box">
-                        <div class="stat-value">Local</div>
-                        <div class="stat-label">Gym Sync</div>
+                    <div style="flex: 1; background-color: var(--bg-white); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <h4 style="font-weight: 700; margin-bottom: 5px; font-size: 0.95rem;">AI Recovery</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Calculates daily recovery metrics to optimize intensity.</p>
                     </div>
                 </div>
             </div>
+            <div class="about-right" style="text-align: left;">
+                <img src="assets/mockup.png" alt="AAROHH AI Coach Suggestion Mockup" class="about-image" style="box-shadow: 0 10px 40px rgba(0,0,0,0.04); border-radius: 24px;">
+            </div>
+        </div>
+    </section>
+
+    <!-- Health Integration Section -->
+    <section id="health" class="features" style="padding-bottom: 100px;">
+        <div class="features-header">
+            <div class="pill-tag center">INTEGRATION</div>
+            <h2 class="section-title center">Sync your wearables.</h2>
+            <p style="color: var(--text-secondary); text-align: center; max-width: 580px; margin: 12px auto 60px auto;">Aarohh seamlessly imports daily biometrics and exercise metrics directly from your favorite smart devices.</p>
+        </div>
+        
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; max-width: 900px; margin: 0 auto;">
+            <div style="flex: 1; min-width: 250px; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; text-align: center;">
+                <span style="font-size: 2.5rem; display: block; margin-bottom: 15px;">⌚</span>
+                <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Apple Health & Google Fit</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Automated step counting, heart rates, sleep tracking, and session sync.</p>
+            </div>
+            <div style="flex: 1; min-width: 250px; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; text-align: center;">
+                <span style="font-size: 2.5rem; display: block; margin-bottom: 15px;">🚴‍♂️</span>
+                <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Garmin & Fitbit Connect</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Direct parsing of custom cycling tracks, athletic cardio, and recovery metrics.</p>
+            </div>
+            <div style="flex: 1; min-width: 250px; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; text-align: center;">
+                <span style="font-size: 2.5rem; display: block; margin-bottom: 15px;">⚖️</span>
+                <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Connected Body Scales</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Biometric weight inputs, water index percentages, and dynamic lean muscle metrics.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community & Streaks Section -->
+    <section id="community" class="about" style="background-color: var(--bg-white); border-top: 1px solid var(--border-color);">
+        <div class="about-container">
+            <div class="about-left">
+                <div class="pill-tag">COMMUNITY</div>
+                <h2 class="section-title" style="margin-bottom: 20px;">Habit streaks made social.</h2>
+                <p class="about-text" style="margin-bottom: 24px;">
+                    Keep streak counts high with connection posts, photo check-ins, and peer challenges. Our custom social feed allows members to show off wellness milestones without distracting algorithmic ads.
+                </p>
+                <ul style="list-style: none; padding: 0; margin-bottom: 24px;">
+                    <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.95rem; color: var(--text-primary); font-weight: 500;">
+                        <span style="color: #ff7b00; font-size: 1.2rem;">🔥</span> High streak indicators on your group profiles.
+                    </li>
+                    <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.95rem; color: var(--text-primary); font-weight: 500;">
+                        <span style="color: #ff7b00; font-size: 1.2rem;">💬</span> Real-time comments on workout logs.
+                    </li>
+                    <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.95rem; color: var(--text-primary); font-weight: 500;">
+                        <span style="color: #ff7b00; font-size: 1.2rem;">🏆</span> Live leaderboards for joined partner gyms.
+                    </li>
+                </ul>
+            </div>
             <div class="about-right">
-                <div class="image-wrapper">
-                    <img src="assets/mountain.png" alt="Athlete looking out at snowy mountains from summit" class="about-image">
-                    <div class="mission-badge">
-                        <div class="badge-text">
-                            <h4>Our Mission</h4>
-                            <p>To connect people, coaches, and habits to make wellness an integrated lifestyle.</p>
-                        </div>
-                        <img src="assets/logo_icon.png" alt="AAROHH Logo Icon White" style="height: 32px; width: auto; display: block; object-fit: contain; filter: brightness(0) invert(1);">
+                <img src="assets/mountain.png" alt="AAROHH Gym Community Mockup" class="about-image" style="box-shadow: 0 10px 40px rgba(0,0,0,0.04); border-radius: 24px;">
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="features" style="background-color: var(--bg-light); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding-top: 100px; padding-bottom: 100px;">
+        <div class="features-header">
+            <div class="pill-tag center">TESTIMONIALS</div>
+            <h2 class="section-title center">Endorsed by athletes and coaches.</h2>
+        </div>
+        
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; max-width: 1100px; margin: 40px auto 0 auto;">
+            <div style="flex: 1; min-width: 300px; background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
+                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); font-style: italic; margin-bottom: 20px;">
+                    "Aarohh has completely simplified how I push workouts to my clients. The web portal gives me direct access, and they track their targets in real time on their smart watches. Absolutely beautiful."
+                </p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #eee; font-weight: bold; display: flex; align-items: center; justify-content: center;">DS</div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">Devon Smith</h4>
+                        <span style="font-size: 0.75rem; color: var(--text-grey);">Certified Elite Strength Coach</span>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 300px; background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
+                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); font-style: italic; margin-bottom: 20px;">
+                    "The device syncing is flawless. My steps count, running routes, and active calories log automatically. Pushing my streaks to the feed keeps me accountable with my workout circle."
+                </p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #eee; font-weight: bold; display: flex; align-items: center; justify-content: center;">AK</div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">Aarav Kapoor</h4>
+                        <span style="font-size: 0.75rem; color: var(--text-grey);">Aarohh Athlete & Premium Member</span>
                     </div>
                 </div>
             </div>
@@ -195,69 +226,38 @@
 
     <!-- FAQ Section -->
     <section id="faq" class="faq-section">
-        <div class="faq-header">
-            <div class="pill-tag center">FAQ</div>
-            <h2 class="section-title center">Frequently Asked Questions</h2>
-        </div>
         <div class="faq-container">
-            <div class="faq-item">
-                <button class="faq-question" onclick="toggleFaq(this)">
-                    <span>What is AAROHH?</span>
-                    <span class="faq-icon">+</span>
-                </button>
-                <div class="faq-answer">
-                    <p>AAROHH is a professional social network built specifically for lifestyle, active living, and fitness. Unlike traditional single-user tracking apps, AAROHH lets you build your wellness identity, connect with friends, share habit streaks, and work collaboratively with certified gym coaches.</p>
-                </div>
-            </div>
+            <div class="pill-tag center">FAQ</div>
+            <h2 class="section-title center" style="margin-bottom: 48px;">Frequently Asked Questions</h2>
             
-            <div class="faq-item">
-                <button class="faq-question" onclick="toggleFaq(this)">
-                    <span>How does the trainer connection work?</span>
-                    <span class="faq-icon">+</span>
-                </button>
-                <div class="faq-answer">
-                    <p>Whether you work out at a local gym or remotely, you can search for and link with certified coaches on AAROHH. Once connected, your coach can customize your workouts and meal targets directly into your daily feed and monitor your progress trends in real-time.</p>
-                </div>
-            </div>
-            
-            <div class="faq-item">
-                <button class="faq-question" onclick="toggleFaq(this)">
-                    <span>Is my health and biometric data secure?</span>
-                    <span class="faq-icon">+</span>
-                </button>
-                <div class="faq-answer">
-                    <p>Yes. Privacy is a core pillar of AAROHH. Your biometric details are processed securely and you retain absolute control over what is kept private, what is shared with your coach, and what is posted to your friends' feed. We have zero ad tracking.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <button class="faq-question" onclick="toggleFaq(this)">
-                    <span>When will AAROHH launch?</span>
-                    <span class="faq-icon">+</span>
-                </button>
-                <div class="faq-answer">
-                    <p>Currently we are testing our app once published on store we will start contacting with gyms.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Waitlist CTA Section -->
-    <section id="waitlist-section" class="cta">
-        <div class="cta-card">
-            <div class="cta-left">
-                <span class="cta-tag">BE THE FIRST TO EXPERIENCE AAROHH</span>
-                <h2 class="cta-title">Your journey to a better you starts now.</h2>
-                <p class="cta-desc">Join the waitlist to get early access when we launch.</p>
-            </div>
-            <div class="cta-right">
-                <form class="waitlist-form cta-waitlist-form" onsubmit="handleWaitlistSubmit(event, 'cta')">
-                    <div class="input-group">
-                        <input type="email" placeholder="Enter your email" required class="waitlist-input">
-                        <button type="submit" class="waitlist-btn">Join Waitlist</button>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>How does Aarohh sync with my wearables?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Through our companion iOS and Android Flutter applications, Aarohh securely reads biometric data from Apple HealthKit and Google Fit APIs, keeping your targets updated in real time.</p>
                     </div>
-                    <div class="waitlist-success-msg">Thanks! You've been added to the waitlist.</div>
-                </form>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>Is my bio-metric health log private?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Absolutely. Your sleep logs, calorie balances, and activity trackers are locked down under standard Supabase Row Level Security (RLS). You retain full authority over what gets shared with coaches or groups.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>How do subscription orders operate?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Subscribing to Aarohh Premium utilizes a simulated secure checkout process on this platform. Payment credentials are validated via backend verification scripts to activate client privileges immediately.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -266,7 +266,7 @@
     <footer id="contact-footer">
         <div class="footer-container">
             <div class="footer-left">
-                <a href="#" class="logo-container">
+                <a href="#" class="logo-container" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
                     <img src="assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
                     <img src="assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
                 </a>
@@ -315,29 +315,194 @@
                 <h3>1. Information We Collect</h3>
                 <p>We may collect information you provide directly to us, such as your email address when you join our waitlist. When the platform is launched, we may collect wellness logs, sleep metrics, habit trends, and connection lists to personalize your feed.</p>
                 
-                <h3>2. How We Use Your Data</h3>
-                <p>We use your email address exclusively to send you updates regarding our launch, beta testing invitations, and direct support. We do not sell or share your personal data with third-party advertisers.</p>
-                
                 <h3>3. Connection Data</h3>
                 <p>AAROHH processes your connections, messages, and feed shares securely to maintain your social network. Biometric logs are stored securely and you retain full control over what metrics are shared with friends or coaches.</p>
-                
-                <h3>4. Your Rights</h3>
-                <p>You have the right to request access to the information we hold about you or request its complete deletion. Contact us at <strong>support@aarohh.com</strong> for any data deletion requests.</p>
             </div>
         </div>
     </div>
 
+    <!-- Auth Modal (Log In / Sign Up) -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-content auth-modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" data-auth-action="close">&times;</button>
+            
+            <div class="auth-tabs">
+                <button id="tab-signin" class="auth-tab-btn active" data-auth-tab="signin">Log In</button>
+                <button id="tab-signup" class="auth-tab-btn" data-auth-tab="signup">Create Account</button>
+            </div>
+            
+            <!-- Sign In Form -->
+            <form id="signInForm" class="auth-form" onsubmit="handleSignIn(event)">
+                <div class="auth-form-body">
+                    <h2>Welcome back</h2>
+                    <p>Enter your details to manage your lifestyle profile and subscription.</p>
+                    
+                    <div class="form-group">
+                        <label for="signin-email">Email Address</label>
+                        <input type="email" id="signin-email" required placeholder="alex.mercer@gmail.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signin-password">Password</label>
+                        <input type="password" id="signin-password" required placeholder="Enter password">
+                        <div style="text-align: right; margin-top: 4px;">
+                            <a href="javascript:void(0)" data-auth-action="forgot" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+                        </div>
+                    </div>
+                    
+                    <div class="auth-error-msg" id="signin-error"></div>
+                    
+                    <button type="submit" class="auth-submit-btn">Log In</button>
+                    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
+                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                        <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
+                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                    </div>
+                    <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)">
+                        <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
+                        </svg>
+                        Continue with Google
+                    </button>
+                </div>
+            </form>
 
-
-
+            <!-- Forgot Password Form -->
+            <form id="forgotPasswordForm" class="auth-form" style="display: none;" onsubmit="handleForgotPassword(event)">
+                <div class="auth-form-body">
+                    <h2>Reset Password</h2>
+                    <p>Enter your email address and we'll send you a link to reset your password.</p>
+                    
+                    <div class="form-group">
+                        <label for="reset-email">Email Address</label>
+                        <input type="email" id="reset-email" required placeholder="alex.mercer@gmail.com">
+                    </div>
+                    
+                    <div class="auth-error-msg" id="reset-error" style="color: #198754; font-weight: bold; margin-top: 10px;"></div>
+                    
+                    <button type="submit" class="auth-submit-btn">Send Reset Link</button>
+                    
+                    <div style="text-align: center; margin-top: 16px;">
+                        <a href="javascript:void(0)" data-auth-tab="signin" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Back to Log In</a>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Sign Up Form -->
+            <form id="signUpForm" class="auth-form" style="display: none;" onsubmit="handleSignUp(event)">
+                <div class="auth-form-body">
+                    <h2>Join AAROHH</h2>
+                    <p>Create your social profile. Share streaks, connect with friends and coaches.</p>
+                    
+                    <div class="form-group">
+                        <label for="signup-name">Display Name</label>
+                        <input type="text" id="signup-name" required placeholder="Alex Mercer">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <input type="email" id="signup-email" required placeholder="alex.mercer@gmail.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required placeholder="Create password (min 6 chars)">
+                    </div>
+                    
+                    <div class="auth-error-msg" id="signup-error"></div>
+                    
+                    <button type="submit" class="auth-submit-btn">Create Account</button>
+                    <div style="display: flex; align-items: center; justify-content: center; margin: 15px 0;">
+                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                        <span style="padding: 0 10px; color: var(--text-grey); font-size: 0.85rem;">or</span>
+                        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border-color); margin: 0;">
+                    </div>
+                    <button type="button" class="google-signin-btn" onclick="handleGoogleSignIn(event)">
+                        <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.978.556 4.093 1.482l3.078-3.078C18.995 1.83 15.823 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.895 0 10.865-4.04 12.01-9.6H12.24z"/>
+                        </svg>
+                        Continue with Google
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
-        // Smooth scroll implementation
-        function scrollToSection(id) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
+        // Initialize Supabase Client
+        const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
+        
+        let supabase;
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.error("Supabase SDK is not loaded.");
             }
+        } catch (err) {
+            console.error("Supabase client failed to initialize:", err);
+        }
+
+        // Navigation state handlers
+        if (supabase) {
+            supabase.auth.onAuthStateChange((event, session) => {
+                const user = session ? session.user : null;
+                const navLinksContainer = document.getElementById('navLinks');
+                const authNavContainer = document.getElementById('authNav');
+                const mobileLinksContainer = document.getElementById('mobileNavLinks');
+                const mobileAuthContainer = document.getElementById('mobileAuthContainer');
+                
+                if (user) {
+                    navLinksContainer.innerHTML = `
+                        <a href="dashboard/">Dashboard</a>
+                        <a href="profile/">Profile</a>
+                        <a href="subscribe/">Premium</a>
+                        <a href="subscribe/#billing">Billing</a>
+                        <a href="profile/#settings">Settings</a>
+                    `;
+                    authNavContainer.innerHTML = `
+                        <button class="nav-cta" onclick="handleLogout()">Logout</button>
+                    `;
+                    
+                    mobileLinksContainer.innerHTML = `
+                        <a href="dashboard/" class="mobile-link">Dashboard</a>
+                        <a href="profile/" class="mobile-link">Profile</a>
+                        <a href="subscribe/" class="mobile-link">Premium</a>
+                        <a href="subscribe/#billing" class="mobile-link">Billing</a>
+                        <a href="profile/#settings" class="mobile-link">Settings</a>
+                    `;
+                    mobileAuthContainer.innerHTML = `
+                        <button class="mobile-cta" onclick="handleLogout()">Logout</button>
+                    `;
+                } else {
+                    navLinksContainer.innerHTML = `
+                        <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
+                        <a href="#features">Features</a>
+                        <a href="subscribe/">Pricing</a>
+                        <a href="#community">Community</a>
+                        <a href="#about">About</a>
+                        <a href="careers.html">Resources</a>
+                    `;
+                    authNavContainer.innerHTML = `
+                        <button class="nav-login-btn" data-auth-action="login">Sign In</button>
+                        <button class="nav-cta" data-auth-action="signup">Get Started</button>
+                    `;
+                    
+                    mobileLinksContainer.innerHTML = `
+                        <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="mobile-link">Home</a>
+                        <a href="#features" class="mobile-link">Features</a>
+                        <a href="subscribe/" class="mobile-link">Pricing</a>
+                        <a href="#community" class="mobile-link">Community</a>
+                        <a href="#about" class="mobile-link">About</a>
+                        <a href="careers.html" class="mobile-link">Resources</a>
+                    `;
+                    mobileAuthContainer.innerHTML = `
+                        <button class="mobile-cta" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); margin-bottom: 10px;" data-auth-action="login">Sign In</button>
+                        <button class="mobile-cta" data-auth-action="signup">Get Started</button>
+                    `;
+                }
+            });
         }
 
         // Mobile Nav Hamburger Toggle
@@ -356,6 +521,14 @@
                 mobileNav.classList.remove('active');
             });
         });
+
+        // Smooth scroll scroll-to implementation
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
 
         // Waitlist Form Handler
         function handleWaitlistSubmit(event, source) {
@@ -395,61 +568,184 @@
             }
         }
 
-        // Scroll Spy - Active Link Underline
-        const spySections = [
-            document.getElementById('features'),
-            document.getElementById('about'),
-            document.getElementById('faq'),
-            document.getElementById('contact-footer')
-        ];
-        function toggleFaq(btn) {
-            const item = btn.parentElement;
-            item.classList.toggle('active');
+        // Auth Modal Operations
+        function openAuthModal(tab) {
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                switchAuthTab(tab);
+            }
         }
 
-        // Scroll Spy - Active Link Underline
-        const spySections = [
-            document.getElementById('features'),
-            document.getElementById('about'),
-            document.getElementById('faq'),
-            document.getElementById('contact-footer')
-        ];
-        const navLinks = document.querySelectorAll('.nav-links a');
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                const signInErr = document.getElementById('signin-error');
+                if (signInErr) signInErr.textContent = "";
+                const signUpErr = document.getElementById('signup-error');
+                if (signUpErr) signUpErr.textContent = "";
+                const resetErr = document.getElementById('reset-error');
+                if (resetErr) resetErr.textContent = "";
+            }
+        }
 
-        window.addEventListener('scroll', () => {
-            let current = '';
-            const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        function switchAuthTab(tab) {
+            const tabSignin = document.getElementById('tab-signin');
+            const tabSignup = document.getElementById('tab-signup');
+            const signInForm = document.getElementById('signInForm');
+            const signUpForm = document.getElementById('signUpForm');
+            const forgotForm = document.getElementById('forgotPasswordForm');
 
-            spySections.forEach(section => {
-                if (section) {
-                    const sectionTop = section.offsetTop - 160; 
-                    const sectionHeight = section.offsetHeight;
-                    if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-                        current = section.getAttribute('id');
+            if (forgotForm) forgotForm.style.display = 'none';
+
+            if (tab === 'signin') {
+                if (tabSignin) tabSignin.classList.add('active');
+                if (tabSignup) tabSignup.classList.remove('active');
+                if (signInForm) signInForm.style.display = 'block';
+                if (signUpForm) signUpForm.style.display = 'none';
+            } else {
+                if (tabSignup) tabSignup.classList.add('active');
+                if (tabSignin) tabSignin.classList.remove('active');
+                if (signUpForm) signUpForm.style.display = 'block';
+                if (signInForm) signInForm.style.display = 'none';
+            }
+        }
+
+        function showForgotPassword() {
+            const signInForm = document.getElementById('signInForm');
+            const signUpForm = document.getElementById('signUpForm');
+            const forgotForm = document.getElementById('forgotPasswordForm');
+            const tabSignin = document.getElementById('tab-signin');
+            const tabSignup = document.getElementById('tab-signup');
+
+            if (signInForm) signInForm.style.display = 'none';
+            if (signUpForm) signUpForm.style.display = 'none';
+            if (forgotForm) forgotForm.style.display = 'block';
+            if (tabSignin) tabSignin.classList.remove('active');
+            if (tabSignup) tabSignup.classList.remove('active');
+        }
+
+        // Supabase authentication executions
+        async function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const errorDiv = document.getElementById('signup-error');
+            errorDiv.textContent = "";
+
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: name
+                        }
                     }
-                }
-            });
+                });
+                if (error) throw error;
+                closeAuthModal();
+                alert("Sign-up successful! Please check your email to verify your account.");
+            } catch (err) {
+                errorDiv.textContent = err.message;
+            }
+        }
 
-            if (scrollPosition < 200) {
-                current = 'top';
+        async function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+            const errorDiv = document.getElementById('signin-error');
+            errorDiv.textContent = "";
+
+            try {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+                if (error) throw error;
+                closeAuthModal();
+            } catch (err) {
+                errorDiv.textContent = err.message;
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await supabase.auth.signOut();
+            } catch (err) {
+                console.error("Logout failed:", err);
+            }
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            const errorDiv = document.getElementById('reset-error');
+            errorDiv.textContent = "";
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin
+                });
+                if (error) throw error;
+                errorDiv.style.color = '#198754';
+                errorDiv.textContent = "Reset link sent! Please check your email.";
+            } catch (err) {
+                errorDiv.style.color = '#dc3545';
+                errorDiv.textContent = err.message;
+            }
+        }
+
+        async function handleGoogleSignIn(e) {
+            e.preventDefault();
+            try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin }
+                });
+                if (error) throw error;
+            } catch (err) {
+                alert("Google Sign-In failed: " + err.message);
+            }
+        }
+
+        // Global Event Delegation for clicks
+        document.addEventListener('click', (e) => {
+            const actionTrigger = e.target.closest('[data-auth-action]');
+            if (actionTrigger) {
+                e.preventDefault();
+                const action = actionTrigger.getAttribute('data-auth-action');
+                if (action === 'login') {
+                    openAuthModal('signin');
+                } else if (action === 'signup') {
+                    openAuthModal('signup');
+                } else if (action === 'close') {
+                    closeAuthModal();
+                } else if (action === 'forgot') {
+                    showForgotPassword();
+                }
+                return;
             }
 
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                const href = link.getAttribute('href');
-                if (href === '#top' && current === 'top') {
-                    link.classList.add('active');
-                } else if (href && href.includes(current) && current !== 'top' && current !== '') {
-                    link.classList.add('active');
-                }
-            });
-        });
+            const tabTrigger = e.target.closest('[data-auth-tab]');
+            if (tabTrigger) {
+                e.preventDefault();
+                const tab = tabTrigger.getAttribute('data-auth-tab');
+                switchAuthTab(tab);
+                return;
+            }
 
-        // Close modals by clicking outside content
-        document.addEventListener('click', (e) => {
+            // Close modal on outside click
             const modalOverlay = e.target.closest('.modal-overlay');
             if (modalOverlay && !e.target.closest('.modal-content')) {
-                if (modalOverlay.id === 'privacyModal') {
+                if (modalOverlay.id === 'authModal') {
+                    closeAuthModal();
+                } else if (modalOverlay.id === 'privacyModal') {
                     closePrivacyModal();
                 }
             }
