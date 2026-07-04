@@ -603,6 +603,17 @@
                 }
 
                 posts.forEach(p => {
+                    let likesCount = 0;
+                    if (p.likes) {
+                        if (Array.isArray(p.likes)) {
+                            likesCount = p.likes.length;
+                        } else if (typeof p.likes === 'object') {
+                            likesCount = Object.keys(p.likes).length;
+                        } else if (typeof p.likes === 'number') {
+                            likesCount = p.likes;
+                        }
+                    }
+
                     const card = document.createElement('div');
                     card.style.cssText = "border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; background-color: var(--bg-white); box-shadow: 0 4px 20px rgba(0,0,0,0.01);";
                     card.innerHTML = `
@@ -612,7 +623,7 @@
                         </div>
                         <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">${p.text}</p>
                         <div style="display: flex; gap: 15px; font-size: 0.75rem; color: var(--text-grey);">
-                            <span>❤️ ${p.likes || 0} Likes</span>
+                            <span>❤️ ${likesCount} Likes</span>
                             <span>${new Date(p.created_at).toLocaleDateString()}</span>
                         </div>
                     `;
@@ -636,7 +647,7 @@
                     author_name: profile?.name || 'Aarohh User',
                     author_username: profile?.username || 'username',
                     text: text,
-                    likes: 0
+                    likes: []
                 });
 
                 if (error) throw error;

@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     author_name TEXT,
     author_username TEXT,
     text TEXT NOT NULL,
-    likes INTEGER DEFAULT 0,
+    likes JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
