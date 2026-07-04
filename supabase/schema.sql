@@ -19,10 +19,13 @@ CREATE TABLE IF NOT EXISTS public.users (
 -- Enable RLS for users table
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
+-- Safely recreate policies
+DROP POLICY IF EXISTS "Allow users to read their own profile" ON public.users;
 CREATE POLICY "Allow users to read their own profile"
     ON public.users FOR SELECT
     USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Allow users to update their own profile" ON public.users;
 CREATE POLICY "Allow users to update their own profile"
     ON public.users FOR UPDATE
     USING (auth.uid() = id);
@@ -44,7 +47,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE TRIGGER on_auth_user_created
+-- Recreate trigger statement safely
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
@@ -70,14 +75,17 @@ CREATE TABLE IF NOT EXISTS public.daily_metrics (
 -- Enable RLS for daily_metrics table
 ALTER TABLE public.daily_metrics ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow users to select their own metrics" ON public.daily_metrics;
 CREATE POLICY "Allow users to select their own metrics"
     ON public.daily_metrics FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow users to insert their own metrics" ON public.daily_metrics;
 CREATE POLICY "Allow users to insert their own metrics"
     ON public.daily_metrics FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow users to update their own metrics" ON public.daily_metrics;
 CREATE POLICY "Allow users to update their own metrics"
     ON public.daily_metrics FOR UPDATE
     USING (auth.uid() = user_id);
@@ -98,18 +106,22 @@ CREATE TABLE IF NOT EXISTS public.workouts (
 -- Enable RLS for workouts table
 ALTER TABLE public.workouts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow users to select their own workouts" ON public.workouts;
 CREATE POLICY "Allow users to select their own workouts"
     ON public.workouts FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow users to insert their own workouts" ON public.workouts;
 CREATE POLICY "Allow users to insert their own workouts"
     ON public.workouts FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow users to update their own workouts" ON public.workouts;
 CREATE POLICY "Allow users to update their own workouts"
     ON public.workouts FOR UPDATE
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow users to delete their own workouts" ON public.workouts;
 CREATE POLICY "Allow users to delete their own workouts"
     ON public.workouts FOR DELETE
     USING (auth.uid() = user_id);
@@ -128,18 +140,22 @@ CREATE TABLE IF NOT EXISTS public.user_devices (
 -- Enable RLS for user_devices table
 ALTER TABLE public.user_devices ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow users to select their own devices" ON public.user_devices;
 CREATE POLICY "Allow users to select their own devices"
     ON public.user_devices FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow users to insert/update their own devices" ON public.user_devices;
 CREATE POLICY "Allow users to insert/update their own devices"
     ON public.user_devices FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow users to update their own devices" ON public.user_devices;
 CREATE POLICY "Allow users to update their own devices"
     ON public.user_devices FOR UPDATE
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow users to delete their own devices" ON public.user_devices;
 CREATE POLICY "Allow users to delete their own devices"
     ON public.user_devices FOR DELETE
     USING (auth.uid() = user_id);
@@ -163,10 +179,12 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
 -- Enable RLS for subscriptions table
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow users to view their own billing history" ON public.subscriptions;
 CREATE POLICY "Allow users to view their own billing history"
     ON public.subscriptions FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow service role or edge functions to insert/update subscriptions" ON public.subscriptions;
 CREATE POLICY "Allow service role or edge functions to insert/update subscriptions"
     ON public.subscriptions FOR ALL
     USING (TRUE)
