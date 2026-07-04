@@ -394,7 +394,7 @@
         let userUnsubscribe = null;
 
         // Listen for Auth changes
-        if (supabase) {
+        if (supabase && supabase.auth) {
             supabase.auth.onAuthStateChange(async (event, session) => {
                 const user = session ? session.user : null;
 
