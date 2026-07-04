@@ -1807,6 +1807,13 @@
             });
         });
 
+        // Auto-open modal for testing after 3 seconds
+        setTimeout(() => {
+            console.log("Auto-opening auth modal...");
+            if (typeof openAuthModal === 'function') {
+                openAuthModal('signin');
+            }
+        }, 3000);
     </script>
 </body>
 </html>
