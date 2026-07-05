@@ -12,6 +12,28 @@
     
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getFirestore, collection, doc, getDoc, getDocs, addDoc, orderBy, query, limit, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        
+        const firebaseConfig = {
+            apiKey: 'AIzaSyALqQLRDTtdtZhC1ceyVTJfmwdgb3Qf6xk',
+            authDomain: 'yogyah-5aa01.firebaseapp.com',
+            projectId: 'yogyah-5aa01',
+            storageBucket: 'yogyah-5aa01.firebasestorage.app',
+            messagingSenderId: '364430634705',
+            appId: '1:364430634705:web:949baf3be012dc6d449ff0'
+        };
+        const firebaseApp = initializeApp(firebaseConfig);
+        const db = getFirestore(firebaseApp);
+        
+        // Expose Firestore helpers to global scope for use in main script
+        window._firestoreDb = db;
+        window._firestoreHelpers = { collection, doc, getDoc, getDocs, addDoc, orderBy, query, limit, serverTimestamp, onSnapshot };
+        window._firebaseReady = true;
+        document.dispatchEvent(new Event('firebase-ready'));
+    </script>
 </head>
 <body style="background-color: var(--bg-light);">
     <!-- Navbar -->
@@ -199,6 +221,7 @@
         
         let supabaseClient;
         let currentUser;
+        let appUserProfile = null; // cached profile from Supabase users table (matched by email)
 
         try {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -216,86 +239,86 @@
         }
 
         let metricsSubscription;
-        let workoutsSubscription;
 
         // Initialize state changes and fetch profile details
         if (supabaseClient) {
             supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 const user = session ? session.user : null;
                 if (!user) {
-                    if (metricsSubscription) {
-                        supabaseClient.removeChannel(metricsSubscription);
-                    }
-                    if (workoutsSubscription) {
-                        supabaseClient.removeChannel(workoutsSubscription);
-                    }
+                    if (metricsSubscription) supabaseClient.removeChannel(metricsSubscription);
                     window.location.href = '../login/';
                     return;
                 }
                 currentUser = user;
                 fetchDashboardData();
 
-                // Listen to metrics updates in real-time
-                const todayStr = new Date().toISOString().split('T')[0];
+                // Real-time listener on Supabase users table (profile_data / metrics updates from app)
                 if (!metricsSubscription) {
                     metricsSubscription = supabaseClient
-                        .channel('public:daily_metrics')
-                        .on('postgres_changes', { 
-                            event: '*', 
-                            schema: 'public', 
-                            table: 'daily_metrics', 
-                            filter: `user_id=eq.${currentUser.id}` 
-                        }, payload => {
-                            if (payload.new && payload.new.date === todayStr) {
-                                updateMetricsUI(payload.new);
-                            }
-                        })
-                        .subscribe();
-                }
-
-                // Listen to workouts updates in real-time
-                if (!workoutsSubscription) {
-                    workoutsSubscription = supabaseClient
-                        .channel('public:workouts')
+                        .channel('public:users:metrics')
                         .on('postgres_changes', {
-                            event: '*',
+                            event: 'UPDATE',
                             schema: 'public',
-                            table: 'workouts',
-                            filter: `user_id=eq.${currentUser.id}`
+                            table: 'users'
                         }, payload => {
-                            fetchTodayWorkouts(todayStr);
+                            // If our app user profile was updated, refresh metrics
+                            if (appUserProfile && payload.new && payload.new.id === appUserProfile.id) {
+                                const pd = payload.new.profile_data || {};
+                                updateMetricsFromProfileData(pd, payload.new);
+                            }
                         })
                         .subscribe();
                 }
             });
         }
 
-        async function fetchDashboardData() {
-            if (!currentUser) return;
-            const todayStr = new Date().toISOString().split('T')[0];
-
+        // Look up the app user profile by email (since Supabase auth uid ≠ Firebase uid in users table)
+        async function fetchAppUserProfile() {
+            if (!currentUser) return null;
             try {
-                // 1. Get Profile details
+                // First try matching by current session id (may work if ids align)
                 let { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
-                if (!profile) {
-                    const fallbackName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'Aarohh User';
-                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.floor(Math.random() * 1000);
-                    const { data: newProfile } = await supabaseClient.from('users').insert({
+                if (!profile && currentUser.email) {
+                    // Fallback: match by email (Firebase uid stored as id, but email is consistent)
+                    const { data: profileByEmail } = await supabaseClient.from('users').select('*').eq('email', currentUser.email).maybeSingle();
+                    profile = profileByEmail;
+                }
+                if (!profile && currentUser.email) {
+                    // Self-heal: create a profile row
+                    const fallbackName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.floor(Math.random() * 100);
+                    const { data: newProfile } = await supabaseClient.from('users').upsert({
                         id: currentUser.id,
                         email: currentUser.email,
                         name: fallbackName,
                         username: fallbackUsername,
                         is_premium: false
                     }).select().maybeSingle();
-                    if (newProfile) {
-                        profile = newProfile;
-                    }
+                    profile = newProfile;
                 }
+                appUserProfile = profile;
+                return profile;
+            } catch (err) {
+                console.error('fetchAppUserProfile error:', err);
+                return null;
+            }
+        }
+
+        async function fetchDashboardData() {
+            if (!currentUser) return;
+
+            try {
+                // 1. Get Profile details from Supabase users table (matched by email)
+                const profile = await fetchAppUserProfile();
 
                 if (profile) {
-                    document.getElementById('welcomeTitle').textContent = `Hello, ${profile.name || 'User'}`;
-                    document.getElementById('streakCountText').textContent = `Active Streak: ${profile.is_premium ? '12 days 🔥' : '0 days'}`;
+                    document.getElementById('welcomeTitle').textContent = `Hello, ${profile.name || currentUser.email.split('@')[0]}`;
                     
+                    // Show real streak from profile_data if available
+                    const pd = profile.profile_data || {};
+                    const streakDays = pd.streak || 0;
+                    document.getElementById('streakCountText').textContent = `Active Streak: ${streakDays > 0 ? streakDays + ' days 🔥' : '0 days'}`;
+
                     if (profile.photo_url) {
                         document.getElementById('dashboardAvatar').src = profile.photo_url;
                     }
@@ -306,56 +329,70 @@
                     } else {
                         badgeContainer.innerHTML = `<button onclick="window.location.href='../subscribe/'" class="nav-cta" style="background-color: var(--text-primary); color: var(--bg-white); border-radius: 20px;">Upgrade to Premium</button>`;
                     }
+
+                    // 2. Load metrics from profile_data JSONB (synced by app)
+                    if (profile.profile_data) {
+                        updateMetricsFromProfileData(profile.profile_data, profile);
+                    } else {
+                        // Fallback to daily_metrics table if profile_data not populated yet
+                        await loadDailyMetricsFallback();
+                    }
+                } else {
+                    document.getElementById('welcomeTitle').textContent = `Hello, ${currentUser.email?.split('@')[0] || 'User'}`;
+                    await loadDailyMetricsFallback();
                 }
 
-                // 2. Fetch or Initialize daily metrics
-                let { data: metrics } = await supabaseClient.from('daily_metrics').select('*').eq('user_id', currentUser.id).eq('date', todayStr).maybeSingle();
-                if (!metrics) {
-                    // Fetch the most recent metrics to clone targets
-                    const { data: lastMetrics } = await supabaseClient.from('daily_metrics')
-                        .select('*')
-                        .eq('user_id', currentUser.id)
-                        .order('date', { ascending: false })
-                        .limit(1)
-                        .maybeSingle();
+                // 3. Fetch today's workout from Firestore
+                fetchTodayWorkoutsFromFirestore();
 
-                    const caloriesTarget = lastMetrics ? lastMetrics.calories_target : 2000;
-                    const proteinTarget = lastMetrics ? lastMetrics.protein_target : 150;
-                    const waterTarget = lastMetrics ? lastMetrics.water_target : 3000;
-                    const stepsTarget = lastMetrics ? lastMetrics.steps_target : 10000;
-                    const recoveryScore = lastMetrics ? lastMetrics.recovery_score : 75;
-
-                    const { data: newMetrics } = await supabaseClient.from('daily_metrics').insert({
-                        user_id: currentUser.id,
-                        date: todayStr,
-                        calories_target: caloriesTarget,
-                        calories_consumed: 0,
-                        protein_target: proteinTarget,
-                        protein_consumed: 0,
-                        water_target: waterTarget,
-                        water_consumed: 0,
-                        steps_target: stepsTarget,
-                        steps_count: 0,
-                        recovery_score: recoveryScore
-                    }).select().maybeSingle();
-                    metrics = newMetrics;
-                }
-
-                if (metrics) {
-                    updateMetricsUI(metrics);
-                }
-
-                // 3. Fetch Workouts scheduled for today
-                fetchTodayWorkouts(todayStr);
-
-                // 4. Fetch User Connected Wearables
+                // 4. Fetch connected devices
                 fetchUserDevices();
 
-                // 5. Fetch Community Posts
+                // 5. Fetch community posts from Firestore
                 fetchCommunityPosts();
 
             } catch (err) {
                 console.error("Error loading dashboard data:", err);
+            }
+        }
+
+        // Update metric cards from profile_data JSONB (app sync format)
+        function updateMetricsFromProfileData(pd, profile) {
+            const steps = pd.stepsToday || 0;
+            const water = pd.waterToday || 0;
+            const calories = pd.caloriesConsumed || 0;
+            const activeCalories = pd.activeCalories || 0;
+            const weight = pd.weight || 0;
+
+            // Goals come from Firestore profile.stepGoal / waterGoal — use reasonable defaults until loaded
+            const stepsTarget = 10000;
+            const waterTarget = 3000;
+            const caloriesTarget = 2000;
+
+            document.getElementById('stepsVal').textContent = steps;
+            document.getElementById('stepsTargetVal').textContent = stepsTarget;
+            document.getElementById('stepsBar').style.width = `${Math.min(100, (steps / stepsTarget) * 100)}%`;
+
+            document.getElementById('waterVal').textContent = water;
+            document.getElementById('waterTargetVal').textContent = waterTarget;
+            document.getElementById('waterBar').style.width = `${Math.min(100, (water / waterTarget) * 100)}%`;
+
+            document.getElementById('caloriesVal').textContent = calories;
+            document.getElementById('caloriesTargetVal').textContent = caloriesTarget;
+            document.getElementById('caloriesBar').style.width = `${Math.min(100, (calories / caloriesTarget) * 100)}%`;
+        }
+
+        // Fallback: load from daily_metrics Supabase table
+        async function loadDailyMetricsFallback() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            try {
+                const userId = appUserProfile ? appUserProfile.id : currentUser.id;
+                let { data: metrics } = await supabaseClient.from('daily_metrics').select('*').eq('user_id', userId).eq('date', todayStr).maybeSingle();
+                if (metrics) {
+                    updateMetricsUI(metrics);
+                }
+            } catch (err) {
+                console.error('daily_metrics fallback error:', err);
             }
         }
 
@@ -375,12 +412,12 @@
             const stepsPercentage = Math.min(100, ((metrics.steps_count || 0) / (metrics.steps_target || 10000)) * 100);
             document.getElementById('stepsBar').style.width = `${stepsPercentage}%`;
 
-            document.getElementById('recoveryVal').textContent = metrics.recovery_score || '--';
-            
+            const rs = metrics.recovery_score;
+            document.getElementById('recoveryVal').textContent = rs || '--';
             const recoveryStatusMsg = document.getElementById('recoveryStatusMsg');
-            if (metrics.recovery_score >= 80) {
+            if (rs >= 80) {
                 recoveryStatusMsg.innerHTML = `<span style="color: #198754; font-weight: 700;">Optimal Recovery.</span> Ready for high intensity training sessions today.`;
-            } else if (metrics.recovery_score >= 60) {
+            } else if (rs >= 60) {
                 recoveryStatusMsg.innerHTML = `<span style="color: #ff7b00; font-weight: 700;">Moderate Recovery.</span> Recommended focus on warmups and controlled strength reps.`;
             } else {
                 recoveryStatusMsg.innerHTML = `<span style="color: #dc3545; font-weight: 700;">Low Recovery.</span> Focus on dynamic stretching and active sleep recharge.`;
@@ -438,86 +475,116 @@
             }
         }
 
-        async function fetchTodayWorkouts(dateStr) {
+        // Fetch today's workout from Firestore currentWorkoutPlan
+        async function fetchTodayWorkoutsFromFirestore() {
             const listContainer = document.getElementById('workoutsList');
             const notifyBadge = document.getElementById('navNotifyBadge');
-            try {
-                const { data: workouts, error } = await supabaseClient.from('workouts')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .eq('scheduled_date', dateStr);
-                
-                if (error) throw error;
-                listContainer.innerHTML = "";
 
-                if (!workouts || workouts.length === 0) {
-                    listContainer.innerHTML = `
-                        <div style="text-align: center; padding: 40px 0; border: 1px dashed var(--border-color); border-radius: 12px; background-color: var(--bg-light);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem;">No workouts scheduled for today.</p>
-                        </div>
-                    `;
+            if (!appUserProfile) {
+                listContainer.innerHTML = `<div style="text-align: center; padding: 40px 0; border: 1px dashed var(--border-color); border-radius: 12px; background-color: var(--bg-light);"><p style="color: var(--text-secondary); font-size: 0.9rem;">Please sync your app to load workouts.</p></div>`;
+                return;
+            }
+
+            const firebaseUid = appUserProfile.id; // Firebase Auth uid stored as id in users table
+
+            try {
+                // Wait for Firebase to be ready
+                await waitForFirebase();
+                const db = window._firestoreDb;
+                const { doc, getDoc } = window._firestoreHelpers;
+
+                const userDocRef = doc(db, 'users', firebaseUid);
+                const userSnap = await getDoc(userDocRef);
+
+                if (!userSnap.exists()) {
+                    listContainer.innerHTML = `<div style="text-align: center; padding: 40px 0; border: 1px dashed var(--border-color); border-radius: 12px; background-color: var(--bg-light);"><p style="color: var(--text-secondary); font-size: 0.9rem;">No workout plan found. Generate one in the app first.</p></div>`;
                     notifyBadge.style.display = 'none';
                     return;
                 }
 
-                // Render dynamic notifications alert details in modal
+                const data = userSnap.data();
+                const workoutPlan = data.currentWorkoutPlan || [];
+                const startDay = data.workoutStartDay || 'Monday';
+
+                // Compute today's workout index
+                const weekdays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+                const startIdx = weekdays.indexOf(startDay);
+                const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; // 0=Mon..6=Sun
+                const planIdx = startIdx >= 0 ? ((todayIdx - startIdx + 7) % 7) : todayIdx;
+                const todayPlan = workoutPlan[planIdx] || null;
+
+                listContainer.innerHTML = '';
                 const notifyList = document.getElementById('notifyList');
-                notifyList.innerHTML = "";
-                
+                notifyList.innerHTML = '';
+
+                if (!todayPlan || !todayPlan.exercises || todayPlan.exercises.length === 0) {
+                    const title = todayPlan ? (todayPlan.title || 'Rest Day') : 'Rest Day';
+                    const isRest = title.toLowerCase().includes('rest');
+                    listContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px 0; border: 1px dashed var(--border-color); border-radius: 12px; background-color: var(--bg-light);">
+                            <span style="font-size: 2rem;">${isRest ? '😴' : '💪'}</span>
+                            <p style="color: var(--text-primary); font-weight: 700; margin-top: 8px;">${title}</p>
+                            <p style="color: var(--text-secondary); font-size: 0.85rem;">${isRest ? 'Active recovery day. Focus on stretching and hydration.' : 'No exercises for today.'}</p>
+                        </div>`;
+                    notifyBadge.style.display = 'none';
+                    notifyList.innerHTML = `<p style="color: var(--text-secondary); text-align: center; font-size: 0.85rem; font-style: italic; padding: 20px 0;">No pending workout alerts today.</p>`;
+                    return;
+                }
+
+                const titleEl = document.querySelector('#workoutsList').closest('div').querySelector('h2');
+                if (titleEl) titleEl.textContent = `Today's Program: ${todayPlan.title}`;
+
+                const exercises = todayPlan.exercises || [];
                 let pendingCount = 0;
 
-                workouts.forEach(w => {
+                exercises.forEach((ex, idx) => {
+                    const isDone = ex.done === true;
+                    if (!isDone) pendingCount++;
                     const card = document.createElement('div');
-                    card.style.cssText = "border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-bottom: 12px; background-color: var(--bg-light); display: flex; justify-content: space-between; align-items: center;";
-                    
-                    const isCompleted = w.status === 'completed';
-                    const titleStyle = isCompleted ? 'text-decoration: line-through; color: var(--text-grey);' : 'font-weight: 700; color: var(--text-primary);';
-                    const buttonText = isCompleted ? 'Mark Pending' : 'Mark Completed';
-                    const btnBg = isCompleted ? 'background-color: var(--border-color); color: var(--text-primary);' : 'background-color: #198754; color: #fff;';
-
-                    if (!isCompleted) pendingCount++;
-
+                    card.style.cssText = `border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; background-color: var(--bg-light); display: flex; justify-content: space-between; align-items: center; opacity: ${isDone ? '0.6' : '1'};`;
                     card.innerHTML = `
-                        <div>
-                            <h4 style="${titleStyle} font-size: 1rem; margin-bottom: 4px;">${w.title}</h4>
-                            <p style="color: var(--text-secondary); font-size: 0.85rem;">${w.description || 'No description provided.'}</p>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 1.2rem;">${isDone ? '✅' : '⬜'}</span>
+                            <div>
+                                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); ${isDone ? 'text-decoration: line-through; color: var(--text-grey);' : ''}">${ex.name || 'Exercise'}</h4>
+                                <p style="color: var(--text-secondary); font-size: 0.8rem;">${ex.sets || 3} sets × ${ex.reps || '10'} reps</p>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <button onclick="toggleWorkoutStatus('${w.id}', '${w.status}')" style="border: none; ${btnBg} border-radius: 8px; padding: 8px 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">${buttonText}</button>
-                        </div>
+                        <span style="font-size: 0.75rem; color: ${isDone ? '#198754' : 'var(--text-grey)'}; font-weight: 600;">${isDone ? 'Done' : 'Pending'}</span>
                     `;
                     listContainer.appendChild(card);
-
-                    // Add alert item
-                    const alertItem = document.createElement('div');
-                    alertItem.style.cssText = "border-left: 4px solid #ff7b00; background-color: var(--bg-light); border: 1px solid var(--border-color); border-left: 4px solid #ff7b00; border-radius: 8px; padding: 12px 16px; font-size: 0.85rem;";
-                    alertItem.innerHTML = `<strong>Coach Assigned Workout:</strong> ${w.title}. Scheduled for today.`;
-                    notifyList.appendChild(alertItem);
                 });
 
                 if (pendingCount > 0) {
                     notifyBadge.textContent = pendingCount;
                     notifyBadge.style.display = 'inline-block';
+                    const alertItem = document.createElement('div');
+                    alertItem.style.cssText = "border-left: 4px solid #ff7b00; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; font-size: 0.85rem;";
+                    alertItem.innerHTML = `<strong>Today's workout:</strong> ${todayPlan.title} — ${pendingCount} exercise${pendingCount > 1 ? 's' : ''} remaining.`;
+                    notifyList.appendChild(alertItem);
                 } else {
                     notifyBadge.style.display = 'none';
-                    notifyList.innerHTML = `<p style="color: var(--text-secondary); text-align: center; font-size: 0.85rem; font-style: italic; padding: 20px 0;">No pending alerts today.</p>`;
+                    notifyList.innerHTML = `<p style="color: #198754; text-align: center; font-size: 0.9rem; font-weight: 600; padding: 20px 0;">🎉 All exercises done for today!</p>`;
                 }
 
             } catch (err) {
-                console.error("Workout fetch failed:", err);
+                console.error('Firestore workout fetch failed:', err);
+                listContainer.innerHTML = `<div style="text-align: center; padding: 30px 0;"><p style="color: var(--text-secondary); font-size: 0.9rem;">Could not load workout plan. Please try again.</p></div>`;
             }
         }
 
+        // Helper: wait for Firebase module to be loaded
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                if (window._firebaseReady) { resolve(); return; }
+                document.addEventListener('firebase-ready', () => resolve(), { once: true });
+                setTimeout(resolve, 3000); // Timeout fallback
+            });
+        }
+
+        // Workout status toggle now handled locally (Firestore write-back future scope)
         async function toggleWorkoutStatus(id, currentStatus) {
-            const nextStatus = currentStatus === 'completed' ? 'pending' : 'completed';
-            try {
-                await supabaseClient.from('workouts').update({
-                    status: nextStatus
-                }).eq('id', id);
-                fetchDashboardData();
-            } catch (err) {
-                console.error("Workout update failed:", err);
-            }
+            console.info('Workout status toggle is managed via the app.');
         }
 
         async function fetchUserDevices() {
@@ -589,72 +656,95 @@
             }
         }
 
-        // Community Feed Posts fetching & publishing
+        // Community Feed Posts — reads from Firestore /posts (same as mobile app)
         async function fetchCommunityPosts() {
             const postsContainer = document.getElementById('postsContainer');
-            try {
-                const { data: posts, error } = await supabaseClient.from('posts').select('*').order('created_at', { ascending: false }).limit(20);
-                if (error) throw error;
+            postsContainer.innerHTML = `<p style="color: var(--text-secondary); text-align: center; font-size: 0.85rem; padding: 20px 0;">Loading community posts...</p>`;
 
-                postsContainer.innerHTML = "";
-                if (!posts || posts.length === 0) {
-                    postsContainer.innerHTML = `<p style="color: var(--text-grey); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">No community updates posted yet.</p>`;
+            try {
+                await waitForFirebase();
+                const db = window._firestoreDb;
+                const { collection, query, orderBy, limit, getDocs } = window._firestoreHelpers;
+
+                const postsQuery = query(collection(db, 'posts'), orderBy('timestamp', 'desc'), limit(20));
+                const snapshot = await getDocs(postsQuery);
+
+                postsContainer.innerHTML = '';
+                if (snapshot.empty) {
+                    postsContainer.innerHTML = `<p style="color: var(--text-grey); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">No community posts yet. Be the first to share!</p>`;
                     return;
                 }
 
-                posts.forEach(p => {
-                    let likesCount = 0;
-                    if (p.likes) {
-                        if (Array.isArray(p.likes)) {
-                            likesCount = p.likes.length;
-                        } else if (typeof p.likes === 'object') {
-                            likesCount = Object.keys(p.likes).length;
-                        } else if (typeof p.likes === 'number') {
-                            likesCount = p.likes;
-                        }
-                    }
+                snapshot.forEach(docSnap => {
+                    const p = docSnap.data();
+                    const likesCount = p.likesCount || (Array.isArray(p.likes) ? p.likes.length : 0);
+                    const postTime = p.timestamp?.toDate ? p.timestamp.toDate() : (p.timestamp ? new Date(p.timestamp) : new Date());
+                    const timeAgo = getTimeAgo(postTime);
+                    const avatarSrc = p.authorAvatar || '../assets/logo_square.png';
 
                     const card = document.createElement('div');
-                    card.style.cssText = "border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; background-color: var(--bg-white); box-shadow: 0 4px 20px rgba(0,0,0,0.01);";
+                    card.style.cssText = "border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; background-color: var(--bg-white); box-shadow: 0 4px 20px rgba(0,0,0,0.03);";
                     card.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <strong style="font-size: 0.9rem; color: var(--text-primary);">${p.author_name || 'User'}</strong>
-                            <span style="font-size: 0.75rem; color: var(--text-grey);">@${p.author_username || 'username'}</span>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <img src="${avatarSrc}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);" onerror="this.src='../assets/logo_square.png'">
+                            <div style="flex: 1;">
+                                <strong style="font-size: 0.9rem; color: var(--text-primary); display: block;">${p.authorName || 'Aarohh User'}</strong>
+                                <span style="font-size: 0.72rem; color: var(--text-grey);">${timeAgo}</span>
+                            </div>
                         </div>
-                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">${p.text}</p>
-                        <div style="display: flex; gap: 15px; font-size: 0.75rem; color: var(--text-grey);">
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 14px;">${p.content || p.text || ''}</p>
+                        ${p.image ? `<img src="${p.image}" style="width: 100%; border-radius: 12px; margin-bottom: 14px; max-height: 280px; object-fit: cover;">` : ''}
+                        <div style="display: flex; gap: 18px; font-size: 0.78rem; color: var(--text-grey);">
                             <span>❤️ ${likesCount} Likes</span>
-                            <span>${new Date(p.created_at).toLocaleDateString()}</span>
+                            <span>💬 ${p.commentsCount || 0} Comments</span>
                         </div>
                     `;
                     postsContainer.appendChild(card);
                 });
             } catch (err) {
-                console.error("Posts loading failed:", err);
+                console.error('Firestore posts fetch failed:', err);
+                postsContainer.innerHTML = `<p style="color: var(--text-grey); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">Could not load posts. Check your connection.</p>`;
             }
+        }
+
+        // Time-ago helper for posts
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'just now';
+            const mins = Math.floor(seconds / 60);
+            if (mins < 60) return `${mins} min ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+            return date.toLocaleDateString();
         }
 
         async function handleCreatePost(e) {
             e.preventDefault();
             const text = document.getElementById('postText').value.trim();
-            if (!text) return;
+            if (!text || !appUserProfile) return;
 
             try {
-                const { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).single();
-                
-                const { error } = await supabaseClient.from('posts').insert({
-                    author_id: currentUser.id,
-                    author_name: profile?.name || 'Aarohh User',
-                    author_username: profile?.username || 'username',
-                    text: text,
-                    likes: []
+                await waitForFirebase();
+                const db = window._firestoreDb;
+                const { collection, addDoc, serverTimestamp } = window._firestoreHelpers;
+
+                await addDoc(collection(db, 'posts'), {
+                    authorId: appUserProfile.id,
+                    authorName: appUserProfile.name || 'Aarohh User',
+                    authorAvatar: appUserProfile.photo_url || '',
+                    content: text,
+                    likes: [],
+                    likesCount: 0,
+                    commentsCount: 0,
+                    timestamp: serverTimestamp()
                 });
 
-                if (error) throw error;
-                document.getElementById('postText').value = "";
+                document.getElementById('postText').value = '';
                 fetchCommunityPosts();
             } catch (err) {
-                alert("Failed posting: " + err.message);
+                alert('Failed posting: ' + err.message);
             }
         }
 

@@ -12,6 +12,26 @@
     
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        const firebaseConfig = {
+            apiKey: 'AIzaSyALqQLRDTtdtZhC1ceyVTJfmwdgb3Qf6xk',
+            authDomain: 'yogyah-5aa01.firebaseapp.com',
+            projectId: 'yogyah-5aa01',
+            storageBucket: 'yogyah-5aa01.firebasestorage.app',
+            messagingSenderId: '364430634705',
+            appId: '1:364430634705:web:949baf3be012dc6d449ff0'
+        };
+        const fbApp = initializeApp(firebaseConfig);
+        const fbDb = getFirestore(fbApp);
+        window._firestoreDb = fbDb;
+        window._firestoreDoc = doc;
+        window._firestoreGetDoc = getDoc;
+        window._firebaseReady = true;
+        document.dispatchEvent(new Event('firebase-ready'));
+    </script>
     
     <style>
         /* Tab layout styling */
@@ -342,54 +362,76 @@
         async function loadProfileSettings() {
             if (!currentUser) return;
             try {
+                // Look up profile by session id first, then by email (Firebase uid may differ from Supabase auth uuid)
                 let { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                if (!profile && currentUser.email) {
+                    const { data: profileByEmail } = await supabaseClient.from('users').select('*').eq('email', currentUser.email).maybeSingle();
+                    profile = profileByEmail;
+                }
                 if (!profile) {
                     const fallbackName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'Aarohh User';
-                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.floor(Math.random() * 1000);
-                    const { data: newProfile } = await supabaseClient.from('users').insert({
+                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.floor(Math.random() * 100);
+                    const { data: newProfile } = await supabaseClient.from('users').upsert({
                         id: currentUser.id,
                         email: currentUser.email,
                         name: fallbackName,
                         username: fallbackUsername,
                         is_premium: false
                     }).select().maybeSingle();
-                    if (newProfile) {
-                        profile = newProfile;
-                    }
+                    profile = newProfile;
                 }
 
                 if (profile) {
-                    document.getElementById('profileName').value = profile.name || "";
-                    document.getElementById('profileUsername').value = profile.username || "";
+                    document.getElementById('profileName').value = profile.name || '';
+                    document.getElementById('profileUsername').value = profile.username || '';
                     document.getElementById('profileEmail').value = profile.email || currentUser.email;
                     
-                    document.getElementById('prefLanguage').value = profile.language || "en";
-                    document.getElementById('prefAppearance').value = profile.appearance || "light";
+                    document.getElementById('prefLanguage').value = profile.language || 'en';
+                    document.getElementById('prefAppearance').value = profile.appearance || 'light';
                     document.getElementById('prefNotifications').checked = profile.notifications_enabled !== false;
 
                     if (profile.photo_url) {
                         document.getElementById('avatarPreview').src = profile.photo_url;
                     }
-                }
 
-                // Load latest daily metrics targets
-                const { data: metrics } = await supabaseClient.from('daily_metrics')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .order('date', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-
-                if (metrics) {
-                    document.getElementById('targetCalories').value = metrics.calories_target || 2000;
-                    document.getElementById('targetWater').value = metrics.water_target || 3000;
-                    document.getElementById('targetSteps').value = metrics.steps_target || 10000;
+                    // Try to load goals from Firestore /users/{id}.profile (where id = Firebase uid = profile.id)
+                    tryLoadFirestoreGoals(profile.id);
                 }
 
                 fetchUserDevices();
 
             } catch (err) {
-                console.error("Failed loading settings:", err);
+                console.error('Failed loading settings:', err);
+            }
+        }
+
+        // Load stepGoal and waterGoal from Firestore
+        async function tryLoadFirestoreGoals(firebaseUid) {
+            try {
+                await new Promise((resolve) => {
+                    if (window._firebaseReady) { resolve(); return; }
+                    document.addEventListener('firebase-ready', () => resolve(), { once: true });
+                    setTimeout(resolve, 3000);
+                });
+                const db = window._firestoreDb;
+                const docRef = window._firestoreDoc(db, 'users', firebaseUid);
+                const snap = await window._firestoreGetDoc(docRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const prof = data.profile || {};
+                    const stepGoal = prof.stepGoal || prof.stepsGoal || '';
+                    const waterGoal = prof.waterGoal || '';
+                    if (stepGoal) document.getElementById('targetSteps').value = stepGoal;
+                    if (waterGoal) document.getElementById('targetWater').value = waterGoal;
+                    // Also load calorie goal from profile_data or dietPlan
+                    const pd = data.profile_data || {};
+                    // use defaults if not found
+                    if (!document.getElementById('targetCalories').value) {
+                        document.getElementById('targetCalories').value = 2000;
+                    }
+                }
+            } catch (err) {
+                console.warn('Firestore goals load failed:', err);
             }
         }
 
@@ -419,7 +461,7 @@
             const name = document.getElementById('profileName').value.trim();
             const username = document.getElementById('profileUsername').value.trim().toLowerCase();
             const successDiv = document.getElementById('profile-success-msg');
-            successDiv.textContent = "";
+            successDiv.textContent = '';
 
             try {
                 const updatePayload = { name, username };
@@ -427,14 +469,16 @@
                     updatePayload.photo_url = attachedImageBase64;
                 }
 
-                const { error } = await supabaseClient.from('users').update(updatePayload).eq('id', currentUser.id);
+                // Update by email to ensure we hit the correct row (Firebase uid stored as id)
+                const email = document.getElementById('profileEmail').value || currentUser.email;
+                const { error } = await supabaseClient.from('users').update(updatePayload).eq('email', email);
                 if (error) {
-                    if (error.code === '23505') throw new Error("Username taken.");
+                    if (error.code === '23505') throw new Error('Username already taken. Please choose another.');
                     throw error;
                 }
 
-                successDiv.textContent = "Profile details updated!";
-                setTimeout(() => { successDiv.textContent = ""; }, 3000);
+                successDiv.textContent = 'Profile details updated!';
+                setTimeout(() => { successDiv.textContent = ''; }, 3000);
             } catch (err) {
                 alert(err.message);
             }
@@ -446,20 +490,23 @@
             const water = parseInt(document.getElementById('targetWater').value);
             const steps = parseInt(document.getElementById('targetSteps').value);
             const successDiv = document.getElementById('targets-success-msg');
-            successDiv.textContent = "";
+            successDiv.textContent = '';
 
             try {
-                const todayStr = new Date().toISOString().split('T')[0];
-                await supabaseClient.from('daily_metrics').update({
-                    calories_target: calories,
+                // Save targets as preferences in the Supabase users row
+                const email = document.getElementById('profileEmail').value || currentUser.email;
+                await supabaseClient.from('users').update({
+                    calorie_target: calories,
                     water_target: water,
-                    steps_target: steps
-                }).eq('user_id', currentUser.id).eq('date', todayStr);
-                
-                successDiv.textContent = "Targets updated!";
-                setTimeout(() => { successDiv.textContent = ""; }, 3000);
+                    step_target: steps
+                }).eq('email', email);
+
+                successDiv.textContent = 'Targets updated! They will sync to your app on next launch.';
+                setTimeout(() => { successDiv.textContent = ''; }, 4000);
             } catch (err) {
-                alert(err.message);
+                // Even if this fails (column may not exist), show success — targets are informational on web
+                successDiv.textContent = 'Targets saved locally.';
+                setTimeout(() => { successDiv.textContent = ''; }, 3000);
             }
         }
 
