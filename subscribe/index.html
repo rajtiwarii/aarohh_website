@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../style.css?v=2.6">
     
     <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <!-- Razorpay Checkout Integration -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -26,8 +26,6 @@
             <nav class="nav-links" id="navLinks">
                 <a href="../">Home</a>
                 <a href="../#features">Features</a>
-                <a href="./" class="active">Pricing</a>
-                <a href="../#about">About</a>
             </nav>
             <div class="auth-nav-container" id="authNav">
                 <button class="nav-cta" onclick="window.location.href='../login/'">Sign In</button>
@@ -162,21 +160,11 @@
                     navLinksContainer.innerHTML = `
                         <a href="../">Home</a>
                         <a href="../dashboard/">Dashboard</a>
-                        <a href="../dashboard/#community">Community</a>
+                        <a href="../profile/">Profile</a>
                         <a href="./" class="active">Premium</a>
-                        <a href="../dashboard/#notifications" class="notifications-bell-link">Notifications <span id="navNotifyBadge" style="background-color: #ff7b00; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; margin-left: 2px; display: none;">!</span></a>
                     `;
                     authNavContainer.innerHTML = `
-                        <div class="profile-dropdown">
-                            <button class="profile-dropdown-btn" onclick="toggleProfileDropdown()">Profile Menu ▾</button>
-                            <div id="profileDropdownContent" class="profile-dropdown-content">
-                                <a href="../profile/">Profile</a>
-                                <a href="#billing">Billing</a>
-                                <a href="../profile/#settings">Settings</a>
-                                <hr style="border-color: var(--border-color); margin: 8px 0;">
-                                <a href="javascript:void(0)" onclick="handleLogout()">Logout</a>
-                            </div>
-                        </div>
+                        <button class="nav-cta" onclick="handleLogout()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary);">Logout</button>
                     `;
                     
                     document.getElementById('billingOverviewBox').style.display = 'block';
@@ -187,7 +175,6 @@
                         <a href="../">Home</a>
                         <a href="../#features">Features</a>
                         <a href="./" class="active">Pricing</a>
-                        <a href="../#about">About</a>
                     `;
                     authNavContainer.innerHTML = `
                         <button class="nav-cta" onclick="window.location.href='../login/'">Sign In</button>
@@ -430,9 +417,10 @@
         async function handleLogout() {
             try {
                 await supabaseClient.auth.signOut();
-                window.location.href = '../login/';
+                window.location.href = '../login/?logout=1';
             } catch (err) {
                 console.error("Logout failed:", err);
+                window.location.href = '../login/?logout=1';
             }
         }
     </script>

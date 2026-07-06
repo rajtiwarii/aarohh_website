@@ -10,8 +10,20 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo_square.png?v=6.0">
     <link rel="stylesheet" href="../style.css?v=2.6">
 
+    <!-- Resource load error tracking -->
+    <script>
+        window.addEventListener('error', function(e) {
+            if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+                console.error("Resource failed to load:", e.target.src || e.target.href);
+                if (window.logDebug) {
+                    logDebug("Resource load failed: " + (e.target.src || e.target.href));
+                }
+            }
+        }, true);
+    </script>
+    
     <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -283,6 +295,7 @@
             <a href="../">Home</a>
             <a href="../dashboard/">Dashboard</a>
             <a href="./" class="active">Profile</a>
+            <a href="../subscribe/">Premium</a>
         </nav>
         <button class="logout-btn" onclick="handleLogout()">Logout</button>
     </header>
@@ -596,12 +609,19 @@
         // ====== LOAD ALL PROFILE DATA ======
         async function loadProfileData() {
             logDebug("loadProfileData started.");
+            if (window.location.search.includes('debug=1')) {
+                alert("DEBUG: currentUser = " + (currentUser ? currentUser.email : "null"));
+            }
             
             // 1. Supabase: name, username, bio, photo_url, is_premium
             logDebug("Fetching Supabase profile for " + (currentUser ? currentUser.email : "null") + "...");
             const profile = await fetchSupabaseProfile();
             appUserProfile = profile;
             logDebug("Supabase profile fetched: " + (profile ? "Found profile for ID: " + profile.id : "No profile found"));
+
+            if (window.location.search.includes('debug=1')) {
+                alert("DEBUG: Supabase Profile = " + JSON.stringify(profile));
+            }
 
             if (profile) {
                 try {
@@ -642,6 +662,10 @@
         }
 
         async function fetchSupabaseProfile() {
+            if (!currentUser) {
+                logDebug("fetchSupabaseProfile failed: currentUser is null");
+                return null;
+            }
             try {
                 let { data } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
                 if (!data && currentUser.email) {
@@ -649,7 +673,10 @@
                     data = byEmail;
                 }
                 return data;
-            } catch(err) { console.error('fetchSupabaseProfile error:', err); return null; }
+            } catch(err) { 
+                logDebug('fetchSupabaseProfile db exception: ' + err.message); 
+                return null; 
+            }
         }
 
         function renderProfileCard(profile) {
