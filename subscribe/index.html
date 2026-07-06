@@ -305,6 +305,14 @@
         }
 
         async function handleSubscribePlan(planId) {
+            // Highlight selected plan button
+            if (planId === 'monthly') {
+                document.getElementById('btn-monthly').classList.add('selected-plan');
+                document.getElementById('btn-yearly').classList.remove('selected-plan');
+            } else {
+                document.getElementById('btn-yearly').classList.add('selected-plan');
+                document.getElementById('btn-monthly').classList.remove('selected-plan');
+            }
             if (!currentUser) {
                 window.location.href = '../login/';
                 return;
