@@ -517,59 +517,66 @@
 
         let supabaseClient, currentUser, appUserProfile;
 
-        logDebug("Initializing Supabase client...");
-        try {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            logDebug("Supabase client initialized successfully.");
-        } catch(e) { 
-            logDebug("Supabase client init failed: " + e.message); 
-        }
-
         // Apply theme
         try {
             if (localStorage.getItem('appearance') === 'dark') document.body.classList.add('dark-mode');
         } catch(e) {}
 
-        // Auth guard
-        if (supabaseClient) {
-            logDebug("Setting up Auth checks...");
-            let sessionChecked = false;
-            
-            // 1. Direct session check immediately — this is the source of truth
-            supabaseClient.auth.getSession().then(({ data: { session } }) => {
-                sessionChecked = true;
-                logDebug("getSession response: " + (session ? "Session exists for " + session.user.email : "No session"));
-                if (session && session.user) {
-                    if (!currentUser) {
-                        currentUser = session.user;
-                        logDebug("Starting loadProfileData from getSession...");
-                        loadProfileData().catch(err => logDebug("loadProfileData getSession catch: " + err.message));
-                    }
-                } else {
-                    // No session at all → redirect
-                    logDebug("getSession: no session, redirecting.");
-                    window.location.href = '../login/?logout=1';
-                }
-            }).catch(err => {
-                logDebug("getSession failed: " + err.message);
-                window.location.href = '../login/?logout=1';
-            });
+        logDebug("Initializing Supabase client...");
+        try {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            logDebug("Supabase client created.");
+        } catch(e) {
+            logDebug("Supabase init failed: " + e.message);
+        }
 
-            // 2. Auth state change listener — only redirect on SIGNED_OUT, ignore initial null
-            supabaseClient.auth.onAuthStateChange(async (event, session) => {
-                logDebug("onAuthStateChange event: " + event);
+        // ── MAIN ENTRY POINT ──────────────────────────────────────────────────────
+        // Single place where everything starts. No race conditions.
+        async function initProfile() {
+            logDebug("initProfile() called");
+
+            if (!supabaseClient) {
+                document.getElementById('profileName').textContent = 'Auth Error';
+                return;
+            }
+
+            // Step A: Get session (reads from localStorage, fast)
+            let session = null;
+            try {
+                const resp = await supabaseClient.auth.getSession();
+                session = resp.data.session;
+                logDebug("getSession: " + (session ? "user=" + session.user.email : "null"));
+            } catch(e) {
+                logDebug("getSession error: " + e.message);
+            }
+
+            if (!session || !session.user) {
+                logDebug("No session — redirecting to login");
+                window.location.href = '../login/?logout=1';
+                return;
+            }
+
+            // Step B: We have a user — render immediately from session data
+            currentUser = session.user;
+            logDebug("currentUser set: " + currentUser.email + " id=" + currentUser.id);
+            renderProfileFromAuth(currentUser);
+
+            // Step C: Load richer data in background (DB + Firestore)
+            loadProfileData().catch(e => logDebug("loadProfileData error: " + e.message));
+        }
+
+        // Listen for explicit sign-out only
+        if (supabaseClient) {
+            supabaseClient.auth.onAuthStateChange((event) => {
                 if (event === 'SIGNED_OUT') {
                     window.location.href = '../login/?logout=1';
-                    return;
-                }
-                const user = session ? session.user : null;
-                if (user && (!currentUser || currentUser.id !== user.id)) {
-                    currentUser = user;
-                    logDebug("Starting loadProfileData from onAuthStateChange...");
-                    await loadProfileData();
                 }
             });
         }
+
+        // Kick off on page load
+        initProfile();
+
 
         // Wait for Firebase module
         function waitForFirebase() {
@@ -616,15 +623,12 @@
             }
         }
 
-        // ====== LOAD ALL PROFILE DATA ======
+        // ====== LOAD ALL PROFILE DATA (called after renderProfileFromAuth) ======
         async function loadProfileData() {
             logDebug("loadProfileData started. currentUser=" + (currentUser ? currentUser.email : "null"));
             if (!currentUser) { logDebug("loadProfileData: no currentUser, aborting"); return; }
 
-            // STEP 1: Render immediately from auth metadata (always available for Google/email users)
-            renderProfileFromAuth(currentUser);
-
-            // STEP 2: Try to get richer data from Supabase DB and enhance the UI
+            // STEP 1: Try to get richer data from Supabase DB and enhance the UI
             let dbProfile = null;
             try {
                 dbProfile = await fetchSupabaseProfile();
