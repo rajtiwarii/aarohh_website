@@ -915,8 +915,9 @@
         async function handleLogout() {
             try {
                 await supabaseClient.auth.signOut();
-                window.location.href = '../login/?logout=1';
-            } catch(err) {
+            } catch (err) {
+                console.error('Logout failed:', err);
+            } finally {
                 window.location.href = '../login/?logout=1';
             }
         }
