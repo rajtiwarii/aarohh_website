@@ -618,135 +618,77 @@
 
         // ====== LOAD ALL PROFILE DATA ======
         async function loadProfileData() {
-            logDebug("loadProfileData started.");
-            if (window.location.search.includes('debug=1')) {
-                alert("DEBUG: currentUser = " + (currentUser ? currentUser.email : "null"));
-            }
-            
-            // 1. Supabase: name, username, bio, photo_url, is_premium
-            logDebug("Fetching Supabase profile for " + (currentUser ? currentUser.email : "null") + "...");
-            const profile = await fetchSupabaseProfile();
-            appUserProfile = profile;
-            logDebug("Supabase profile fetched: " + (profile ? "Found profile for ID: " + profile.id : "No profile found"));
+            logDebug("loadProfileData started. currentUser=" + (currentUser ? currentUser.email : "null"));
+            if (!currentUser) { logDebug("loadProfileData: no currentUser, aborting"); return; }
 
-            if (window.location.search.includes('debug=1')) {
-                alert("DEBUG: Supabase Profile = " + JSON.stringify(profile));
-            }
+            // STEP 1: Render immediately from auth metadata (always available for Google/email users)
+            renderProfileFromAuth(currentUser);
 
-            if (profile) {
-                try {
-                    renderProfileCard(profile);
-                    logDebug("renderProfileCard completed.");
-                } catch(e) {
-                    logDebug("renderProfileCard failed: " + e.message);
+            // STEP 2: Try to get richer data from Supabase DB and enhance the UI
+            let dbProfile = null;
+            try {
+                dbProfile = await fetchSupabaseProfile();
+                logDebug("DB profile: " + (dbProfile ? JSON.stringify(dbProfile).substring(0, 120) : "null"));
+                if (dbProfile) {
+                    enhanceProfileFromDB(dbProfile);
+                    appUserProfile = dbProfile;
                 }
-            } else {
-                logDebug("Skipping renderProfileCard because profile is null.");
-            }
+            } catch(e) { logDebug("DB profile fetch failed: " + e.message); }
 
-            // 2. Firestore: full user doc (workout, diet, profile goals, streak)
+            // STEP 3: Firestore data (streak, stats, workout, diet)
             await waitForFirebase();
-            const firebaseUid = profile ? profile.id : null;
+            // Use the Supabase UID as Firestore doc key (same uid used by app)
+            const firestoreUid = currentUser.id;
             let firestoreData = null;
-
-            if (firebaseUid) {
-                try {
-                    const db = window._firestoreDb;
-                    const { doc, getDoc } = window._firestoreHelpers;
-                    const snap = await getDoc(doc(db, 'users', firebaseUid));
+            try {
+                const db = window._firestoreDb;
+                const { doc, getDoc } = window._firestoreHelpers;
+                if (db && doc && getDoc) {
+                    const snap = await getDoc(doc(db, 'users', firestoreUid));
                     if (snap.exists()) {
                         firestoreData = snap.data();
-                        renderFirestoreProfile(firestoreData, profile);
+                        logDebug("Firestore data found for uid: " + firestoreUid);
+                        renderFirestoreProfile(firestoreData, dbProfile || {});
+                    } else {
+                        logDebug("No Firestore doc for uid: " + firestoreUid);
                     }
-                } catch(err) { console.warn('Firestore user doc error:', err); }
-            }
+                }
+            } catch(err) { logDebug('Firestore user doc error: ' + err.message); }
 
-            // 3. Load user's posts from Firestore
-            loadUserPosts(firebaseUid, profile);
+            // STEP 4: Posts
+            loadUserPosts(firestoreUid, dbProfile || { name: currentUser.user_metadata?.full_name, photo_url: currentUser.user_metadata?.avatar_url });
 
-            // 4. Load workout plan
+            // STEP 5: Workout & Diet plans
             loadWorkoutPlan(firestoreData);
-
-            // 5. Load diet plan
             loadDietPlan(firestoreData);
         }
 
-        async function fetchSupabaseProfile() {
-            if (!currentUser) {
-                logDebug("fetchSupabaseProfile failed: currentUser is null");
-                return null;
+        // Render profile card immediately using auth metadata — always works
+        function renderProfileFromAuth(user) {
+            const meta = user.user_metadata || {};
+            const name = meta.full_name || meta.name || user.email?.split('@')[0] || 'Aarohh User';
+            const username = user.email?.split('@')[0] || 'user';
+            const photo = meta.avatar_url || meta.picture || null;
+
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profileHandle').textContent = '@' + username;
+            if (photo) document.getElementById('profileAvatar').src = photo;
+
+            // Joined date from auth created_at
+            const created = user.created_at;
+            if (created) {
+                const d = new Date(created);
+                document.getElementById('joinedText').textContent = 'Joined ' + d.toLocaleString('default', {month:'short'}) + ' ' + d.getFullYear();
             }
-            try {
-                // Try by Supabase auth UID first
-                let { data, error } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
-                logDebug("fetchSupabaseProfile by id: " + (data ? 'found' : 'not found') + (error ? ' error: ' + error.message : ''));
 
-                // Fallback: try by email
-                if (!data && currentUser.email) {
-                    const { data: byEmail, error: emailErr } = await supabaseClient.from('users').select('*').eq('email', currentUser.email).maybeSingle();
-                    logDebug("fetchSupabaseProfile by email: " + (byEmail ? 'found' : 'not found') + (emailErr ? ' error: ' + emailErr.message : ''));
-                    data = byEmail;
-                }
-
-                // Self-heal: if still no profile, create one from auth metadata
-                if (!data && currentUser.email) {
-                    logDebug("No profile found — self-healing from auth metadata");
-                    const meta = currentUser.user_metadata || {};
-                    const fallbackName = meta.full_name || meta.name || currentUser.email.split('@')[0];
-                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '') + Math.floor(Math.random() * 100);
-                    const insertPayload = {
-                        id: currentUser.id,
-                        email: currentUser.email,
-                        name: fallbackName,
-                        username: fallbackUsername,
-                        photo_url: meta.avatar_url || meta.picture || null,
-                        is_premium: false
-                    };
-                    const { data: newProfile, error: upsertErr } = await supabaseClient.from('users').upsert(insertPayload).select().maybeSingle();
-                    logDebug("Self-heal upsert: " + (newProfile ? 'success' : 'failed') + (upsertErr ? ' ' + upsertErr.message : ''));
-                    data = newProfile || insertPayload; // Use local data even if upsert failed
-                }
-
-                // Always ensure we return at least a minimal object from auth metadata
-                if (!data) {
-                    const meta = currentUser.user_metadata || {};
-                    data = {
-                        id: currentUser.id,
-                        email: currentUser.email,
-                        name: meta.full_name || meta.name || currentUser.email.split('@')[0],
-                        username: currentUser.email.split('@')[0],
-                        photo_url: meta.avatar_url || meta.picture || null,
-                        is_premium: false
-                    };
-                    logDebug("Using auth metadata fallback profile");
-                }
-
-                return data;
-            } catch(err) { 
-                logDebug('fetchSupabaseProfile db exception: ' + err.message);
-                // Return minimal object from auth metadata so UI still renders
-                const meta = currentUser?.user_metadata || {};
-                return {
-                    id: currentUser?.id,
-                    email: currentUser?.email,
-                    name: meta.full_name || meta.name || currentUser?.email?.split('@')[0] || 'Aarohh User',
-                    username: currentUser?.email?.split('@')[0] || 'user',
-                    photo_url: meta.avatar_url || meta.picture || null,
-                    is_premium: false
-                };
-            }
+            logDebug("renderProfileFromAuth: name=" + name + " username=" + username);
         }
 
-        function renderProfileCard(profile) {
-            // Avatar: prefer profile photo, fallback to Google avatar from auth metadata
-            const avatarSrc = profile.photo_url 
-                || currentUser?.user_metadata?.avatar_url 
-                || currentUser?.user_metadata?.picture 
-                || null;
-            if (avatarSrc) document.getElementById('profileAvatar').src = avatarSrc;
-
-            document.getElementById('profileName').textContent = profile.name || currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || 'Aarohh User';
-            document.getElementById('profileHandle').textContent = profile.username ? `@${profile.username}` : `@${currentUser?.email?.split('@')[0] || '—'}`;
+        // Enhance already-rendered profile with richer DB data
+        function enhanceProfileFromDB(profile) {
+            if (profile.name) document.getElementById('profileName').textContent = profile.name;
+            if (profile.username) document.getElementById('profileHandle').textContent = '@' + profile.username;
+            if (profile.photo_url) document.getElementById('profileAvatar').src = profile.photo_url;
 
             if (profile.bio) {
                 const bioEl = document.getElementById('profileBio');
@@ -754,11 +696,10 @@
                 bioEl.style.display = 'block';
             }
 
-            // Joined date: profile DB, or auth user created_at
             const created = profile.created_at || currentUser?.created_at;
             if (created) {
                 const d = new Date(created);
-                document.getElementById('joinedText').textContent = `Joined ${d.toLocaleString('default', {month:'short'})} ${d.getFullYear()}`;
+                document.getElementById('joinedText').textContent = 'Joined ' + d.toLocaleString('default', {month:'short'}) + ' ' + d.getFullYear();
             }
 
             // Premium badge
@@ -775,6 +716,31 @@
                         </div>
                         <span class="chevron">›</span>
                     </div>`;
+            }
+
+            logDebug("enhanceProfileFromDB complete");
+        }
+
+        async function fetchSupabaseProfile() {
+            if (!currentUser) { logDebug("fetchSupabaseProfile: no currentUser"); return null; }
+            try {
+                // Try by Supabase auth UID
+                const { data: byId, error: idErr } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                logDebug("DB by id: " + (byId ? 'HIT' : 'miss') + (idErr ? ' err=' + idErr.message : ''));
+                if (byId) return byId;
+
+                // Fallback: try by email
+                if (currentUser.email) {
+                    const { data: byEmail, error: emailErr } = await supabaseClient.from('users').select('*').eq('email', currentUser.email).maybeSingle();
+                    logDebug("DB by email: " + (byEmail ? 'HIT' : 'miss') + (emailErr ? ' err=' + emailErr.message : ''));
+                    if (byEmail) return byEmail;
+                }
+
+                logDebug("No DB profile found — will render from auth metadata only");
+                return null;
+            } catch(err) {
+                logDebug('fetchSupabaseProfile exception: ' + err.message);
+                return null;
             }
         }
 
