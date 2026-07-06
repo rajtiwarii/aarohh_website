@@ -46,21 +46,10 @@
             <nav class="nav-links">
                 <a href="../">Home</a>
                 <a href="./" class="active">Dashboard</a>
-                <a href="#community" onclick="scrollToCommunity()">Community</a>
-                <a href="../subscribe/">Premium</a>
-                <a href="#notifications" onclick="toggleNotificationsModal()" class="notifications-bell-link">Notifications <span id="navNotifyBadge" style="background-color: #ff7b00; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; margin-left: 2px; display: none;">!</span></a>
+                <a href="../profile/">Profile</a>
             </nav>
             <div class="auth-nav-container">
-                <div class="profile-dropdown">
-                    <button class="profile-dropdown-btn" onclick="toggleProfileDropdown()">Profile Menu ▾</button>
-                    <div id="profileDropdownContent" class="profile-dropdown-content">
-                        <a href="../profile/">Profile</a>
-                        <a href="../subscribe/#billing">Billing</a>
-                        <a href="../profile/#settings">Settings</a>
-                        <hr style="border-color: var(--border-color); margin: 8px 0;">
-                        <a href="javascript:void(0)" onclick="handleLogout()">Logout</a>
-                    </div>
-                </div>
+                <button class="nav-cta" onclick="handleLogout()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary);">Logout</button>
             </div>
         </div>
     </header>
@@ -103,10 +92,9 @@
                         <div style="width: 100%; height: 6px; background-color: var(--bg-light); border-radius: 3px; margin-top: 15px; overflow: hidden;">
                             <div id="caloriesBar" style="width: 0%; height: 100%; background-color: #ff7b00; transition: width 0.5s ease;"></div>
                         </div>
-                        <button onclick="logCalorieMetric()" style="width: 100%; margin-top: 20px; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">+ Add 250 kcal</button>
+                        <p style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 12px;">Synced from app</p>
                     </div>
 
-                    <!-- Water Metric Card -->
                     <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
                         <span style="font-size: 1.5rem;">💧</span>
                         <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-grey); text-transform: uppercase; margin-top: 10px;">Water Intake</h3>
@@ -117,7 +105,7 @@
                         <div style="width: 100%; height: 6px; background-color: var(--bg-light); border-radius: 3px; margin-top: 15px; overflow: hidden;">
                             <div id="waterBar" style="width: 0%; height: 100%; background-color: #0d6efd; transition: width 0.5s ease;"></div>
                         </div>
-                        <button onclick="logWaterMetric()" style="width: 100%; margin-top: 20px; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">+ Add 250 ml</button>
+                        <p style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 12px;">Synced from app</p>
                     </div>
 
                     <!-- Steps Metric Card -->
@@ -131,7 +119,7 @@
                         <div style="width: 100%; height: 6px; background-color: var(--bg-light); border-radius: 3px; margin-top: 15px; overflow: hidden;">
                             <div id="stepsBar" style="width: 0%; height: 100%; background-color: #198754; transition: width 0.5s ease;"></div>
                         </div>
-                        <button onclick="logStepsMetric()" style="width: 100%; margin-top: 20px; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">+ Add 1,000 steps</button>
+                        <p style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 12px;">Synced from app</p>
                     </div>
 
                 </div>
@@ -148,14 +136,9 @@
                     </div>
                 </div>
 
-                <!-- Active Community Feed section -->
+                <!-- Active Community Feed section - READ ONLY -->
                 <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);" id="community">
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-bottom: 24px;">Community Posts</h2>
-                    
-                    <form onsubmit="handleCreatePost(event)" style="margin-bottom: 30px;">
-                        <textarea id="postText" required placeholder="What is your fitness achievement or habit update today?" style="width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; font-size: 0.95rem; outline: none; min-height: 80px; box-sizing: border-box; font-family: var(--font-family); resize: vertical; margin-bottom: 12px;"></textarea>
-                        <button type="submit" class="nav-cta" style="margin: 0; background-color: #000; color: #fff;">Share Post</button>
-                    </form>
+                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-bottom: 24px;">Community Feed</h2>
 
                     <div id="postsContainer" style="display: flex; flex-direction: column; gap: 20px;">
                         <div style="color: var(--text-secondary); text-align: center; font-size: 0.9rem; padding: 20px 0;">Loading community posts...</div>
@@ -176,24 +159,13 @@
                     <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 20px; line-height: 1.4;" id="recoveryStatusMsg">Sync connected wearable bands to log sleep and calculate heart recovery indexes.</p>
                 </div>
 
-                <!-- Connected Devices Panel -->
+                <!-- Connected Devices Panel - READ ONLY -->
                 <div style="background-color: var(--bg-white); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
                     <h3 style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 20px;">Connected Wearables</h3>
                     <div id="devicesList" style="display: flex; flex-direction: column; gap: 15px;">
                         <!-- Dynamic list -->
                     </div>
-                    
-                    <hr style="border-color: var(--border-color); margin: 20px 0;">
-                    
-                    <!-- Connect simulated wearables dropdown -->
-                    <div style="display: flex; gap: 10px;">
-                        <select id="deviceSelector" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; font-size: 0.85rem; font-family: var(--font-family); outline: none;">
-                            <option value="Apple Watch">Apple Watch</option>
-                            <option value="Garmin Instinct">Garmin Instinct</option>
-                            <option value="Fitbit Charge 6">Fitbit Charge 6</option>
-                        </select>
-                        <button onclick="handleConnectDevice()" style="background-color: #000; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Connect</button>
-                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 16px;">Connect wearables in the Aarohh app to see them here.</p>
                 </div>
 
             </div>
@@ -787,9 +759,10 @@
         async function handleLogout() {
             try {
                 await supabaseClient.auth.signOut();
-                window.location.href = '../login/';
+                window.location.href = '../login/?logout=1';
             } catch (err) {
-                console.error("Logout failed:", err);
+                console.error('Logout failed:', err);
+                window.location.href = '../login/?logout=1';
             }
         }
     </script>

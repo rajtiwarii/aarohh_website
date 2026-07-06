@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Settings — AAROHH</title>
+    <title>Profile — AAROHH</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo_square.png?v=6.0">
     <link rel="stylesheet" href="../style.css?v=2.6">
-    
+
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, collection, query, where, orderBy, getDocs, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         const firebaseConfig = {
             apiKey: 'AIzaSyALqQLRDTtdtZhC1ceyVTJfmwdgb3Qf6xk',
             authDomain: 'yogyah-5aa01.firebaseapp.com',
@@ -27,669 +27,779 @@
         const fbApp = initializeApp(firebaseConfig);
         const fbDb = getFirestore(fbApp);
         window._firestoreDb = fbDb;
-        window._firestoreDoc = doc;
-        window._firestoreGetDoc = getDoc;
+        window._firestoreHelpers = { doc, getDoc, collection, query, where, orderBy, getDocs, limit };
         window._firebaseReady = true;
         document.dispatchEvent(new Event('firebase-ready'));
     </script>
-    
+
     <style>
-        /* Tab layout styling */
-        .settings-container {
-            display: grid;
-            grid-template-columns: 240px 1fr;
-            gap: 40px;
-            align-items: start;
+        :root {
+            --font-family: 'Plus Jakarta Sans', sans-serif;
+            --bg-white: #ffffff;
+            --bg-light: #f5f5f7;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --text-grey: #aeaeb2;
+            --border-color: #e5e5ea;
+            --accent: #000000;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-family); background-color: var(--bg-light); color: var(--text-primary); }
+
+        /* Dark mode */
+        body.dark-mode {
+            --bg-white: #121212; --bg-light: #0a0a0a; --text-primary: #f5f5f7;
+            --text-secondary: #86868b; --border-color: #2c2c2e;
         }
 
-        .settings-tabs {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            background-color: var(--bg-white);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 16px;
+        /* --- NAV --- */
+        .profile-navbar {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 0 32px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
         }
-
-        .settings-tab-btn {
-            background: none;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-align: left;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-family: var(--font-family);
+        .profile-navbar .logo-area { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .profile-navbar nav a {
+            text-decoration: none; color: var(--text-secondary); font-size: 0.875rem; font-weight: 500;
+            margin-left: 28px; transition: color 0.2s;
+        }
+        .profile-navbar nav a:hover, .profile-navbar nav a.active { color: var(--text-primary); }
+        .logout-btn {
+            background: transparent; border: 1px solid var(--border-color);
+            color: var(--text-primary); border-radius: 20px; padding: 6px 16px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: var(--font-family);
             transition: all 0.2s;
         }
+        .logout-btn:hover { background: var(--bg-light); }
 
-        .settings-tab-btn:hover {
-            background-color: var(--bg-light);
-            color: var(--text-primary);
+        /* --- MAIN LAYOUT --- */
+        .profile-page {
+            max-width: 1100px; margin: 80px auto 60px auto; padding: 24px 24px 0 24px;
         }
+        .page-header { margin-bottom: 28px; }
+        .page-header h1 { font-size: 2rem; font-weight: 800; }
+        .page-header p { color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px; }
 
-        .settings-tab-btn.active {
-            background-color: var(--text-primary);
-            color: var(--bg-white);
+        .profile-grid {
+            display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start;
         }
-
-        .settings-panel {
-            display: none;
-            background-color: var(--bg-white);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.01);
-            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .settings-panel.active {
-            display: block;
-        }
-
         @media (max-width: 768px) {
-            .settings-container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            .settings-tabs {
-                flex-direction: row;
-                overflow-x: auto;
-                padding: 10px;
-            }
-            .settings-tab-btn {
-                white-space: nowrap;
-            }
+            .profile-grid { grid-template-columns: 1fr; }
+            .profile-page { margin-top: 70px; }
+            .profile-navbar nav { display: none; }
         }
+
+        /* --- CARDS --- */
+        .card {
+            background: var(--bg-white); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 28px;
+        }
+
+        /* --- PROFILE HEADER CARD --- */
+        .profile-header-card {
+            background: var(--bg-white); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 28px; margin-bottom: 20px;
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;
+            flex-wrap: wrap;
+        }
+        .profile-identity { display: flex; align-items: flex-start; gap: 20px; }
+        .avatar-wrapper { position: relative; flex-shrink: 0; }
+        .avatar-wrapper img {
+            width: 88px; height: 88px; border-radius: 50%; object-fit: cover;
+            border: 3px solid var(--border-color);
+        }
+        .online-dot {
+            position: absolute; bottom: 4px; right: 4px;
+            width: 14px; height: 14px; background: #34C759;
+            border-radius: 50%; border: 2px solid var(--bg-white);
+        }
+        .profile-meta h2 { font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+        .profile-meta .handle { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 6px; }
+        .profile-meta .bio { color: var(--text-primary); font-size: 0.875rem; margin-bottom: 8px; }
+        .profile-meta .location-row {
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+            color: var(--text-secondary); font-size: 0.8rem;
+        }
+        .profile-meta .location-row span { display: flex; align-items: center; gap: 4px; }
+
+        /* Premium badge */
+        .premium-card {
+            background: #1a1a1a; color: #fff; border-radius: 16px;
+            padding: 16px 20px; min-width: 220px; cursor: default;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .premium-card .crown { font-size: 1.1rem; margin-right: 8px; }
+        .premium-card .badge-title { font-weight: 700; font-size: 0.9rem; }
+        .premium-card .badge-sub { font-size: 0.75rem; color: rgba(255,255,255,0.65); margin-top: 2px; }
+        .premium-card .chevron { font-size: 0.9rem; opacity: 0.7; }
+
+        /* --- STATS ROW --- */
+        .stats-row {
+            background: var(--bg-white); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 20px 28px;
+            display: flex; align-items: center; gap: 0; margin-bottom: 20px;
+        }
+        .stat-item {
+            flex: 1; text-align: center; padding: 10px 0;
+            border-right: 1px solid var(--border-color);
+        }
+        .stat-item:last-child { border-right: none; }
+        .stat-item .stat-icon {
+            width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 8px auto;
+            display: flex; align-items: center; justify-content: center; font-size: 1rem;
+        }
+        .stat-item .stat-icon.green { background: #d1fae5; }
+        .stat-item .stat-icon.blue { background: #dbeafe; }
+        .stat-item .stat-icon.grey { background: var(--bg-light); }
+        .stat-item .stat-number { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); }
+        .stat-item .stat-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+
+        /* --- TABS --- */
+        .tabs-bar {
+            background: var(--bg-white); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 6px; margin-bottom: 20px;
+            display: flex; gap: 4px; overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 8px 18px; border-radius: 10px; border: none;
+            font-family: var(--font-family); font-size: 0.85rem; font-weight: 600;
+            cursor: pointer; background: transparent; color: var(--text-secondary);
+            white-space: nowrap; transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--text-primary); color: #fff;
+        }
+        .tab-btn:hover:not(.active) { background: var(--bg-light); color: var(--text-primary); }
+
+        /* --- TAB PANELS --- */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Posts */
+        .post-card {
+            background: var(--bg-white); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 20px; margin-bottom: 16px;
+        }
+        .post-author-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .post-author-info { display: flex; align-items: center; gap: 10px; }
+        .post-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+        .post-author-name { font-weight: 700; font-size: 0.875rem; }
+        .post-author-handle { color: var(--text-secondary); font-size: 0.75rem; }
+        .post-time { color: var(--text-grey); font-size: 0.75rem; }
+        .post-content { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
+        .post-actions { display: flex; align-items: center; gap: 24px; }
+        .post-action-btn {
+            display: flex; align-items: center; gap: 5px;
+            color: var(--text-grey); font-size: 0.8rem; background: none;
+            border: none; cursor: default; font-family: var(--font-family);
+        }
+
+        /* Workout plan */
+        .workout-day-card {
+            background: var(--bg-white); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 18px; margin-bottom: 12px;
+        }
+        .workout-day-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 12px; color: var(--text-primary); }
+        .exercise-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid var(--border-color);
+        }
+        .exercise-row:last-child { border-bottom: none; }
+        .exercise-name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+        .exercise-meta { font-size: 0.75rem; color: var(--text-secondary); }
+
+        /* Diet plan */
+        .diet-day-card {
+            background: var(--bg-white); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 18px; margin-bottom: 12px;
+        }
+        .meal-row {
+            display: flex; justify-content: space-between; padding: 7px 0;
+            border-bottom: 1px solid var(--border-color); font-size: 0.85rem;
+        }
+        .meal-row:last-child { border-bottom: none; }
+        .meal-name { font-weight: 600; color: var(--text-primary); }
+        .meal-cal { color: var(--text-secondary); }
+
+        /* Stats panel */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .stats-metric-card {
+            background: var(--bg-light); border-radius: 14px; padding: 16px; text-align: center;
+        }
+        .stats-metric-card .emoji { font-size: 1.5rem; }
+        .stats-metric-card .metric-val { font-size: 1.5rem; font-weight: 800; margin-top: 6px; }
+        .stats-metric-card .metric-label { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
+
+        /* Right sidebar cards */
+        .streak-card { margin-bottom: 20px; }
+        .streak-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 16px; }
+        .streak-ring-wrapper { display: flex; align-items: center; justify-content: space-between; }
+        .streak-number { font-size: 2.2rem; font-weight: 800; }
+        .streak-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
+        .streak-tagline { color: var(--text-secondary); font-size: 0.8rem; margin-top: 12px; }
+
+        .ring-svg { transform: rotate(-90deg); }
+        .ring-bg { fill: none; stroke: var(--bg-light); stroke-width: 8; }
+        .ring-progress { fill: none; stroke: var(--text-primary); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
+
+        /* Achievements */
+        .achievements-card { }
+        .achievements-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .achievements-header h3 { font-size: 0.9rem; font-weight: 700; }
+        .achievements-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+        .achievement-badge {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            flex: 1; min-width: 70px; text-align: center;
+        }
+        .achievement-icon {
+            width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            background: var(--bg-white);
+        }
+        .achievement-label { font-size: 0.7rem; color: var(--text-secondary); line-height: 1.2; }
+
+        /* Loading */
+        .loading-skeleton {
+            background: linear-gradient(90deg, var(--bg-light) 25%, var(--border-color) 50%, var(--bg-light) 75%);
+            background-size: 200% 100%; animation: shimmer 1.4s infinite;
+            border-radius: 8px; height: 16px;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 0.875rem; }
+        .empty-state .empty-icon { font-size: 2rem; margin-bottom: 10px; }
     </style>
 </head>
-<body style="background-color: var(--bg-light);">
+<body>
     <!-- Navbar -->
-    <header class="navbar">
-        <div class="nav-container">
-            <a href="../" class="logo-container">
-                <img src="../assets/logo_icon.png" alt="AAROHH Logo Icon" style="height: 24px; width: auto; display: block; object-fit: contain;">
-                <img src="../assets/logo_wordmark.png" alt="AAROHH" style="height: 8px; width: auto; display: block; object-fit: contain; margin-top: 0;">
-            </a>
-            <nav class="nav-links">
-                <a href="../">Home</a>
-                <a href="../dashboard/">Dashboard</a>
-                <a href="../dashboard/#community">Community</a>
-                <a href="../subscribe/">Premium</a>
-                <a href="../dashboard/#notifications" class="notifications-bell-link">Notifications <span id="navNotifyBadge" style="background-color: #ff7b00; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; margin-left: 2px; display: none;">!</span></a>
-            </nav>
-            <div class="auth-nav-container">
-                <div class="profile-dropdown">
-                    <button class="profile-dropdown-btn" onclick="toggleProfileDropdown()">Profile Menu ▾</button>
-                    <div id="profileDropdownContent" class="profile-dropdown-content">
-                        <a href="./" class="active">Profile</a>
-                        <a href="../subscribe/#billing">Billing</a>
-                        <a href="#settings" onclick="switchSettingsTab('preferences')">Settings</a>
-                        <hr style="border-color: var(--border-color); margin: 8px 0;">
-                        <a href="javascript:void(0)" onclick="handleLogout()">Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <header class="profile-navbar">
+        <a href="../" class="logo-area">
+            <img src="../assets/logo_icon.png" alt="AAROHH" style="height: 24px;">
+            <img src="../assets/logo_wordmark.png" alt="AAROHH" style="height: 8px;">
+        </a>
+        <nav>
+            <a href="../">Home</a>
+            <a href="../dashboard/">Dashboard</a>
+            <a href="./" class="active">Profile</a>
+        </nav>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
     </header>
 
-    <!-- Settings Wrapper -->
-    <main style="max-width: 1000px; margin: 120px auto 60px auto; padding: 0 24px;">
-        <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Profile & Settings</h1>
-        <p style="color: var(--text-secondary); margin-bottom: 40px; font-size: 0.95rem;">Configure your preferences, wellness targets, and privacy choices.</p>
+    <!-- Main profile page -->
+    <div class="profile-page">
+        <div class="page-header">
+            <h1>Profile</h1>
+            <p>Your journey, your story.</p>
+        </div>
 
-        <div class="settings-container">
-            <!-- Tabs Menu -->
-            <div class="settings-tabs">
-                <button class="settings-tab-btn active" data-tab-id="basic" onclick="switchSettingsTab('basic')">Basic Profile</button>
-                <button class="settings-tab-btn" data-tab-id="targets" onclick="switchSettingsTab('targets')">Wellness Targets</button>
-                <button class="settings-tab-btn" data-tab-id="security" onclick="switchSettingsTab('security')">Password & Security</button>
-                <button class="settings-tab-btn" data-tab-id="preferences" id="settings" onclick="switchSettingsTab('preferences')">Preferences</button>
-                <button class="settings-tab-btn" data-tab-id="devices" onclick="switchSettingsTab('devices')">Connected Devices</button>
-                <button class="settings-tab-btn" data-tab-id="danger" onclick="switchSettingsTab('danger')" style="color: #dc3545;">Danger Zone</button>
+        <div class="profile-grid">
+            <!-- LEFT COLUMN -->
+            <div>
+                <!-- Profile identity card -->
+                <div class="profile-header-card">
+                    <div class="profile-identity">
+                        <div class="avatar-wrapper">
+                            <img id="profileAvatar" src="../assets/logo_square.png" alt="Profile Avatar">
+                            <span class="online-dot"></span>
+                        </div>
+                        <div class="profile-meta">
+                            <h2 id="profileName">Loading...</h2>
+                            <p class="handle" id="profileHandle">@—</p>
+                            <p class="bio" id="profileBio" style="display:none;"></p>
+                            <div class="location-row">
+                                <span id="profileLocation" style="display:none;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                    <span id="locationText"></span>
+                                </span>
+                                <span id="joinedDate">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                    <span id="joinedText">Joined —</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Premium badge -->
+                    <div id="premiumBadgeArea"></div>
+                </div>
+
+                <!-- Stats row: posts / followers / following -->
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-icon grey">📝</div>
+                        <div class="stat-number" id="postsCount">—</div>
+                        <div class="stat-label">Posts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon green">👥</div>
+                        <div class="stat-number" id="followersCount">0</div>
+                        <div class="stat-label">Followers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon blue">👤</div>
+                        <div class="stat-number" id="followingCount">0</div>
+                        <div class="stat-label">Following</div>
+                    </div>
+                </div>
+
+                <!-- Tab bar -->
+                <div class="tabs-bar">
+                    <button class="tab-btn active" onclick="switchTab('posts')">Posts</button>
+                    <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
+                    <button class="tab-btn" onclick="switchTab('workouts')">Workouts</button>
+                    <button class="tab-btn" onclick="switchTab('diet')">Diet Plans</button>
+                    <button class="tab-btn" onclick="switchTab('activity')">Activity</button>
+                </div>
+
+                <!-- Posts tab -->
+                <div class="tab-panel active" id="tab-posts">
+                    <div id="postsListContainer">
+                        <div class="card" style="text-align:center; padding: 40px; color: var(--text-secondary); font-size: 0.875rem;">Loading posts...</div>
+                    </div>
+                </div>
+
+                <!-- Stats tab -->
+                <div class="tab-panel" id="tab-stats">
+                    <div class="card">
+                        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:20px;">Today's Metrics</h3>
+                        <div class="stats-grid">
+                            <div class="stats-metric-card">
+                                <div class="emoji">🔥</div>
+                                <div class="metric-val" id="statsCalories">—</div>
+                                <div class="metric-label">Calories Consumed</div>
+                            </div>
+                            <div class="stats-metric-card">
+                                <div class="emoji">💧</div>
+                                <div class="metric-val" id="statsWater">—</div>
+                                <div class="metric-label">Water Intake (ml)</div>
+                            </div>
+                            <div class="stats-metric-card">
+                                <div class="emoji">👟</div>
+                                <div class="metric-val" id="statsSteps">—</div>
+                                <div class="metric-label">Steps Today</div>
+                            </div>
+                            <div class="stats-metric-card">
+                                <div class="emoji">⚡</div>
+                                <div class="metric-val" id="statsActive">—</div>
+                                <div class="metric-label">Active Calories</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color);">
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
+                                <span style="color:var(--text-secondary);">Weight</span>
+                                <span id="statsWeight" style="font-weight:700;">—</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
+                                <span style="color:var(--text-secondary);">Height</span>
+                                <span id="statsHeight" style="font-weight:700;">—</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                                <span style="color:var(--text-secondary);">DOB</span>
+                                <span id="statsDob" style="font-weight:700;">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workouts tab -->
+                <div class="tab-panel" id="tab-workouts">
+                    <div id="workoutPlanContainer">
+                        <div class="card" style="text-align:center; padding: 40px; color: var(--text-secondary);">Loading workout plan...</div>
+                    </div>
+                </div>
+
+                <!-- Diet tab -->
+                <div class="tab-panel" id="tab-diet">
+                    <div id="dietPlanContainer">
+                        <div class="card" style="text-align:center; padding: 40px; color: var(--text-secondary);">Loading diet plan...</div>
+                    </div>
+                </div>
+
+                <!-- Activity tab -->
+                <div class="tab-panel" id="tab-activity">
+                    <div class="card">
+                        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:16px;">Recent Activity</h3>
+                        <div id="activityList">
+                            <div class="empty-state"><div class="empty-icon">📅</div>Activity logged from the Aarohh app will appear here.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Tab Panels -->
+            <!-- RIGHT SIDEBAR -->
             <div>
-                <!-- 1. Basic Profile Panel -->
-                <div class="settings-panel active" id="panel-basic">
-                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 30px; color: var(--text-primary);">Basic Profile</h3>
-                    <form onsubmit="handleUpdateProfile(event)">
-                        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
-                            <img id="avatarPreview" src="../assets/logo_square.png" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);" alt="Profile Avatar">
-                            <div>
-                                <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="handleAvatarFileChange(event)">
-                                <button type="button" onclick="triggerAvatarUpload()" style="background-color: var(--bg-light); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-primary);">Upload Photo</button>
-                                <span style="font-size: 0.75rem; color: var(--text-grey); display: block; margin-top: 6px;">Max size 2MB.</span>
-                            </div>
+                <!-- Streak card -->
+                <div class="card streak-card">
+                    <div class="streak-title">Current Streak 🔥</div>
+                    <div class="streak-ring-wrapper">
+                        <div>
+                            <div class="streak-number" id="streakNumber">—</div>
+                            <div class="streak-sub">days</div>
                         </div>
-
-                        <div class="form-group">
-                            <label>Display Name</label>
-                            <input type="text" id="profileName" required placeholder="Alex Mercer" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none;">
-                        </div>
-                        <div class="form-group">
-                            <label>Username</label>
-                            <input type="text" id="profileUsername" required placeholder="alexmercer" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none;">
-                        </div>
-                        <div class="form-group">
-                            <label>Email Address (Read Only)</label>
-                            <input type="email" id="profileEmail" readonly style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; background-color: var(--bg-light); color: var(--text-secondary); outline: none; cursor: not-allowed;">
-                        </div>
-
-                        <div id="profile-success-msg" style="color: #198754; font-size: 0.9rem; font-weight: bold; margin-bottom: 15px; min-height: 18px;"></div>
-                        <button type="submit" class="auth-submit-btn" style="width: auto; padding: 12px 32px; background-color: #000; color: #fff;">Save Changes</button>
-                    </form>
+                        <svg width="72" height="72" viewBox="0 0 72 72">
+                            <circle class="ring-bg" cx="36" cy="36" r="30"/>
+                            <circle class="ring-progress" id="streakRing" cx="36" cy="36" r="30"
+                                stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+                        </svg>
+                    </div>
+                    <p class="streak-tagline" id="streakTagline">Sync your app to see your streak.</p>
                 </div>
 
-                <!-- 2. Wellness Targets Panel -->
-                <div class="settings-panel" id="panel-targets">
-                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px; color: var(--text-primary);">Wellness Targets</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 30px;">Customize steps, calorie intake, and water goals.</p>
-                    <form onsubmit="handleUpdateTargets(event)">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                            <div class="form-group">
-                                <label>Calorie Target (kcal)</label>
-                                <input type="number" id="targetCalories" required placeholder="2000" min="1000" max="8000" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; outline: none;">
-                            </div>
-                            <div class="form-group">
-                                <label>Water Target (ml)</label>
-                                <input type="number" id="targetWater" required placeholder="3000" min="500" max="10000" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; outline: none;">
-                            </div>
+                <!-- Achievements card -->
+                <div class="card achievements-card">
+                    <div class="achievements-header">
+                        <h3>Achievements</h3>
+                    </div>
+                    <div class="achievements-grid" id="achievementsGrid">
+                        <!-- Dynamic achievements -->
+                        <div class="achievement-badge">
+                            <div class="achievement-icon">👟</div>
+                            <div class="achievement-label">Getting Started</div>
                         </div>
-                        <div class="form-group">
-                            <label>Steps Target</label>
-                            <input type="number" id="targetSteps" required placeholder="10000" min="1000" max="50000" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; outline: none;">
+                        <div class="achievement-badge">
+                            <div class="achievement-icon">💧</div>
+                            <div class="achievement-label">Hydration Hero</div>
                         </div>
-
-                        <div id="targets-success-msg" style="color: #198754; font-size: 0.9rem; font-weight: bold; margin-bottom: 15px; min-height: 18px;"></div>
-                        <button type="submit" class="auth-submit-btn" style="width: auto; padding: 12px 32px; background-color: #000; color: #fff;">Save Targets</button>
-                    </form>
-                </div>
-
-                <!-- 3. Password Security Panel -->
-                <div class="settings-panel" id="panel-security">
-                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px; color: var(--text-primary);">Update Password</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 30px;">Manage password details using secure auth sessions.</p>
-                    <form onsubmit="handleUpdatePassword(event)">
-                        <div class="form-group">
-                            <label>New Password</label>
-                            <input type="password" id="newPassword" required placeholder="Enter new password (min 6 chars)" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; outline: none;">
+                        <div class="achievement-badge">
+                            <div class="achievement-icon">🔥</div>
+                            <div class="achievement-label">Calories Burn</div>
                         </div>
-                        <div class="form-group">
-                            <label>Confirm Password</label>
-                            <input type="password" id="confirmPassword" required placeholder="Re-enter password" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; outline: none;">
-                        </div>
-
-                        <div id="security-success-msg" style="color: #198754; font-size: 0.9rem; font-weight: bold; margin-bottom: 15px; min-height: 18px;"></div>
-                        <button type="submit" class="auth-submit-btn" style="width: auto; padding: 12px 32px; background-color: #000; color: #fff;">Update Password</button>
-                    </form>
-                </div>
-
-                <!-- 4. Preferences Panel -->
-                <div class="settings-panel" id="panel-preferences">
-                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 30px; color: var(--text-primary);">User Preferences</h3>
-                    <form onsubmit="handleUpdatePreferences(event)">
-                        <div class="form-group">
-                            <label>App Language</label>
-                            <select id="prefLanguage" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none;">
-                                <option value="en">English</option>
-                                <option value="es">Español</option>
-                                <option value="de">Deutsch</option>
-                                <option value="fr">Français</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Appearance Mode</label>
-                            <select id="prefAppearance" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; font-family: var(--font-family); outline: none;">
-                                <option value="light">Light Mode</option>
-                                <option value="dark">Dark Mode</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                            <input type="checkbox" id="prefNotifications" style="width: 20px; height: 20px; cursor: pointer;">
-                            <label for="prefNotifications" style="margin: 0; cursor: pointer; font-size: 0.95rem; font-weight: 500;">Enable Push Notification Sync</label>
-                        </div>
-
-                        <div id="pref-success-msg" style="color: #198754; font-size: 0.9rem; font-weight: bold; margin-bottom: 15px; min-height: 18px;"></div>
-                        <button type="submit" class="auth-submit-btn" style="width: auto; padding: 12px 32px; background-color: #000; color: #fff;">Save Preferences</button>
-                    </form>
-                </div>
-
-                <!-- 5. Connected Devices Panel -->
-                <div class="settings-panel" id="panel-devices">
-                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px; color: var(--text-primary);">Connected Wearables</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 24px;">Manage connected biometrics bands.</p>
-                    
-                    <div id="devicesList" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
-                        <!-- Dynamic devices list -->
                     </div>
                 </div>
-
-                <!-- 6. Danger Zone Panel -->
-                <div class="settings-panel" id="panel-danger" style="border-color: #dc3545;">
-                    <h3 style="font-size: 1.25rem; font-weight: 800; color: #dc3545; margin-bottom: 8px;">Danger Zone</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 30px;">Permanently delete your profile and habit logs. This action is irreversible.</p>
-                    
-                    <button onclick="showDeleteConfirm()" style="background-color: #dc3545; color: #fff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">Delete Account</button>
-
-                    <div id="deleteConfirmBox" style="display: none; margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 30px;">
-                        <h4 style="font-weight: 700; color: var(--text-primary); margin-bottom: 10px;">Please confirm deletion</h4>
-                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;">Enter password to confirm account deletion.</p>
-                        <form onsubmit="handleDeleteAccount(event)">
-                            <div class="form-group">
-                                <label>Password</label>
-                                <input type="password" id="deletePassword" required placeholder="Enter password" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.95rem; outline: none;">
-                            </div>
-                            <div id="delete-error-msg" style="color: #dc3545; font-size: 0.85rem; font-weight: bold; margin-bottom: 15px;"></div>
-                            <div style="display: flex; gap: 10px;">
-                                <button type="button" onclick="hideDeleteConfirm()" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; background: transparent;">Cancel</button>
-                                <button type="submit" style="border: none; background-color: #dc3545; color: #fff; border-radius: 8px; padding: 10px 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Permanently Delete</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
-        
-        let supabaseClient;
-        let currentUser;
-        let attachedImageBase64 = "";
+
+        let supabaseClient, currentUser, appUserProfile;
 
         try {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (err) {
-            console.error("Supabase failed:", err);
-        }
+        } catch(e) { console.error('Supabase init failed:', e); }
 
-        // Apply appearance settings on load
+        // Apply theme
         try {
-            if (localStorage.getItem('appearance') === 'dark') {
-                document.body.classList.add('dark-mode');
-            }
-        } catch (e) {
-            console.warn("localStorage sandbox restriction:", e);
-        }
+            if (localStorage.getItem('appearance') === 'dark') document.body.classList.add('dark-mode');
+        } catch(e) {}
 
+        // Auth guard
         if (supabaseClient) {
             supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 const user = session ? session.user : null;
-                if (!user) {
-                    window.location.href = '../login/';
-                    return;
-                }
+                if (!user) { window.location.href = '../login/?logout=1'; return; }
                 currentUser = user;
-                loadProfileSettings();
-                checkLiveNotifications();
+                await loadProfileData();
             });
         }
 
-        // Tab switcher function
-        function switchSettingsTab(tabId) {
-            // Remove active status from all tab buttons
-            document.querySelectorAll('.settings-tab-btn').forEach(btn => {
-                btn.classList.remove('active');
+        // Wait for Firebase module
+        function waitForFirebase() {
+            return new Promise(resolve => {
+                if (window._firebaseReady) { resolve(); return; }
+                document.addEventListener('firebase-ready', () => resolve(), { once: true });
+                setTimeout(resolve, 4000);
             });
-            // Hide all panels
-            document.querySelectorAll('.settings-panel').forEach(p => {
-                p.classList.remove('active');
-            });
-
-            // Set target tab active
-            const activeBtn = document.querySelector(`.settings-tab-btn[data-tab-id="${tabId}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-
-            const activePanel = document.getElementById(`panel-${tabId}`);
-            if (activePanel) activePanel.classList.add('active');
-            
-            // Auto close mobile dropdown menu
-            const dropdown = document.getElementById('profileDropdownContent');
-            if (dropdown) dropdown.classList.remove('active');
         }
 
-        // Load setting parameters from DB
-        async function loadProfileSettings() {
-            if (!currentUser) return;
-            try {
-                // Look up profile by session id first, then by email (Firebase uid may differ from Supabase auth uuid)
-                let { data: profile } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
-                if (!profile && currentUser.email) {
-                    const { data: profileByEmail } = await supabaseClient.from('users').select('*').eq('email', currentUser.email).maybeSingle();
-                    profile = profileByEmail;
-                }
-                if (!profile) {
-                    const fallbackName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'Aarohh User';
-                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.floor(Math.random() * 100);
-                    const { data: newProfile } = await supabaseClient.from('users').upsert({
-                        id: currentUser.id,
-                        email: currentUser.email,
-                        name: fallbackName,
-                        username: fallbackUsername,
-                        is_premium: false
-                    }).select().maybeSingle();
-                    profile = newProfile;
-                }
-
-                if (profile) {
-                    document.getElementById('profileName').value = profile.name || '';
-                    document.getElementById('profileUsername').value = profile.username || '';
-                    document.getElementById('profileEmail').value = profile.email || currentUser.email;
-                    
-                    document.getElementById('prefLanguage').value = profile.language || 'en';
-                    document.getElementById('prefAppearance').value = profile.appearance || 'light';
-                    document.getElementById('prefNotifications').checked = profile.notifications_enabled !== false;
-
-                    if (profile.photo_url) {
-                        document.getElementById('avatarPreview').src = profile.photo_url;
-                    }
-
-                    // Try to load goals from Firestore /users/{id}.profile (where id = Firebase uid = profile.id)
-                    tryLoadFirestoreGoals(profile.id);
-                }
-
-                fetchUserDevices();
-
-            } catch (err) {
-                console.error('Failed loading settings:', err);
-            }
+        // Tab switching
+        function switchTab(name) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+            document.getElementById(`tab-${name}`).classList.add('active');
         }
 
-        // Load stepGoal and waterGoal from Firestore
-        async function tryLoadFirestoreGoals(firebaseUid) {
-            try {
-                await new Promise((resolve) => {
-                    if (window._firebaseReady) { resolve(); return; }
-                    document.addEventListener('firebase-ready', () => resolve(), { once: true });
-                    setTimeout(resolve, 3000);
-                });
-                const db = window._firestoreDb;
-                const docRef = window._firestoreDoc(db, 'users', firebaseUid);
-                const snap = await window._firestoreGetDoc(docRef);
-                if (snap.exists()) {
-                    const data = snap.data();
-                    const prof = data.profile || {};
-                    const stepGoal = prof.stepGoal || prof.stepsGoal || '';
-                    const waterGoal = prof.waterGoal || '';
-                    if (stepGoal) document.getElementById('targetSteps').value = stepGoal;
-                    if (waterGoal) document.getElementById('targetWater').value = waterGoal;
-                    // Also load calorie goal from profile_data or dietPlan
-                    const pd = data.profile_data || {};
-                    // use defaults if not found
-                    if (!document.getElementById('targetCalories').value) {
-                        document.getElementById('targetCalories').value = 2000;
-                    }
-                }
-            } catch (err) {
-                console.warn('Firestore goals load failed:', err);
-            }
-        }
+        // ====== LOAD ALL PROFILE DATA ======
+        async function loadProfileData() {
+            // 1. Supabase: name, username, bio, photo_url, is_premium
+            const profile = await fetchSupabaseProfile();
+            appUserProfile = profile;
 
-        function triggerAvatarUpload() {
-            document.getElementById('avatarFileInput').click();
-        }
-
-        function handleAvatarFileChange(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.size > 2 * 1024 * 1024) {
-                alert("Avatar file size must be less than 2MB.");
-                return;
+            if (profile) {
+                renderProfileCard(profile);
             }
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                attachedImageBase64 = e.target.result;
-                document.getElementById('avatarPreview').src = attachedImageBase64;
-            };
-            reader.readAsDataURL(file);
-        }
+            // 2. Firestore: full user doc (workout, diet, profile goals, streak)
+            await waitForFirebase();
+            const firebaseUid = profile ? profile.id : null;
+            let firestoreData = null;
 
-        async function handleUpdateProfile(e) {
-            e.preventDefault();
-            const name = document.getElementById('profileName').value.trim();
-            const username = document.getElementById('profileUsername').value.trim().toLowerCase();
-            const successDiv = document.getElementById('profile-success-msg');
-            successDiv.textContent = '';
-
-            try {
-                const updatePayload = { name, username };
-                if (attachedImageBase64) {
-                    updatePayload.photo_url = attachedImageBase64;
-                }
-
-                // Update by email to ensure we hit the correct row (Firebase uid stored as id)
-                const email = document.getElementById('profileEmail').value || currentUser.email;
-                const { error } = await supabaseClient.from('users').update(updatePayload).eq('email', email);
-                if (error) {
-                    if (error.code === '23505') throw new Error('Username already taken. Please choose another.');
-                    throw error;
-                }
-
-                successDiv.textContent = 'Profile details updated!';
-                setTimeout(() => { successDiv.textContent = ''; }, 3000);
-            } catch (err) {
-                alert(err.message);
-            }
-        }
-
-        async function handleUpdateTargets(e) {
-            e.preventDefault();
-            const calories = parseInt(document.getElementById('targetCalories').value);
-            const water = parseInt(document.getElementById('targetWater').value);
-            const steps = parseInt(document.getElementById('targetSteps').value);
-            const successDiv = document.getElementById('targets-success-msg');
-            successDiv.textContent = '';
-
-            try {
-                // Save targets as preferences in the Supabase users row
-                const email = document.getElementById('profileEmail').value || currentUser.email;
-                await supabaseClient.from('users').update({
-                    calorie_target: calories,
-                    water_target: water,
-                    step_target: steps
-                }).eq('email', email);
-
-                successDiv.textContent = 'Targets updated! They will sync to your app on next launch.';
-                setTimeout(() => { successDiv.textContent = ''; }, 4000);
-            } catch (err) {
-                // Even if this fails (column may not exist), show success — targets are informational on web
-                successDiv.textContent = 'Targets saved locally.';
-                setTimeout(() => { successDiv.textContent = ''; }, 3000);
-            }
-        }
-
-        async function handleUpdatePassword(e) {
-            e.preventDefault();
-            const password = document.getElementById('newPassword').value;
-            const confirm = document.getElementById('confirmPassword').value;
-            const successDiv = document.getElementById('security-success-msg');
-            successDiv.textContent = "";
-
-            if (password !== confirm) {
-                alert("Passwords do not match.");
-                return;
-            }
-
-            try {
-                const { error } = await supabaseClient.auth.updateUser({ password });
-                if (error) throw error;
-
-                successDiv.textContent = "Password updated successfully!";
-                document.getElementById('newPassword').value = "";
-                document.getElementById('confirmPassword').value = "";
-                setTimeout(() => { successDiv.textContent = ""; }, 3000);
-            } catch (err) {
-                alert(err.message);
-            }
-        }
-
-        async function handleUpdatePreferences(e) {
-            e.preventDefault();
-            const language = document.getElementById('prefLanguage').value;
-            const appearance = document.getElementById('prefAppearance').value;
-            const notifications = document.getElementById('prefNotifications').checked;
-            const successDiv = document.getElementById('pref-success-msg');
-            successDiv.textContent = "";
-
-            try {
-                const { error } = await supabaseClient.from('users').update({
-                    language,
-                    appearance,
-                    notifications_enabled: notifications
-                }).eq('id', currentUser.id);
-
-                if (error) throw error;
-
-                // Sync local theme preferences
+            if (firebaseUid) {
                 try {
-                    localStorage.setItem('appearance', appearance);
-                } catch (e) {
-                    console.warn("localStorage storage restriction:", e);
-                }
-                if (appearance === 'dark') {
-                    document.body.classList.add('dark-mode');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                }
+                    const db = window._firestoreDb;
+                    const { doc, getDoc } = window._firestoreHelpers;
+                    const snap = await getDoc(doc(db, 'users', firebaseUid));
+                    if (snap.exists()) {
+                        firestoreData = snap.data();
+                        renderFirestoreProfile(firestoreData, profile);
+                    }
+                } catch(err) { console.warn('Firestore user doc error:', err); }
+            }
 
-                successDiv.textContent = "Preferences saved!";
-                setTimeout(() => { successDiv.textContent = ""; }, 3000);
-            } catch (err) {
-                alert(err.message);
+            // 3. Load user's posts from Firestore
+            loadUserPosts(firebaseUid, profile);
+
+            // 4. Load workout plan
+            loadWorkoutPlan(firestoreData);
+
+            // 5. Load diet plan
+            loadDietPlan(firestoreData);
+        }
+
+        async function fetchSupabaseProfile() {
+            try {
+                let { data } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                if (!data && currentUser.email) {
+                    const { data: byEmail } = await supabaseClient.from('users').select('*').eq('email', currentUser.email).maybeSingle();
+                    data = byEmail;
+                }
+                return data;
+            } catch(err) { console.error('fetchSupabaseProfile error:', err); return null; }
+        }
+
+        function renderProfileCard(profile) {
+            if (profile.photo_url) document.getElementById('profileAvatar').src = profile.photo_url;
+            document.getElementById('profileName').textContent = profile.name || 'Aarohh User';
+            document.getElementById('profileHandle').textContent = profile.username ? `@${profile.username}` : `@${currentUser.email?.split('@')[0] || '—'}`;
+
+            if (profile.bio) {
+                const bioEl = document.getElementById('profileBio');
+                bioEl.textContent = profile.bio;
+                bioEl.style.display = 'block';
+            }
+
+            // Joined date from Supabase created_at or Firebase
+            const created = profile.created_at;
+            if (created) {
+                const d = new Date(created);
+                document.getElementById('joinedText').textContent = `Joined ${d.toLocaleString('default', {month:'short'})} ${d.getFullYear()}`;
+            }
+
+            // Premium badge
+            const premiumArea = document.getElementById('premiumBadgeArea');
+            if (profile.is_premium) {
+                premiumArea.innerHTML = `
+                    <div class="premium-card">
+                        <div>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span class="crown">👑</span>
+                                <span class="badge-title">Premium Member</span>
+                            </div>
+                            <div class="badge-sub">Active until 06 Jul 2027</div>
+                        </div>
+                        <span class="chevron">›</span>
+                    </div>`;
             }
         }
 
-        async function fetchUserDevices() {
-            const devicesContainer = document.getElementById('devicesList');
-            try {
-                const { data: devices } = await supabaseClient.from('user_devices').select('*').eq('user_id', currentUser.id);
-                devicesContainer.innerHTML = "";
+        function renderFirestoreProfile(data, sbProfile) {
+            const prof = data.profile || {};
 
-                if (!devices || devices.length === 0) {
-                    devicesContainer.innerHTML = `<p style="color: var(--text-grey); font-size: 0.85rem; font-style: italic;">No connected devices found.</p>`;
+            // Location from profile
+            const location = prof.location || sbProfile?.location;
+            if (location) {
+                document.getElementById('locationText').textContent = location;
+                document.getElementById('profileLocation').style.display = 'flex';
+            }
+
+            // Stats
+            const pd = data.profile_data || {};
+            document.getElementById('statsCalories').textContent = pd.caloriesConsumed ?? '—';
+            document.getElementById('statsWater').textContent = pd.waterToday ?? '—';
+            document.getElementById('statsSteps').textContent = pd.stepsToday ?? '—';
+            document.getElementById('statsActive').textContent = pd.activeCalories ?? '—';
+            document.getElementById('statsWeight').textContent = prof.weight ? `${prof.weight} kg` : '—';
+            document.getElementById('statsHeight').textContent = prof.height ? `${prof.height} cm` : '—';
+            document.getElementById('statsDob').textContent = prof.dob || '—';
+
+            // Streak
+            const streak = pd.streak || 0;
+            document.getElementById('streakNumber').textContent = streak;
+            const circumference = 188.5;
+            const maxStreak = Math.max(streak, 30);
+            const offset = circumference - (streak / maxStreak) * circumference;
+            document.getElementById('streakRing').style.strokeDashoffset = Math.max(0, offset);
+            if (streak > 0) {
+                document.getElementById('streakTagline').textContent = streak >= 7
+                    ? `Keep it up! You're on fire! 🔥`
+                    : `${streak} day${streak > 1 ? 's' : ''} strong. Keep going!`;
+            }
+
+            // Followers/following from Firestore
+            if (data.followers !== undefined) document.getElementById('followersCount').textContent = Array.isArray(data.followers) ? data.followers.length : (data.followersCount || 0);
+            if (data.following !== undefined) document.getElementById('followingCount').textContent = Array.isArray(data.following) ? data.following.length : (data.followingCount || 0);
+
+            // Achievements based on metrics
+            renderAchievements(pd, streak);
+        }
+
+        function renderAchievements(pd, streak) {
+            const grid = document.getElementById('achievementsGrid');
+            const badges = [
+                { icon: '👟', label: 'Getting Started', unlocked: true },
+                { icon: '💧', label: 'Hydration Hero', unlocked: (pd.waterToday || 0) >= 2000 },
+                { icon: '🔥', label: 'Calories Burn', unlocked: (pd.activeCalories || 0) > 0 },
+                { icon: '🏃', label: '10K Steps', unlocked: (pd.stepsToday || 0) >= 10000 },
+                { icon: '🔥', label: '7-Day Streak', unlocked: streak >= 7 },
+                { icon: '⭐', label: 'Goal Setter', unlocked: (pd.caloriesConsumed || 0) > 0 },
+            ];
+            grid.innerHTML = badges.map(b => `
+                <div class="achievement-badge" style="opacity:${b.unlocked ? 1 : 0.4}">
+                    <div class="achievement-icon">${b.icon}</div>
+                    <div class="achievement-label">${b.label}</div>
+                </div>`).join('');
+        }
+
+        async function loadUserPosts(firebaseUid, sbProfile) {
+            const container = document.getElementById('postsListContainer');
+            try {
+                await waitForFirebase();
+                const db = window._firestoreDb;
+                const { collection, query, where, orderBy, getDocs, limit } = window._firestoreHelpers;
+
+                // Query posts by this user's Firebase uid
+                let allPosts = [];
+                if (firebaseUid) {
+                    try {
+                        const q = query(collection(db, 'posts'), where('authorId', '==', firebaseUid), orderBy('timestamp', 'desc'), limit(20));
+                        const snap = await getDocs(q);
+                        snap.forEach(d => allPosts.push({ id: d.id, ...d.data() }));
+                    } catch(e) {
+                        // Fallback: query by authorName
+                        if (sbProfile?.name) {
+                            const q2 = query(collection(db, 'posts'), where('authorName', '==', sbProfile.name), orderBy('timestamp', 'desc'), limit(20));
+                            const snap2 = await getDocs(q2);
+                            snap2.forEach(d => allPosts.push({ id: d.id, ...d.data() }));
+                        }
+                    }
+                }
+
+                // Update posts count
+                document.getElementById('postsCount').textContent = allPosts.length;
+
+                if (allPosts.length === 0) {
+                    container.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">✍️</div>No posts yet. Share your fitness journey in the Aarohh app!</div></div>`;
                     return;
                 }
 
-                devices.forEach(d => {
-                    const row = document.createElement('div');
-                    row.style.cssText = "display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-light); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px;";
-                    row.innerHTML = `
-                        <div>
-                            <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">${d.device_name}</span>
+                container.innerHTML = allPosts.map(p => {
+                    const likesCount = p.likesCount || (Array.isArray(p.likes) ? p.likes.length : 0);
+                    const postTime = p.timestamp?.toDate ? p.timestamp.toDate() : new Date();
+                    const timeAgo = getTimeAgo(postTime);
+                    const avatarSrc = p.authorAvatar || sbProfile?.photo_url || '../assets/logo_square.png';
+                    return `
+                    <div class="post-card">
+                        <div class="post-author-row">
+                            <div class="post-author-info">
+                                <img class="post-avatar" src="${avatarSrc}" onerror="this.src='../assets/logo_square.png'" alt="">
+                                <div>
+                                    <div class="post-author-name">${p.authorName || sbProfile?.name || 'Aarohh User'}</div>
+                                    <div class="post-author-handle">${sbProfile?.username ? '@' + sbProfile.username : ''} • ${timeAgo}</div>
+                                </div>
+                            </div>
+                            <div style="color:var(--text-grey); font-size:1.2rem;">···</div>
                         </div>
-                        <button onclick="handleDisconnectDevice('${d.id}')" style="background: none; border: none; color: #dc3545; font-size: 0.75rem; cursor: pointer; font-weight: 600; text-decoration: underline; padding: 0;">Disconnect</button>
-                    `;
-                    devicesContainer.appendChild(row);
-                });
-            } catch (err) {
-                console.error("Device fetch failed:", err);
+                        <p class="post-content">${p.content || p.text || ''}</p>
+                        ${p.image ? `<img src="${p.image}" style="width:100%;border-radius:12px;margin-bottom:14px;max-height:240px;object-fit:cover;">` : ''}
+                        <div class="post-actions">
+                            <button class="post-action-btn">♡ <span>${likesCount}</span></button>
+                            <button class="post-action-btn">💬 <span>${p.commentsCount || 0}</span></button>
+                            <button class="post-action-btn" style="margin-left:auto;">↗</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(err) {
+                console.error('loadUserPosts error:', err);
+                container.innerHTML = `<div class="card"><div class="empty-state">Could not load posts. Please try again.</div></div>`;
             }
         }
 
-        async function handleDisconnectDevice(id) {
-            try {
-                await supabaseClient.from('user_devices').delete().eq('id', id);
-                fetchUserDevices();
-            } catch (err) {
-                console.error("Failed disconnecting device:", err);
+        function loadWorkoutPlan(firestoreData) {
+            const container = document.getElementById('workoutPlanContainer');
+            if (!firestoreData) {
+                container.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">💪</div>Generate a workout plan in the Aarohh app first.</div></div>`;
+                return;
             }
-        }
-
-        function showDeleteConfirm() {
-            document.getElementById('deleteConfirmBox').style.display = 'block';
-        }
-
-        function hideDeleteConfirm() {
-            document.getElementById('deleteConfirmBox').style.display = 'none';
-            document.getElementById('deletePassword').value = "";
-            document.getElementById('delete-error-msg').textContent = "";
-        }
-
-        async function handleDeleteAccount(e) {
-            e.preventDefault();
-            const password = document.getElementById('deletePassword').value;
-            const errorDiv = document.getElementById('delete-error-msg');
-            errorDiv.textContent = "";
-
-            try {
-                const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-                    email: currentUser.email,
-                    password: password
-                });
-                
-                if (signInError) throw new Error("Invalid verification password.");
-
-                const { error: dbDeleteError } = await supabaseClient.from('users').delete().eq('id', currentUser.id);
-                if (dbDeleteError) throw dbDeleteError;
-
-                await supabaseClient.auth.signOut();
-                alert("Account deleted.");
-                window.location.href = '../';
-            } catch (err) {
-                errorDiv.textContent = err.message;
+            const plan = firestoreData.currentWorkoutPlan || [];
+            if (!plan.length) {
+                container.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">💪</div>No workout plan found. Generate one in the app!</div></div>`;
+                return;
             }
-        }
+            const weekdays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+            const startDay = firestoreData.workoutStartDay || 'Monday';
+            const startIdx = weekdays.indexOf(startDay);
+            const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 
-        // Dropdown controls
-        function toggleProfileDropdown() {
-            const dropdown = document.getElementById('profileDropdownContent');
-            if (dropdown) {
-                dropdown.classList.toggle('active');
-            }
-        }
-
-        window.addEventListener('click', (e) => {
-            if (!e.target.matches('.profile-dropdown-btn')) {
-                const dropdowns = document.getElementsByClassName('profile-dropdown-content');
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('active')) {
-                        openDropdown.classList.remove('active');
+            container.innerHTML = plan.map((day, idx) => {
+                const isToday = startIdx >= 0 ? ((idx + startIdx) % 7 === todayIdx) : idx === todayIdx;
+                const exercises = day.exercises || [];
+                return `
+                <div class="workout-day-card" style="${isToday ? 'border-color: #000; border-width: 2px;' : ''}">
+                    <div class="workout-day-title">
+                        ${isToday ? '<span style="background:#000;color:#fff;border-radius:6px;padding:2px 8px;font-size:0.7rem;margin-right:8px;">TODAY</span>' : ''}
+                        ${day.title || weekdays[(startIdx + idx) % 7]}
+                    </div>
+                    ${exercises.length === 0 ? '<p style="color:var(--text-secondary);font-size:0.8rem;">Rest Day</p>' :
+                        exercises.map(ex => `
+                        <div class="exercise-row">
+                            <div>
+                                <div class="exercise-name">${ex.name || 'Exercise'}</div>
+                                <div class="exercise-meta">${ex.sets || 3} sets × ${ex.reps || '10'} reps</div>
+                            </div>
+                            <span style="font-size:0.8rem;color:${ex.done ? '#34C759' : 'var(--text-grey)'};">${ex.done ? '✓ Done' : '—'}</span>
+                        </div>`).join('')
                     }
-                }
-            }
-        });
+                </div>`;
+            }).join('');
+        }
 
-        // Notifications checks
-        async function checkLiveNotifications() {
-            try {
-                const { data: workouts } = await supabaseClient.from('workouts')
-                    .select('id')
-                    .eq('user_id', currentUser.id)
-                    .eq('status', 'pending');
-                
-                const badge = document.getElementById('navNotifyBadge');
-                if (workouts && workouts.length > 0) {
-                    if (badge) {
-                        badge.textContent = workouts.length;
-                        badge.style.display = 'inline-block';
-                    }
-                } else {
-                    if (badge) badge.style.display = 'none';
-                }
-            } catch (err) {
-                console.error(err);
+        function loadDietPlan(firestoreData) {
+            const container = document.getElementById('dietPlanContainer');
+            if (!firestoreData) {
+                container.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">🥗</div>Generate a diet plan in the Aarohh app first.</div></div>`;
+                return;
             }
+            const plan = firestoreData.currentDietPlan || [];
+            if (!plan.length) {
+                container.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">🥗</div>No diet plan found. Generate one in the app!</div></div>`;
+                return;
+            }
+            container.innerHTML = plan.map((day, idx) => {
+                const meals = day.meals || [];
+                return `
+                <div class="diet-day-card">
+                    <div class="workout-day-title" style="margin-bottom:12px;">Day ${idx + 1}${day.title ? ' — ' + day.title : ''}</div>
+                    ${meals.map(m => `
+                    <div class="meal-row">
+                        <span class="meal-name">${m.name || m.meal || 'Meal'}</span>
+                        <span class="meal-cal">${m.calories ? m.calories + ' kcal' : ''}</span>
+                    </div>`).join('')}
+                </div>`;
+            }).join('');
+        }
+
+        function getTimeAgo(date) {
+            const secs = Math.floor((new Date() - date) / 1000);
+            if (secs < 60) return 'just now';
+            const mins = Math.floor(secs / 60);
+            if (mins < 60) return `${mins}m ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
         }
 
         async function handleLogout() {
             try {
                 await supabaseClient.auth.signOut();
-                window.location.href = '../login/';
-            } catch (err) {
-                console.error("Logout failed:", err);
+                window.location.href = '../login/?logout=1';
+            } catch(err) {
+                window.location.href = '../login/?logout=1';
             }
         }
     </script>

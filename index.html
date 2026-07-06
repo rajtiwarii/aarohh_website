@@ -36,9 +36,6 @@
             <nav class="nav-links" id="navLinks">
                 <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                 <a href="#features">Features</a>
-                <a href="subscribe/">Pricing</a>
-                <a href="#community">Community</a>
-                <a href="#about">About</a>
             </nav>
             <div class="auth-nav-container" id="authNav">
                 <button class="nav-cta" onclick="window.location.href='login/'">Sign In</button>
@@ -50,14 +47,10 @@
         </div>
     </header>
 
-    <!-- Mobile Nav Overlay -->
     <div class="mobile-nav" id="mobileNav">
         <div id="mobileNavLinks" style="display: flex; flex-direction: column; width: 100%; gap: 15px; margin-bottom: 20px;">
             <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="mobile-link">Home</a>
             <a href="#features" class="mobile-link">Features</a>
-            <a href="subscribe/" class="mobile-link">Pricing</a>
-            <a href="#community" class="mobile-link">Community</a>
-            <a href="#about" class="mobile-link">About</a>
         </div>
         <hr style="width: 100%; border-color: var(--border-color); margin: 10px 0;">
         <div id="mobileAuthContainer" style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
@@ -362,45 +355,24 @@
                     navLinksContainer.innerHTML = `
                         <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                         <a href="dashboard/">Dashboard</a>
-                        <a href="dashboard/#community">Community</a>
-                        <a href="subscribe/">Premium</a>
-                        <a href="dashboard/#notifications" class="notifications-bell-link">Notifications <span id="navNotifyBadge" style="background-color: #ff7b00; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; margin-left: 2px; display: none;">!</span></a>
+                        <a href="profile/">Profile</a>
                     `;
                     authNavContainer.innerHTML = `
-                        <div class="profile-dropdown">
-                            <button class="profile-dropdown-btn" onclick="toggleProfileDropdown()">Profile Menu ▾</button>
-                            <div id="profileDropdownContent" class="profile-dropdown-content">
-                                <a href="profile/">Profile</a>
-                                <a href="subscribe/#billing">Billing</a>
-                                <a href="profile/#settings">Settings</a>
-                                <hr style="border-color: var(--border-color); margin: 8px 0;">
-                                <a href="javascript:void(0)" onclick="handleLogout()">Logout</a>
-                            </div>
-                        </div>
+                        <button class="nav-cta" onclick="handleLogout()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary);">Logout</button>
                     `;
                     
                     mobileLinksContainer.innerHTML = `
                         <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); toggleMobileMenu(); return false;" class="mobile-link">Home</a>
                         <a href="dashboard/" class="mobile-link">Dashboard</a>
-                        <a href="dashboard/#community" class="mobile-link">Community</a>
-                        <a href="subscribe/" class="mobile-link">Premium</a>
                         <a href="profile/" class="mobile-link">Profile</a>
-                        <a href="subscribe/#billing" class="mobile-link">Billing</a>
-                        <a href="profile/#settings" class="mobile-link">Settings</a>
                     `;
                     mobileAuthContainer.innerHTML = `
                         <button class="mobile-cta" onclick="handleLogout()">Logout</button>
                     `;
-                    
-                    // Check notifications count dynamically from DB
-                    checkLiveNotifications();
                 } else {
                     navLinksContainer.innerHTML = `
                         <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Home</a>
                         <a href="#features">Features</a>
-                        <a href="subscribe/">Pricing</a>
-                        <a href="#community">Community</a>
-                        <a href="#about">About</a>
                     `;
                     authNavContainer.innerHTML = `
                         <button class="nav-cta" onclick="window.location.href='login/'">Sign In</button>
@@ -409,9 +381,6 @@
                     mobileLinksContainer.innerHTML = `
                         <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="mobile-link">Home</a>
                         <a href="#features" class="mobile-link">Features</a>
-                        <a href="subscribe/" class="mobile-link">Pricing</a>
-                        <a href="#community" class="mobile-link">Community</a>
-                        <a href="#about" class="mobile-link">About</a>
                     `;
                     mobileAuthContainer.innerHTML = `
                         <button class="mobile-cta" onclick="window.location.href='login/'">Sign In</button>
@@ -531,8 +500,11 @@
         async function handleLogout() {
             try {
                 await supabaseClient.auth.signOut();
+                // Redirect with logout flag to prevent auto-login on the login page
+                window.location.href = 'login/?logout=1';
             } catch (err) {
-                console.error("Logout failed:", err);
+                console.error('Logout failed:', err);
+                window.location.href = 'login/?logout=1';
             }
         }
     </script>

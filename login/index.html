@@ -172,17 +172,20 @@
             console.warn("localStorage sandbox restriction:", e);
         }
 
-        // Auto-redirect if already signed in
-        if (supabaseClient) {
+        // Auto-redirect if already signed in (but NOT if we just logged out)
+        const urlParams = new URLSearchParams(window.location.search);
+        const justLoggedOut = urlParams.get('logout') === '1';
+
+        if (supabaseClient && !justLoggedOut) {
             supabaseClient.auth.getSession().then(({ data: { session } }) => {
                 if (session) {
                     window.location.href = '../dashboard/';
                 }
             });
 
-            // Set up state change listener
+            // Only redirect on explicit SIGNED_IN, not on session restore after logout
             supabaseClient.auth.onAuthStateChange((event, session) => {
-                if (session) {
+                if (event === 'SIGNED_IN' && session) {
                     window.location.href = '../dashboard/';
                 }
             });
