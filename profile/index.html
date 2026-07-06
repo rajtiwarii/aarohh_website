@@ -471,15 +471,46 @@
         </div>
     </div>
 
+    <!-- Debug Log Banner at bottom of page -->
+    <div id="debugLogContainer" style="background:#222; color:#0f0; padding:15px; font-family:monospace; font-size:11px; border-top:2px solid #333; position:fixed; bottom:0; left:0; right:0; max-height:120px; overflow-y:auto; z-index:99999; display:none;">
+        <strong>[Aarohh Profile Debug Log]</strong><br>
+    </div>
+
     <script>
+        // Check for debug query param to show logs
+        if (window.location.search.includes('debug=1')) {
+            document.getElementById('debugLogContainer').style.display = 'block';
+        }
+
+        function logDebug(msg) {
+            console.log("[DEBUG]", msg);
+            const container = document.getElementById('debugLogContainer');
+            if (container) {
+                const line = document.createElement('div');
+                line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                container.appendChild(line);
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // Global error handler
+        window.onerror = function(message, source, lineno, colno, error) {
+            logDebug(`ERROR: ${message} at ${source}:${lineno}:${colno}`);
+            return false;
+        };
+
         const SUPABASE_URL = 'https://bbniblgdjyxolrbwbhek.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibmlibGdkanl4b2xyYndiaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2ODc2MjUsImV4cCI6MjA5ODI2MzYyNX0.7QHb1Hcdwj2c4SZQEA4fSnxioCtWqiF7azYQ--3U0r4';
 
         let supabaseClient, currentUser, appUserProfile;
 
+        logDebug("Initializing Supabase client...");
         try {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch(e) { console.error('Supabase init failed:', e); }
+            logDebug("Supabase client initialized successfully.");
+        } catch(e) { 
+            logDebug("Supabase client init failed: " + e.message); 
+        }
 
         // Apply theme
         try {
@@ -488,39 +519,99 @@
 
         // Auth guard
         if (supabaseClient) {
+            logDebug("Setting up Auth checks...");
+            
+            // 1. Direct session check immediately
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                logDebug("getSession response: " + (session ? "Session exists for " + session.user.email : "No session"));
+                if (session && !currentUser) {
+                    currentUser = session.user;
+                    logDebug("Starting loadProfileData from getSession...");
+                    loadProfileData().catch(err => logDebug("loadProfileData getSession catch: " + err.message));
+                }
+            }).catch(err => logDebug("getSession failed: " + err.message));
+
+            // 2. Event listener
             supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                logDebug("onAuthStateChange event: " + event);
                 const user = session ? session.user : null;
-                if (!user) { window.location.href = '../login/?logout=1'; return; }
-                currentUser = user;
-                await loadProfileData();
+                if (!user) { 
+                    logDebug("No user session, redirecting to login page.");
+                    window.location.href = '../login/?logout=1'; 
+                    return; 
+                }
+                if (user && (!currentUser || currentUser.id !== user.id)) {
+                    currentUser = user;
+                    logDebug("Starting loadProfileData from onAuthStateChange...");
+                    await loadProfileData();
+                }
             });
         }
 
         // Wait for Firebase module
         function waitForFirebase() {
             return new Promise(resolve => {
-                if (window._firebaseReady) { resolve(); return; }
-                document.addEventListener('firebase-ready', () => resolve(), { once: true });
-                setTimeout(resolve, 4000);
+                if (window._firebaseReady) { 
+                    logDebug("Firebase is already ready.");
+                    resolve(); 
+                    return; 
+                }
+                logDebug("Waiting for firebase-ready event...");
+                document.addEventListener('firebase-ready', () => {
+                    logDebug("firebase-ready event received.");
+                    resolve();
+                }, { once: true });
+                setTimeout(() => {
+                    logDebug("Firebase wait timed out (4s). Resolving anyway.");
+                    resolve();
+                }, 4000);
             });
         }
 
         // Tab switching
         function switchTab(name) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
-            document.getElementById(`tab-${name}`).classList.add('active');
+            logDebug("Switching tab to: " + name);
+            try {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                
+                // Find tab button by name attribute or by looping
+                let matchedBtn = null;
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    if (btn.getAttribute('onclick')?.includes(name)) {
+                        matchedBtn = btn;
+                    }
+                });
+                if (matchedBtn) {
+                    matchedBtn.classList.add('active');
+                }
+                
+                const panel = document.getElementById(`tab-${name}`);
+                if (panel) panel.classList.add('active');
+            } catch(e) {
+                logDebug("switchTab error: " + e.message);
+            }
         }
 
         // ====== LOAD ALL PROFILE DATA ======
         async function loadProfileData() {
+            logDebug("loadProfileData started.");
+            
             // 1. Supabase: name, username, bio, photo_url, is_premium
+            logDebug("Fetching Supabase profile for " + (currentUser ? currentUser.email : "null") + "...");
             const profile = await fetchSupabaseProfile();
             appUserProfile = profile;
+            logDebug("Supabase profile fetched: " + (profile ? "Found profile for ID: " + profile.id : "No profile found"));
 
             if (profile) {
-                renderProfileCard(profile);
+                try {
+                    renderProfileCard(profile);
+                    logDebug("renderProfileCard completed.");
+                } catch(e) {
+                    logDebug("renderProfileCard failed: " + e.message);
+                }
+            } else {
+                logDebug("Skipping renderProfileCard because profile is null.");
             }
 
             // 2. Firestore: full user doc (workout, diet, profile goals, streak)
