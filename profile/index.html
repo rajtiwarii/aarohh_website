@@ -533,26 +533,36 @@
         // Auth guard
         if (supabaseClient) {
             logDebug("Setting up Auth checks...");
+            let sessionChecked = false;
             
-            // 1. Direct session check immediately
+            // 1. Direct session check immediately — this is the source of truth
             supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                sessionChecked = true;
                 logDebug("getSession response: " + (session ? "Session exists for " + session.user.email : "No session"));
-                if (session && !currentUser) {
-                    currentUser = session.user;
-                    logDebug("Starting loadProfileData from getSession...");
-                    loadProfileData().catch(err => logDebug("loadProfileData getSession catch: " + err.message));
+                if (session && session.user) {
+                    if (!currentUser) {
+                        currentUser = session.user;
+                        logDebug("Starting loadProfileData from getSession...");
+                        loadProfileData().catch(err => logDebug("loadProfileData getSession catch: " + err.message));
+                    }
+                } else {
+                    // No session at all → redirect
+                    logDebug("getSession: no session, redirecting.");
+                    window.location.href = '../login/?logout=1';
                 }
-            }).catch(err => logDebug("getSession failed: " + err.message));
+            }).catch(err => {
+                logDebug("getSession failed: " + err.message);
+                window.location.href = '../login/?logout=1';
+            });
 
-            // 2. Event listener
+            // 2. Auth state change listener — only redirect on SIGNED_OUT, ignore initial null
             supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 logDebug("onAuthStateChange event: " + event);
-                const user = session ? session.user : null;
-                if (!user) { 
-                    logDebug("No user session, redirecting to login page.");
-                    window.location.href = '../login/?logout=1'; 
-                    return; 
+                if (event === 'SIGNED_OUT') {
+                    window.location.href = '../login/?logout=1';
+                    return;
                 }
+                const user = session ? session.user : null;
                 if (user && (!currentUser || currentUser.id !== user.id)) {
                     currentUser = user;
                     logDebug("Starting loadProfileData from onAuthStateChange...");
@@ -667,22 +677,76 @@
                 return null;
             }
             try {
-                let { data } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                // Try by Supabase auth UID first
+                let { data, error } = await supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle();
+                logDebug("fetchSupabaseProfile by id: " + (data ? 'found' : 'not found') + (error ? ' error: ' + error.message : ''));
+
+                // Fallback: try by email
                 if (!data && currentUser.email) {
-                    const { data: byEmail } = await supabaseClient.from('users').select('*').eq('email', currentUser.email).maybeSingle();
+                    const { data: byEmail, error: emailErr } = await supabaseClient.from('users').select('*').eq('email', currentUser.email).maybeSingle();
+                    logDebug("fetchSupabaseProfile by email: " + (byEmail ? 'found' : 'not found') + (emailErr ? ' error: ' + emailErr.message : ''));
                     data = byEmail;
                 }
+
+                // Self-heal: if still no profile, create one from auth metadata
+                if (!data && currentUser.email) {
+                    logDebug("No profile found — self-healing from auth metadata");
+                    const meta = currentUser.user_metadata || {};
+                    const fallbackName = meta.full_name || meta.name || currentUser.email.split('@')[0];
+                    const fallbackUsername = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '') + Math.floor(Math.random() * 100);
+                    const insertPayload = {
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        name: fallbackName,
+                        username: fallbackUsername,
+                        photo_url: meta.avatar_url || meta.picture || null,
+                        is_premium: false
+                    };
+                    const { data: newProfile, error: upsertErr } = await supabaseClient.from('users').upsert(insertPayload).select().maybeSingle();
+                    logDebug("Self-heal upsert: " + (newProfile ? 'success' : 'failed') + (upsertErr ? ' ' + upsertErr.message : ''));
+                    data = newProfile || insertPayload; // Use local data even if upsert failed
+                }
+
+                // Always ensure we return at least a minimal object from auth metadata
+                if (!data) {
+                    const meta = currentUser.user_metadata || {};
+                    data = {
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        name: meta.full_name || meta.name || currentUser.email.split('@')[0],
+                        username: currentUser.email.split('@')[0],
+                        photo_url: meta.avatar_url || meta.picture || null,
+                        is_premium: false
+                    };
+                    logDebug("Using auth metadata fallback profile");
+                }
+
                 return data;
             } catch(err) { 
-                logDebug('fetchSupabaseProfile db exception: ' + err.message); 
-                return null; 
+                logDebug('fetchSupabaseProfile db exception: ' + err.message);
+                // Return minimal object from auth metadata so UI still renders
+                const meta = currentUser?.user_metadata || {};
+                return {
+                    id: currentUser?.id,
+                    email: currentUser?.email,
+                    name: meta.full_name || meta.name || currentUser?.email?.split('@')[0] || 'Aarohh User',
+                    username: currentUser?.email?.split('@')[0] || 'user',
+                    photo_url: meta.avatar_url || meta.picture || null,
+                    is_premium: false
+                };
             }
         }
 
         function renderProfileCard(profile) {
-            if (profile.photo_url) document.getElementById('profileAvatar').src = profile.photo_url;
-            document.getElementById('profileName').textContent = profile.name || 'Aarohh User';
-            document.getElementById('profileHandle').textContent = profile.username ? `@${profile.username}` : `@${currentUser.email?.split('@')[0] || '—'}`;
+            // Avatar: prefer profile photo, fallback to Google avatar from auth metadata
+            const avatarSrc = profile.photo_url 
+                || currentUser?.user_metadata?.avatar_url 
+                || currentUser?.user_metadata?.picture 
+                || null;
+            if (avatarSrc) document.getElementById('profileAvatar').src = avatarSrc;
+
+            document.getElementById('profileName').textContent = profile.name || currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || 'Aarohh User';
+            document.getElementById('profileHandle').textContent = profile.username ? `@${profile.username}` : `@${currentUser?.email?.split('@')[0] || '—'}`;
 
             if (profile.bio) {
                 const bioEl = document.getElementById('profileBio');
@@ -690,8 +754,8 @@
                 bioEl.style.display = 'block';
             }
 
-            // Joined date from Supabase created_at or Firebase
-            const created = profile.created_at;
+            // Joined date: profile DB, or auth user created_at
+            const created = profile.created_at || currentUser?.created_at;
             if (created) {
                 const d = new Date(created);
                 document.getElementById('joinedText').textContent = `Joined ${d.toLocaleString('default', {month:'short'})} ${d.getFullYear()}`;
